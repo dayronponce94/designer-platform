@@ -36,8 +36,8 @@ export default function Navbar() {
                                 key={link.href}
                                 href={link.href}
                                 className={`px-3 py-2 rounded-md text-sm font-medium ${pathname === link.href
-                                        ? 'text-blue-600 bg-blue-50'
-                                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                                    ? 'text-blue-600 bg-blue-50'
+                                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                                     }`}
                             >
                                 {link.label}
@@ -109,8 +109,8 @@ export default function Navbar() {
                                     key={link.href}
                                     href={link.href}
                                     className={`block px-3 py-2 rounded-md text-base font-medium ${pathname === link.href
-                                            ? 'text-blue-600 bg-blue-50'
-                                            : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                                        ? 'text-blue-600 bg-blue-50'
+                                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
                                         }`}
                                     onClick={() => setIsMenuOpen(false)}
                                 >
