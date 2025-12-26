@@ -35,7 +35,7 @@ export default function EducationExperience() {
             company: 'Proyecto de Recuperación de Identidad Cultural',
             period: '2024 – 2025',
             description: 'Uso de la plataforma de IA de Bing para identificar, recuperar y promover aspectos de la identidad cultural.',
-            link: 'https://heyzine.com/flip-book/01fbd4339b.html#page/18'
+            link: 'https://es.pinterest.com/Veronica_llero/'
         },
         {
             position: 'Diseñadora 3D y Desarrolladora de Realidad Aumentada',

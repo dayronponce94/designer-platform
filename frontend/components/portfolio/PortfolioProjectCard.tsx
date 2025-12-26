@@ -13,17 +13,26 @@ interface ProjectProps {
         image: string;
         color: string;
         icon: React.ReactNode;
+        fullDescription?: string; // Nueva propiedad
+        technologies?: string[]; // Nueva propiedad
+        client?: string; // Nueva propiedad
+        year?: string; // Nueva propiedad
+        images?: string[]; // Para la galería
     };
     isHovered: boolean;
     onMouseEnter: () => void;
     onMouseLeave: () => void;
+    onViewDetails: () => void; // Nueva prop
+    onViewGallery: () => void; // Nueva prop
 }
 
 export default function PortfolioProjectCard({
     project,
     isHovered,
     onMouseEnter,
-    onMouseLeave
+    onMouseLeave,
+    onViewDetails,
+    onViewGallery
 }: ProjectProps) {
     return (
         <div
@@ -33,13 +42,6 @@ export default function PortfolioProjectCard({
         >
             {/* Imagen del proyecto */}
             <div className="relative h-48 overflow-hidden">
-                {/* Placeholder de imagen - Reemplazar con Image de Next.js */}
-                {/*   
-                <div className={`absolute inset-0 bg-linear-to-r ${project.color} opacity-80`}></div>
-                <div className="absolute inset-0 flex items-center justify-center text-white text-6xl">
-                    {project.icon}
-                </div>
-                */}
                 {/* Para imágenes reales, descomenta esto: */}
                 <Image
                     src={project.image}
@@ -83,10 +85,16 @@ export default function PortfolioProjectCard({
                 {/* Botones de acción */}
                 <div className={`flex gap-3 transition-all duration-300 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                     }`}>
-                    <button className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors">
+                    <button
+                        onClick={onViewDetails}
+                        className="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                    >
                         Ver Detalles
                     </button>
-                    <button className="flex-1 py-2 bg-linear-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium hover:shadow-lg transition-all">
+                    <button
+                        onClick={onViewGallery}
+                        className="flex-1 py-2 bg-linear-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                    >
                         Ver Proyecto
                     </button>
                 </div>
