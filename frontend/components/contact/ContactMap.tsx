@@ -29,7 +29,7 @@ const countriesByLanguage = {
         { name: 'Portugal', capital: 'Lisboa', coordinates: [38.7223, -9.1393], flag: '🇵🇹', color: '#FFD166' },
         { name: 'Brasil', capital: 'Brasilia', coordinates: [-15.7801, -47.9292], flag: '🇧🇷', color: '#06D6A0' },
         { name: 'Angola', capital: 'Luanda', coordinates: [-8.8390, 13.2894], flag: '🇦🇴', color: '#118AB2' },
-        { name: 'Mozambique', capital: 'Maputo', coordinates: [-25.9692, 32.5732], flag: '🇲🇿', color: '#EF476F' },
+
     ],
     inglés: [
         { name: 'Reino Unido', capital: 'Londres', coordinates: [51.5074, -0.1278], flag: '🇬🇧', color: '#7209B7' },
@@ -94,7 +94,7 @@ export default function ContactMap() {
                 <div className="animate-pulse">
                     <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
                     <div className="h-4 bg-gray-200 rounded w-2/3 mb-8"></div>
-                    <div className="h-[400px] bg-gray-200 rounded"></div>
+                    <div className="h-100 bg-gray-200 rounded"></div>
                 </div>
             </div>
         );
@@ -164,7 +164,7 @@ export default function ContactMap() {
                                 }}
                             >
                                 <Popup className="custom-popup">
-                                    <div className="p-2 min-w-[200px]">
+                                    <div className="p-2 min-w-50">
                                         <div className="flex items-center mb-3">
                                             <span className="text-2xl mr-3">{country.flag}</span>
                                             <div>
@@ -237,9 +237,9 @@ export default function ContactMap() {
             </div>
 
             {/* Información adicional */}
-            <div className="mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+            <div className="mt-8 p-4 bg-linear-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
                 <div className="flex items-center">
-                    <FiMapPin className="text-blue-600 mr-3 flex-shrink-0" />
+                    <FiMapPin className="text-blue-600 mr-3 shrink-0" />
                     <div>
                         <h4 className="font-bold text-gray-900">Diseñadora Principal</h4>
                         <p className="text-gray-700">

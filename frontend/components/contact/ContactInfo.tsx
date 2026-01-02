@@ -22,7 +22,7 @@ export default function ContactInfo() {
     return (
         <div className="space-y-8">
             {/* Información de contacto principal */}
-            <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
+            <div className="bg-linear-to-br from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
                 <h3 className="text-2xl font-bold mb-6">Información de Contacto Directo</h3>
                 <div className="space-y-6">
                     <div className="flex items-center">
@@ -116,7 +116,7 @@ export default function ContactInfo() {
             </div>
 
             {/* Equipo */}
-            <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 text-white">
+            <div className="bg-linear-to-br from-purple-500 to-pink-500 rounded-2xl p-6 text-white">
                 <h3 className="text-xl font-bold mb-4 flex items-center">
                     <FiUsers className="mr-2" />
                     Nuestro Equipo
