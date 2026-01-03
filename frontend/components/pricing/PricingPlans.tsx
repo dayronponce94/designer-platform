@@ -109,8 +109,8 @@ export default function PricingPlans() {
                         <button
                             onClick={() => setBillingPeriod('monthly')}
                             className={`px-8 py-3 rounded-full font-semibold transition-all ${billingPeriod === 'monthly'
-                                    ? 'bg-white text-gray-900 shadow-lg'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                ? 'bg-white text-gray-900 shadow-lg'
+                                : 'text-gray-600 hover:text-gray-900'
                                 }`}
                         >
                             Mensual
@@ -118,8 +118,8 @@ export default function PricingPlans() {
                         <button
                             onClick={() => setBillingPeriod('yearly')}
                             className={`px-8 py-3 rounded-full font-semibold transition-all relative ${billingPeriod === 'yearly'
-                                    ? 'bg-white text-gray-900 shadow-lg'
-                                    : 'text-gray-600 hover:text-gray-900'
+                                ? 'bg-white text-gray-900 shadow-lg'
+                                : 'text-gray-600 hover:text-gray-900'
                                 }`}
                         >
                             Anual
@@ -146,14 +146,14 @@ export default function PricingPlans() {
                             <div
                                 key={plan.name}
                                 className={`relative rounded-2xl border-2 transition-all duration-300 ${plan.popular
-                                        ? 'border-purple-500 shadow-2xl transform -translate-y-2'
-                                        : 'border-gray-200 hover:border-gray-300'
+                                    ? 'border-purple-500 shadow-2xl transform -translate-y-2'
+                                    : 'border-gray-200 hover:border-gray-300'
                                     }`}
                                 onMouseEnter={() => setHoveredPlan(index)}
                                 onMouseLeave={() => setHoveredPlan(null)}
                             >
                                 {plan.popular && (
-                                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full">
+                                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 px-6 py-2 bg-linear-to-r from-purple-500 to-pink-500 text-white font-bold rounded-full">
                                         Más Popular
                                     </div>
                                 )}
@@ -189,9 +189,9 @@ export default function PricingPlans() {
                                         {plan.features.map((feature, idx) => (
                                             <li key={idx} className="flex items-center">
                                                 {feature.included ? (
-                                                    <FiCheck className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
+                                                    <FiCheck className="w-5 h-5 text-green-500 mr-3 shrink-0" />
                                                 ) : (
-                                                    <FiX className="w-5 h-5 text-gray-300 mr-3 flex-shrink-0" />
+                                                    <FiX className="w-5 h-5 text-gray-300 mr-3 shrink-0" />
                                                 )}
                                                 <span className={feature.included ? 'text-gray-700' : 'text-gray-400'}>
                                                     {feature.text}
@@ -206,8 +206,8 @@ export default function PricingPlans() {
                                     {/* CTA */}
                                     <button
                                         className={`w-full py-4 font-bold rounded-xl transition-all duration-300 ${plan.popular
-                                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-2xl'
-                                                : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white hover:shadow-lg'
+                                            ? 'bg-linear-to-r from-purple-500 to-pink-500 text-white hover:shadow-2xl'
+                                            : 'bg-linear-to-r from-blue-500 to-cyan-500 text-white hover:shadow-lg'
                                             }`}
                                     >
                                         {plan.cta}
@@ -265,7 +265,7 @@ export default function PricingPlans() {
                                     ))}
                                 </ul>
 
-                                <button className="w-full py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl hover:shadow-lg transition-all duration-300">
+                                <button className="w-full py-4 bg-linear-to-r from-green-500 to-teal-500 text-white font-bold rounded-xl hover:shadow-lg transition-all duration-300">
                                     {plan.price === 'Gratis' ? 'Registrarse Gratis' : 'Convertirse en Partner'}
                                 </button>
                             </div>

@@ -1,6 +1,6 @@
 export default function PricingHero() {
     return (
-        <section className="relative overflow-hidden bg-gradient-to-br from-gray-900 to-black text-white">
+        <section className="relative overflow-hidden bg-linear-to-br from-gray-900 to-black text-white">
             {/* Efectos de fondo */}
             <div className="absolute inset-0 opacity-5">
                 <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
