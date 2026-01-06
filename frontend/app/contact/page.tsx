@@ -1,7 +1,14 @@
+'use client';
+
 import ContactHero from '@/components/contact/ContactHero';
 import ContactForm from '@/components/contact/ContactForm';
 import ContactInfo from '@/components/contact/ContactInfo';
-import ContactMap from '@/components/contact/ContactMap';
+import dynamic from "next/dynamic";
+
+const ContactMap = dynamic(() => import("@/components/contact/ContactMap"), {
+    ssr: false, // 👈 evita que se ejecute en el servidor
+});
+
 
 export default function ContactPage() {
     return (
