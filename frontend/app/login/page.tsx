@@ -5,9 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import AuthLayout from '@/components/auth/AuthLayout';
+import { useAuthContext } from '@/app/providers/AuthProvider';
+import Alert from '@/components/ui/Alert';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { login, isLoading, error, clearError } = useAuthContext();
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
@@ -15,12 +18,18 @@ export default function LoginPage() {
         rememberMe: false
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Aquí iría la lógica de autenticación real
-        console.log('Login attempt:', formData);
-        // Simulación de login exitoso
-        router.push('/dashboard');
+        clearError();
+
+        const result = await login(formData);
+
+        if (result.success) {
+            // Redirección manejada por el hook
+            return;
+        }
+
+        // El error ya está manejado por el hook
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,6 +38,9 @@ export default function LoginPage() {
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
+
+        // Limpiar error cuando el usuario empieza a escribir
+        if (error) clearError();
     };
 
     return (
@@ -40,6 +52,15 @@ export default function LoginPage() {
             showBackButton={true}
             isLongForm={false}
         >
+            {error && (
+                <Alert
+                    type="error"
+                    message={error}
+                    onClose={clearError}
+                    className="mb-4"
+                />
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Campo Email */}
                 <div>
@@ -56,6 +77,7 @@ export default function LoginPage() {
                             className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition"
                             placeholder="tu@email.com"
                             required
+                            disabled={isLoading}
                         />
                     </div>
                 </div>
@@ -83,6 +105,7 @@ export default function LoginPage() {
                             className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition"
                             placeholder="••••••••"
                             required
+                            disabled={isLoading}
                         />
                         <button
                             type="button"
@@ -103,6 +126,7 @@ export default function LoginPage() {
                             checked={formData.rememberMe}
                             onChange={handleChange}
                             className="w-4 h-4 text-primary rounded focus:ring-primary/30"
+                            disabled={isLoading}
                         />
                         <span className="ml-2 text-gray-700">Recordar esta sesión</span>
                     </label>
@@ -110,9 +134,17 @@ export default function LoginPage() {
 
                 <button
                     type="submit"
-                    className="w-full py-3 bg-linear-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300"
+                    disabled={isLoading}
+                    className={`w-full py-3 bg-linear-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
-                    Iniciar Sesión
+                    {isLoading ? (
+                        <div className="flex items-center justify-center">
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                            Iniciando sesión...
+                        </div>
+                    ) : (
+                        'Iniciar Sesión'
+                    )}
                 </button>
 
                 {/* Separador */}

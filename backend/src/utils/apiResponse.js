@@ -11,8 +11,8 @@ class ApiResponse {
         return new ApiResponse(true, message, data, statusCode);
     }
 
-    static error(message, statusCode = 400, data = null) {
-        return new ApiResponse(false, message, data, statusCode);
+    static error(message, statusCode = 400) {
+        return new ApiResponse(false, message, null, statusCode);
     }
 
     static unauthorized(message = 'No autorizado') {

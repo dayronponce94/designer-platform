@@ -9,8 +9,8 @@ import Footer from '@/components/layout/Footer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Designer Platform - Plataforma Profesional de Diseño',
-  description: 'Conectamos clientes con talento en diseño. Solicita proyectos directamente.',
+  title: `${process.env.NEXT_PUBLIC_APP_NAME} | Plataforma de Diseño Profesional`,
+  description: `${process.env.NEXT_PUBLIC_APP_DESCRIPTION} | Conectamos clientes con talento en diseño. Solicita proyectos directamente.`,
 };
 
 export default function RootLayout({

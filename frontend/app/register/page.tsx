@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '@/app/lib/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -11,6 +12,7 @@ import AuthLayout from '@/components/auth/AuthLayout';
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { register: registerUser, isLoading, error } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [selectedRole, setSelectedRole] = useState<'client' | 'designer'>('client');
@@ -26,7 +28,7 @@ export default function RegisterPage() {
         receiveUpdates: true
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         // Validación básica
@@ -40,14 +42,17 @@ export default function RegisterPage() {
             return;
         }
 
-        // Aquí iría la lógica de registro real
-        console.log('Registro attempt:', {
-            ...formData,
-            role: selectedRole
-        });
+        const userData = {
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            role: selectedRole,
+            phone: formData.phone || undefined,
+            company: selectedRole === 'client' ? formData.company || undefined : undefined,
+            specialty: selectedRole === 'designer' ? formData.specialty || undefined : undefined,
+        };
 
-        // Simulación de registro exitoso
-        router.push('/dashboard');
+        const result = await registerUser(userData);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -87,6 +92,11 @@ export default function RegisterPage() {
             showBackButton={true}
             isLongForm={true}
         >
+            {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-800 font-medium">Error: {error}</p>
+                </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Selección de Rol */}
                 <div>
