@@ -2,53 +2,57 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
     FiHome,
     FiBriefcase,
-    FiMessageSquare,
+    FiBell,
     FiSettings,
     FiCreditCard,
     FiUsers,
     FiFileText,
-    FiBell,
     FiChevronLeft,
     FiChevronRight,
-    FiStar,
+    FiFolder,
     FiCalendar,
-    FiDollarSign
+    FiDollarSign,
+    FiUpload,
+    FiList
 } from 'react-icons/fi';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 
 export default function Sidebar() {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const pathname = usePathname();
-    const router = useRouter();
     const { user } = useAuthContext();
 
+    // Navegación para CLIENTES
     const clientNavigation = [
         { name: 'Inicio', href: '/dashboard', icon: FiHome },
         { name: 'Mis Proyectos', href: '/dashboard/projects', icon: FiBriefcase },
-        { name: 'Mensajes', href: '/dashboard/messages', icon: FiMessageSquare },
-        { name: 'Facturación', href: '/dashboard/billing', icon: FiCreditCard },
-        { name: 'Calendario', href: '/dashboard/calendar', icon: FiCalendar },
+        { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
+        { name: 'Mis Pagos', href: '/dashboard/payments', icon: FiCreditCard },
+        { name: 'Próximas Entregas', href: '/dashboard/deliveries', icon: FiCalendar },
     ];
 
+    // Navegación para DISEÑADORES
     const designerNavigation = [
         { name: 'Inicio', href: '/dashboard', icon: FiHome },
-        { name: 'Proyectos', href: '/dashboard/projects', icon: FiBriefcase },
-        { name: 'Mensajes', href: '/dashboard/messages', icon: FiMessageSquare },
-        { name: 'Portafolio', href: '/dashboard/portfolio', icon: FiStar },
-        { name: 'Facturación', href: '/dashboard/billing', icon: FiDollarSign },
-        { name: 'Calendario', href: '/dashboard/calendar', icon: FiCalendar },
+        { name: 'Proyectos Asignados', href: '/dashboard/projects', icon: FiBriefcase },
+        { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
+        { name: 'Mi Portafolio', href: '/dashboard/portfolio', icon: FiFolder },
+        { name: 'Mis Ingresos', href: '/dashboard/earnings', icon: FiDollarSign },
+        { name: 'Mis Plazos', href: '/dashboard/deadlines', icon: FiCalendar },
     ];
 
+    // Navegación para ADMIN
     const adminNavigation = [
         { name: 'Inicio', href: '/dashboard', icon: FiHome },
-        { name: 'Proyectos', href: '/dashboard/projects', icon: FiBriefcase },
+        { name: 'Gestión de Proyectos', href: '/dashboard/projects', icon: FiBriefcase },
         { name: 'Clientes', href: '/dashboard/clients', icon: FiUsers },
         { name: 'Diseñadores', href: '/dashboard/designers', icon: FiUsers },
-        { name: 'Facturación', href: '/dashboard/billing', icon: FiCreditCard },
+        { name: 'Portafolios', href: '/dashboard/portfolios', icon: FiFolder },
+        { name: 'Pagos', href: '/dashboard/payments', icon: FiCreditCard },
         { name: 'Reportes', href: '/dashboard/reports', icon: FiFileText },
     ];
 
@@ -64,7 +68,7 @@ export default function Sidebar() {
                     {!isCollapsed && (
                         <div>
                             <h2 className="text-lg font-semibold text-gray-900">Panel de Control</h2>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-gray-500 mt-1 capitalize">
                                 {user?.role === 'designer' ? 'Diseñador' : user?.role === 'admin' ? 'Administrador' : 'Cliente'}
                             </p>
                         </div>
@@ -97,8 +101,28 @@ export default function Sidebar() {
                     })}
                 </nav>
 
-                {/* Configuración siempre al final */}
+                {/* Botón de acción principal según rol */}
                 <div className="mt-auto pt-4 border-t border-gray-200">
+                    {user?.role === 'client' && (
+                        <Link
+                            href="/dashboard/projects/new"
+                            className="flex items-center justify-center w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-3"
+                        >
+                            <FiUpload className="mr-2" />
+                            {!isCollapsed && <span>Solicitar Proyecto</span>}
+                        </Link>
+                    )}
+
+                    {user?.role === 'designer' && (
+                        <Link
+                            href="/dashboard/portfolio/upload"
+                            className="flex items-center justify-center w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mb-3"
+                        >
+                            <FiUpload className="mr-2" />
+                            {!isCollapsed && <span>Subir Trabajo</span>}
+                        </Link>
+                    )}
+
                     <Link
                         href="/dashboard/settings"
                         className={`flex items-center ${isCollapsed ? 'justify-center' : 'px-3'} py-2.5 rounded-lg transition-colors ${pathname === '/dashboard/settings'

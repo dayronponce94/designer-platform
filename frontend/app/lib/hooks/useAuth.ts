@@ -7,13 +7,26 @@ interface User {
     name: string;
     email: string;
     role: 'client' | 'designer' | 'admin';
+
+    // Opcionales
+    portfolio?: string;
     company?: string;
     phone?: string;
     specialty?: string;
     bio?: string;
     skills?: string[];
+
+    // Estado
     isVerified: boolean;
     isActive: boolean;
+
+    // Fechas
+    createdAt?: string;   // viene de Mongo como ISO string
+    updatedAt?: string;   // opcional si lo usas
+    lastLogin?: string;   // también ISO string
+
+    // Experiencia
+    experience: number;
 }
 
 interface AuthState {
