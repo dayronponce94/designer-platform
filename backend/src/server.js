@@ -6,7 +6,7 @@ const logger = require('./utils/logger');
 // Conectar a la base de datos
 connectDB();
 
-const server = app.listen(env.PORT, () => {
+const server = app.listen(env.PORT, '0.0.0.0', () => {
     logger.info(` Servidor backend ejecutándose en modo ${env.NODE_ENV}`);
     logger.info(` URL: ${env.SERVER_URL}`);
     logger.info(` MongoDB: ${env.MONGODB_URI.split('@')[1] || 'local'}`);
