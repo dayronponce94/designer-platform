@@ -45,6 +45,7 @@ const updateUser = asyncHandler(async (req, res) => {
         phone: req.body.phone,
         bio: req.body.bio,
         specialty: req.body.specialty,
+        experience: req.body.experience,
         skills: req.body.skills,
         portfolio: req.body.portfolio
     };

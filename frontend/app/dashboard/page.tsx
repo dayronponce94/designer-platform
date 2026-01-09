@@ -10,7 +10,15 @@ import {
     FiClock,
     FiAward,
     FiUsers,
-    FiSettings
+    FiSettings,
+    FiImage,
+    FiHelpCircle,
+    FiGrid,
+    FiDownload,
+    FiUpload,
+    FiBell,
+    FiTool,
+    FiBookOpen
 } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -122,68 +130,82 @@ export default function DashboardPage() {
 
     const stats = user?.role === 'designer' ? designerStats : clientStats;
 
+    // 1. Definimos el tipo de color permitido
+    type Color = "blue" | "green" | "purple" | "orange";
+
+    // 2. Definimos la interfaz de acción rápida
+    interface QuickAction {
+        name: string;
+        icon: React.ElementType;
+        color: Color;
+        href: string;
+        desc: string;
+    }
+
+
     // Acciones rápidas por rol
-    const clientActions = [
+    const clientActions: QuickAction[] = [
         {
-            name: 'Solicitar Proyecto',
-            icon: '➕',
+            name: 'Explorar Portafolio',
+            icon: FiImage,
             color: 'blue',
-            href: '/dashboard/projects/new',
-            desc: 'Comenzar nuevo diseño'
-        },
-        {
-            name: 'Ver Portafolio',
-            icon: '🎨',
-            color: 'purple',
             href: '/portfolio',
-            desc: 'Inspiración'
+            desc: 'Ver trabajos anteriores'
         },
         {
             name: 'Contactar Soporte',
-            icon: '💬',
+            icon: FiHelpCircle,
             color: 'green',
             href: '/contact',
-            desc: 'Ayuda 24/7'
+            desc: 'Ayuda y preguntas'
         },
         {
             name: 'Ver Servicios',
-            icon: '📋',
-            color: 'orange',
+            icon: FiGrid,
+            color: 'purple',
             href: '/services',
-            desc: 'Ver opciones'
+            desc: 'Descubre opciones'
+        },
+        {
+            name: 'Descargar Recursos',
+            icon: FiDownload,
+            color: 'orange',
+            href: '/dashboard/resources',
+            desc: 'Guías y plantillas'
         },
     ];
 
-    const designerActions = [
+    const designerActions: QuickAction[] = [
         {
-            name: 'Nuevo Proyecto',
-            icon: '🚀',
+            name: 'Subir Entregable',
+            icon: FiUpload,
             color: 'blue',
-            href: '/dashboard/projects/new',
-            desc: 'Asignado recientemente'
+            href: '/dashboard/projects/deliver',
+            desc: 'Entregar trabajo'
         },
         {
-            name: 'Mi Portafolio',
-            icon: '📁',
+            name: 'Ver Notificaciones',
+            icon: FiBell,
             color: 'purple',
-            href: '/dashboard/portfolio',
-            desc: 'Actualizar trabajos'
+            href: '/dashboard/notifications',
+            desc: 'Actualizaciones'
         },
         {
-            name: 'Mensajes',
-            icon: '✉️',
+            name: 'Herramientas',
+            icon: FiTool,
             color: 'green',
-            href: '/dashboard/messages',
-            desc: 'Responder clientes'
+            href: '/dashboard/tools',
+            desc: 'Recursos útiles'
         },
         {
-            name: 'Configuración',
-            icon: '⚙️',
-            color: 'gray',
-            href: '/dashboard/settings',
-            desc: 'Perfil y preferencias'
+            name: 'Guías de Estilo',
+            icon: FiBookOpen,
+            color: 'orange',
+            href: '/dashboard/guides',
+            desc: 'Estándares de diseño'
         },
     ];
+
 
     const quickActions = user?.role === 'designer' ? designerActions : clientActions;
 
@@ -296,29 +318,7 @@ export default function DashboardPage() {
                 })}
             </div>
 
-            {/* Explicación de cada estadística */}
-
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-6">
-                <h3 className="font-semibold text-blue-800 mb-3">¿Qué significan estos números?</h3>
-
-                {user?.role === 'client' ? (
-                    <div className="space-y-2 text-sm text-blue-700">
-                        <p><strong>Proyectos Activos:</strong> Trabajos que están en proceso de diseño.</p>
-                        <p><strong>Completados:</strong> Proyectos entregados y finalizados.</p>
-                        <p><strong>Solicitudes:</strong> Cotizaciones que has enviado para nuevos proyectos.</p>
-                        <p><strong>Próximo Paso:</strong> La siguiente acción que debes tomar en tu proyecto más reciente.</p>
-                    </div>
-                ) : (
-                    <div className="space-y-2 text-sm text-blue-700">
-                        <p><strong>Proyectos Asignados:</strong> Trabajos que te han sido asignados.</p>
-                        <p><strong>Clientes Atendidos:</strong> Número de clientes únicos que has trabajado.</p>
-                        <p><strong>En Revisión:</strong> Proyectos esperando aprobación del cliente.</p>
-                        <p><strong>Completados:</strong> Trabajos entregados y aceptados.</p>
-                    </div>
-                )}
-            </div>
-
-            {/* Información del Usuario Mejorada */}
+            {/* Información del Usuario */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white rounded-xl shadow p-6">
                     <h2 className="text-xl font-bold text-gray-900 mb-4">Información de la Cuenta</h2>
@@ -434,25 +434,39 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl shadow p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Acciones Rápidas</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {quickActions.map((action) => (
-                        <a
-                            key={action.name}
-                            href={action.href}
-                            className={`group p-5 border border-gray-200 rounded-xl hover:border-${action.color}-500 hover:shadow-md transition-all`}
-                        >
-                            <div className="flex items-center">
-                                <div className={`text-2xl mr-3 group-hover:scale-110 transition-transform`}>
-                                    {action.icon}
+                    {quickActions.map((action) => {
+                        const Icon = action.icon;
+                        const colorClasses = {
+                            blue: 'hover:border-blue-500 group-hover:text-blue-600',
+                            green: 'hover:border-green-500 group-hover:text-green-600',
+                            purple: 'hover:border-purple-500 group-hover:text-purple-600',
+                            orange: 'hover:border-orange-500 group-hover:text-orange-600',
+                        };
+
+                        return (
+                            <a
+                                key={action.name}
+                                href={action.href}
+                                className={`group p-5 border border-gray-200 rounded-xl hover:shadow-md transition-all ${colorClasses[action.color]}`}
+                            >
+                                <div className="flex items-center">
+                                    <div className={`p-2 rounded-lg mr-3 group-hover:scale-110 transition-transform ${action.color === 'blue' ? 'bg-blue-100 text-blue-600' :
+                                        action.color === 'green' ? 'bg-green-100 text-green-600' :
+                                            action.color === 'purple' ? 'bg-purple-100 text-purple-600' :
+                                                'bg-orange-100 text-orange-600'
+                                        }`}>
+                                        <Icon className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900 group-hover:text-blue-600">
+                                            {action.name}
+                                        </p>
+                                        <p className="text-sm text-gray-500 mt-1">{action.desc}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-medium text-gray-900 group-hover:text-blue-600">
-                                        {action.name}
-                                    </p>
-                                    <p className="text-sm text-gray-500 mt-1">{action.desc}</p>
-                                </div>
-                            </div>
-                        </a>
-                    ))}
+                            </a>
+                        );
+                    })}
                 </div>
             </div>
 
