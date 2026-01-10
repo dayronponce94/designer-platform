@@ -8,6 +8,8 @@ const logger = require('./utils/logger');
 // Importar rutas
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const projectRoutes = require('./routes/projects');
+
 
 const app = express();
 
@@ -39,6 +41,7 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/projects', projectRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -50,5 +53,7 @@ app.use('*', (req, res) => {
 
 // Error handler
 app.use(errorHandler);
+
+
 
 module.exports = app;
