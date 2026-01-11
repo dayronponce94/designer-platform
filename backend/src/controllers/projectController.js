@@ -1,6 +1,40 @@
 const Project = require('../models/Project');
 const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Configurar almacenamiento para archivos
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = 'uploads/projects';
+        // Crear directorio si no existe
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB límite
+    fileFilter: function (req, file, cb) {
+        const filetypes = /jpeg|jpg|png|gif|pdf|doc|docx|psd|ai|xd|fig|sketch|zip|rar/;
+        const mimetype = filetypes.test(file.mimetype);
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+        if (mimetype && extname) {
+            return cb(null, true);
+        }
+        cb(new Error('Tipo de archivo no permitido'));
+    }
+}).array('attachments', 10); // Máximo 10 archivos
 
 // @desc    Obtener proyectos del usuario (cliente o diseñador)
 // @route   GET /api/projects
@@ -69,31 +103,67 @@ const getProjectById = asyncHandler(async (req, res) => {
 // @route   POST /api/projects
 // @access  Private (solo clientes)
 const createProject = asyncHandler(async (req, res) => {
-    const { title, description, serviceType, attachments } = req.body;
+    // Usar multer para procesar archivos
+    upload(req, res, async function (err) {
+        if (err) {
+            return res.status(400).json(
+                ApiResponse.error(err.message, 400).toJSON()
+            );
+        }
 
-    // Solo los clientes pueden crear proyectos
-    if (req.user.role !== 'client') {
-        return res.status(403).json(
-            ApiResponse.forbidden('Solo los clientes pueden crear proyectos').toJSON()
-        );
-    }
+        try {
+            const { title, description, serviceType, budget, deadline, references } = req.body;
 
-    const project = await Project.create({
-        title,
-        description,
-        serviceType,
-        client: req.user.id,
-        attachments: attachments || []
+            // Solo los clientes pueden crear proyectos
+            if (req.user.role !== 'client') {
+                return res.status(403).json(
+                    ApiResponse.forbidden('Solo los clientes pueden crear proyectos').toJSON()
+                );
+            }
+
+            // Procesar archivos subidos
+            const attachments = [];
+            if (req.files && req.files.length > 0) {
+                req.files.forEach(file => {
+                    const env = require('../config/env');
+
+                    attachments.push({
+                        url: `${env.SERVER_URL}/uploads/projects/${file.filename}`,
+                        filename: file.originalname,
+                        filetype: file.mimetype,
+                        size: file.size,
+                        uploadedAt: new Date()
+                    });
+                });
+            }
+
+            const project = await Project.create({
+                title,
+                description,
+                serviceType,
+                budget: budget ? parseInt(budget) : null,
+                deadline: deadline || null,
+                references: references || '',
+                client: req.user.id,
+                attachments
+            });
+
+            const populatedProject = await Project.findById(project._id)
+                .populate('client', 'name email company phone');
+
+            res.status(201).json(
+                ApiResponse.success('Proyecto creado exitosamente', {
+                    project: populatedProject
+                }, 201).toJSON()
+            );
+
+        } catch (error) {
+            console.error('Error al crear proyecto:', error);
+            res.status(500).json(
+                ApiResponse.error('Error interno del servidor', 500).toJSON()
+            );
+        }
     });
-
-    const populatedProject = await Project.findById(project._id)
-        .populate('client', 'name email');
-
-    res.status(201).json(
-        ApiResponse.success('Proyecto creado exitosamente', {
-            project: populatedProject
-        }, 201).toJSON()
-    );
 });
 
 // @desc    Actualizar un proyecto

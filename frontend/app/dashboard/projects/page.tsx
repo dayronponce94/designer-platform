@@ -183,7 +183,7 @@ export default function ProjectsPage() {
                                 <div className="p-6">
                                     <div className="flex justify-between items-start mb-4">
                                         <div>
-                                            <h3 className="text-lg font-semibold text-gray-900 truncate">{project.title}</h3>
+                                            <h3 className="text-lg font-semibold text-gray-900 wrap-break-word hyphens-auto line-clamp-2">{project.title}</h3>
                                             <p className="text-sm text-gray-500 mt-1">
                                                 {getServiceTypeLabel(project.serviceType)}
                                             </p>
@@ -198,8 +198,10 @@ export default function ProjectsPage() {
                                     <div className="space-y-3 text-sm text-gray-500 mb-6">
                                         <div className="flex items-center">
                                             <FiPackage className="mr-2" />
-                                            <span className="font-medium">
-                                                {project.budget ? `$${project.budget.toLocaleString()}` : 'Presupuesto por definir'}
+                                            <span>
+                                                {project.budget && project.budget > 0
+                                                    ? `Presupuesto: $${project.budget.toLocaleString()}`
+                                                    : 'Presupuesto por definir'}
                                             </span>
                                         </div>
                                         <div className="flex items-center">

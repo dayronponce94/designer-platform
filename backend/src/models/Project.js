@@ -36,6 +36,8 @@ const projectSchema = new mongoose.Schema(
             {
                 url: String,
                 filename: String,
+                filetype: String,
+                size: Number,
                 uploadedAt: {
                     type: Date,
                     default: Date.now
