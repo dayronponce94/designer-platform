@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 import Alert from '@/components/ui/Alert';
+import ConfirmModal from '@/components/modals/ConfirmModal';
 import {
     FiArrowLeft, FiClock, FiCheckCircle, FiAlertCircle,
     FiBriefcase, FiDollarSign, FiUser, FiCalendar,
@@ -57,6 +58,8 @@ export default function ProjectDetailPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState<'overview' | 'files' | 'timeline'>('overview');
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     const projectId = params.id as string;
 
@@ -183,11 +186,12 @@ export default function ProjectDetailPage() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    const handleDeleteProject = async () => {
-        if (!confirm('¿Estás seguro de eliminar este proyecto? Esta acción no se puede deshacer.')) {
-            return;
-        }
+    const handleDeleteClick = () => {
+        setDeleteModalOpen(true);
+    };
 
+    const handleDeleteConfirm = async () => {
+        setDeleteLoading(true);
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`/api/projects/${projectId}`, {
@@ -204,16 +208,11 @@ export default function ProjectDetailPage() {
             router.push('/dashboard/projects');
         } catch (err: any) {
             setError(err.message || 'Error al eliminar proyecto');
+        } finally {
+            setDeleteLoading(false);
+            setDeleteModalOpen(false);
         }
     };
-
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-100">
-                <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
 
     if (!project) {
         return (
@@ -282,7 +281,7 @@ export default function ProjectDetailPage() {
 
                         {user?.role === 'client' && (
                             <button
-                                onClick={handleDeleteProject}
+                                onClick={handleDeleteClick}
                                 className="flex items-center px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition"
                             >
                                 <FiTrash2 className="mr-2" />
@@ -663,6 +662,16 @@ export default function ProjectDetailPage() {
                     </div>
                 </div>
             </div>
+            <ConfirmModal
+                isOpen={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="¿Eliminar proyecto?"
+                message="Esta acción no se puede deshacer. El proyecto y todos sus datos asociados serán eliminados permanentemente."
+                confirmText={deleteLoading ? "Eliminando..." : "Eliminar Proyecto"}
+                cancelText="Cancelar"
+                type="danger"
+            />
         </div>
     );
 }

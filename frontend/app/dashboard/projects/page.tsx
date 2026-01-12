@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 import Alert from '@/components/ui/Alert';
+import ConfirmModal from '@/components/modals/ConfirmModal';
 import {
     FiBriefcase,
     FiPlus,
@@ -44,6 +45,9 @@ export default function ProjectsPage() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     useEffect(() => {
         fetchProjects();
@@ -52,9 +56,10 @@ export default function ProjectsPage() {
     const fetchProjects = async () => {
         try {
             setIsLoading(true);
+            const token = localStorage.getItem('token');
             const response = await fetch('/api/projects', {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
@@ -110,25 +115,34 @@ export default function ProjectsPage() {
         });
     };
 
-    const handleDeleteProject = async (projectId: string) => {
-        if (!confirm('¿Estás seguro de eliminar este proyecto? Esta acción no se puede deshacer.')) {
-            return;
-        }
+    const handleDeleteClick = (projectId: string) => {
+        setProjectToDelete(projectId);
+        setDeleteModalOpen(true);
+    };
 
+    const handleDeleteConfirm = async () => {
+        if (!projectToDelete) return;
+
+        setDeleteLoading(true);
         try {
-            const response = await fetch(`/api/projects/${projectId}`, {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/api/projects/${projectToDelete}`, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
             if (!response.ok) throw new Error('Error al eliminar proyecto');
 
             // Actualizar lista
-            setProjects(prev => prev.filter(p => p._id !== projectId));
+            setProjects(prev => prev.filter(p => p._id !== projectToDelete));
+            setDeleteModalOpen(false);
+            setProjectToDelete(null);
         } catch (err: any) {
             setError(err.message);
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
@@ -242,7 +256,7 @@ export default function ProjectsPage() {
                                             )}
                                             {user?.role === 'client' && (
                                                 <button
-                                                    onClick={() => handleDeleteProject(project._id)}
+                                                    onClick={() => handleDeleteClick(project._id)}
                                                     className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                                                     title="Eliminar proyecto"
                                                 >
@@ -283,6 +297,20 @@ export default function ProjectsPage() {
                     </div>
                 </>
             )}
+            {/* Modal de confirmación para eliminar */}
+            <ConfirmModal
+                isOpen={deleteModalOpen}
+                onClose={() => {
+                    setDeleteModalOpen(false);
+                    setProjectToDelete(null);
+                }}
+                onConfirm={handleDeleteConfirm}
+                title="¿Eliminar proyecto?"
+                message="Esta acción no se puede deshacer. El proyecto y todos sus datos asociados serán eliminados permanentemente."
+                confirmText={deleteLoading ? "Eliminando..." : "Eliminar Proyecto"}
+                cancelText="Cancelar"
+                type="danger"
+            />
         </div>
     );
 }

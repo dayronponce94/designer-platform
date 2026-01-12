@@ -170,61 +170,114 @@ const createProject = asyncHandler(async (req, res) => {
 // @route   PUT /api/projects/:id
 // @access  Private
 const updateProject = asyncHandler(async (req, res) => {
-    let project = await Project.findById(req.params.id);
+    // Usar multer para procesar archivos (misma configuración que createProject)
+    upload(req, res, async function (err) {
+        if (err) {
+            return res.status(400).json(
+                ApiResponse.error(err.message, 400).toJSON()
+            );
+        }
 
-    if (!project) {
-        return res.status(404).json(
-            ApiResponse.notFound('Proyecto no encontrado').toJSON()
-        );
-    }
+        try {
+            let project = await Project.findById(req.params.id);
 
-    // Verificar permisos
-    const { role, id: userId } = req.user;
-    const isClient = role === 'client' && project.client.toString() === userId.toString();
-    const isDesigner = role === 'designer' && project.designer && project.designer.toString() === userId.toString();
-    const isAdmin = role === 'admin';
+            if (!project) {
+                return res.status(404).json(
+                    ApiResponse.notFound('Proyecto no encontrado').toJSON()
+                );
+            }
 
-    if (!isClient && !isDesigner && !isAdmin) {
-        return res.status(403).json(
-            ApiResponse.forbidden('No tienes permiso para actualizar este proyecto').toJSON()
-        );
-    }
+            // Verificar permisos
+            const { role, id: userId } = req.user;
+            const isClient = role === 'client' && project.client.toString() === userId.toString();
+            const isDesigner = role === 'designer' && project.designer && project.designer.toString() === userId.toString();
+            const isAdmin = role === 'admin';
 
-    // Campos que se pueden actualizar
-    const updatableFields = {};
+            if (!isClient && !isDesigner && !isAdmin) {
+                return res.status(403).json(
+                    ApiResponse.forbidden('No tienes permiso para actualizar este proyecto').toJSON()
+                );
+            }
 
-    // Clientes pueden actualizar título, descripción, adjuntos
-    if (isClient || isAdmin) {
-        if (req.body.title) updatableFields.title = req.body.title;
-        if (req.body.description) updatableFields.description = req.body.description;
-        if (req.body.attachments) updatableFields.attachments = req.body.attachments;
-    }
+            // Campos que se pueden actualizar
+            const updatableFields = {};
+            const { title, description, serviceType, budget, deadline, references } = req.body;
 
-    // Diseñadores pueden actualizar estado y añadir mensajes
-    if (isDesigner || isAdmin) {
-        if (req.body.status) updatableFields.status = req.body.status;
-    }
+            // Clientes pueden actualizar título, descripción, tipo de servicio, referencias
+            if (isClient || isAdmin) {
+                if (title) updatableFields.title = title;
+                if (description) updatableFields.description = description;
+                if (serviceType) updatableFields.serviceType = serviceType;
+                if (references !== undefined) updatableFields.references = references;
+            }
 
-    // Admin puede asignar diseñador y presupuesto
-    if (isAdmin) {
-        if (req.body.designer) updatableFields.designer = req.body.designer;
-        if (req.body.budget) updatableFields.budget = req.body.budget;
-        if (req.body.deadline) updatableFields.deadline = req.body.deadline;
-    }
+            // Diseñadores pueden actualizar estado
+            if (isDesigner || isAdmin) {
+                if (req.body.status) updatableFields.status = req.body.status;
+            }
 
-    project = await Project.findByIdAndUpdate(
-        req.params.id,
-        updatableFields,
-        { new: true, runValidators: true }
-    )
-        .populate('client', 'name email')
-        .populate('designer', 'name email');
+            // Admin puede asignar diseñador y presupuesto
+            if (isAdmin) {
+                if (req.body.designer) updatableFields.designer = req.body.designer;
+                if (budget) updatableFields.budget = parseFloat(budget);
+                if (deadline) updatableFields.deadline = deadline;
+            }
 
-    res.status(200).json(
-        ApiResponse.success('Proyecto actualizado', {
-            project
-        }).toJSON()
-    );
+            // Procesar archivos nuevos
+            const newAttachments = [];
+            if (req.files && req.files.length > 0) {
+                req.files.forEach(file => {
+                    newAttachments.push({
+                        url: `/uploads/projects/${file.filename}`,
+                        filename: file.originalname,
+                        filetype: file.mimetype,
+                        size: file.size,
+                        uploadedAt: new Date()
+                    });
+                });
+            }
+
+            // Procesar archivos a eliminar (de req.body)
+            let attachmentsToRemove = [];
+            if (req.body.removeAttachments) {
+                attachmentsToRemove = Array.isArray(req.body.removeAttachments)
+                    ? req.body.removeAttachments
+                    : [req.body.removeAttachments];
+            }
+
+            // Actualizar archivos del proyecto
+            if (newAttachments.length > 0 || attachmentsToRemove.length > 0) {
+                // Filtrar archivos existentes (eliminar los marcados)
+                const existingAttachments = project.attachments.filter(
+                    att => !attachmentsToRemove.includes(att.url)
+                );
+
+                // Agregar nuevos archivos
+                updatableFields.attachments = [...existingAttachments, ...newAttachments];
+            }
+
+            // Aplicar actualizaciones
+            project = await Project.findByIdAndUpdate(
+                req.params.id,
+                { ...updatableFields, updatedAt: Date.now() },
+                { new: true, runValidators: true }
+            )
+                .populate('client', 'name email company phone')
+                .populate('designer', 'name email specialty bio skills portfolio');
+
+            res.status(200).json(
+                ApiResponse.success('Proyecto actualizado', {
+                    project
+                }).toJSON()
+            );
+
+        } catch (error) {
+            console.error('Error al actualizar proyecto:', error);
+            res.status(500).json(
+                ApiResponse.error('Error interno del servidor', 500).toJSON()
+            );
+        }
+    });
 });
 
 // @desc    Eliminar un proyecto
