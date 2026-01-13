@@ -265,6 +265,29 @@ const updateProject = asyncHandler(async (req, res) => {
                 .populate('client', 'name email company phone')
                 .populate('designer', 'name email specialty bio skills portfolio');
 
+            // Notificar cambio de estado al cliente
+            if (req.body.status && req.body.status !== oldStatus) {
+                await NotificationHelper.createProjectStatusNotification(
+                    project.client,
+                    project._id,
+                    project.title,
+                    oldStatus,
+                    project.status
+                );
+            }
+
+            // Notificar si se asigna un diseñador
+            if (req.body.designer && !project.designer?.equals(req.body.designer)) {
+                const projectWithDetails = await Project.findById(req.params.id).populate('client', 'name');
+
+                await NotificationHelper.createProjectAssignedNotification(
+                    req.body.designer,
+                    project._id,
+                    project.title,
+                    projectWithDetails.client.name
+                );
+            }
+
             res.status(200).json(
                 ApiResponse.success('Proyecto actualizado', {
                     project

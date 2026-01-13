@@ -13,3 +13,12 @@ export const userAPI = {
     updateUser: (id: string, data: any) => apiClient.put(`/users/${id}`, data),
     getDesigners: () => apiClient.get('/users/designers'),
 };
+
+export const notificationAPI = {
+    getNotifications: (params?: any) => apiClient.get('/notifications', { params }),
+    markAsRead: (id: string) => apiClient.patch(`/notifications/${id}/read`),
+    markAllAsRead: () => apiClient.patch('/notifications/mark-all-read'),
+    deleteNotification: (id: string) => apiClient.delete(`/notifications/${id}`),
+    deleteAllRead: () => apiClient.delete('/notifications/read'),
+    getUnreadCount: () => apiClient.get('/notifications/unread-count'),
+};
