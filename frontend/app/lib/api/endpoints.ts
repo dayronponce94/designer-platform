@@ -238,3 +238,12 @@ function getMockPaymentMethods() {
         }
     ];
 }
+
+export const projectAPI = {
+    getProjects: (params?: any) => apiClient.get('/projects', { params }),
+    getProjectById: (id: string) => apiClient.get(`/projects/${id}`),
+    createProject: (data: any) => apiClient.post('/projects', data),
+    updateProject: (id: string, data: any) => apiClient.put(`/projects/${id}`, data),
+    deleteProject: (id: string) => apiClient.delete(`/projects/${id}`),
+    addMessage: (id: string, data: any) => apiClient.post(`/projects/${id}/messages`, data),
+};
