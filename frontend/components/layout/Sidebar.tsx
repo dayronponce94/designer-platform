@@ -89,8 +89,8 @@ export default function Sidebar() {
                                 key={item.name}
                                 href={item.href}
                                 className={`flex items-center ${isCollapsed ? 'justify-center' : 'px-3'} py-2.5 rounded-lg transition-colors ${isActive
-                                        ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                     }`}
                                 title={isCollapsed ? item.name : ''}
                             >
@@ -126,8 +126,8 @@ export default function Sidebar() {
                     <Link
                         href="/dashboard/settings"
                         className={`flex items-center ${isCollapsed ? 'justify-center' : 'px-3'} py-2.5 rounded-lg transition-colors ${pathname === '/dashboard/settings'
-                                ? 'bg-gray-100 text-gray-900'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            ? 'bg-gray-100 text-gray-900'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                             }`}
                         title={isCollapsed ? 'Configuración' : ''}
                     >
