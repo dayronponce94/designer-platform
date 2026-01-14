@@ -2,130 +2,103 @@
 
 import { useState } from 'react';
 import {
-    FiLayers, FiSmartphone, FiMonitor,
-    FiPackage, FiTrendingUp, FiFilm, FiEdit3
+    FiMonitor,
+    FiBox, FiTarget,
+    FiFeather,
+    FiAward,
+    FiBookOpen,
 } from 'react-icons/fi';
-import { FaPalette } from "react-icons/fa";
+
 
 const services = [
     {
-        id: 'branding',
-        icon: <FaPalette className="w-10 h-10" />,
-        title: 'Branding Corporativo',
-        description: 'Creamos identidades visuales únicas que cuentan la historia de tu marca y conectan con tu audiencia.',
+        id: 'modelado-3d',
+        icon: <FiBox className="w-10 h-10" />,
+        title: 'Modelado 3D',
+        description: 'Modelos 3D optimizados en estilo Low Poly, ideales para videojuegos, aplicaciones móviles o ilustraciones digitales.',
         details: [
-            'Diseño de logotipo y variantes',
-            'Manual de identidad visual',
-            'Paleta de colores y tipografía',
-            'Sistema de iconografía'
+            'Diseño de Concepto (4 vistas)',
+            'Modelado profesional en Blender',
+            'Archivos fuente .blend y .FBX/.OBJ',
+            'Renders de alta calidad y texturas'
         ],
-        price: 'Desde €1,500',
-        color: 'from-blue-500 to-cyan-500',
-        popular: true
-    },
-    {
-        id: 'uxui',
-        icon: <FiLayers className="w-10 h-10" />,
-        title: 'UX/UI Design',
-        description: 'Diseñamos experiencias intuitivas y atractivas que mejoran la interacción y conversión de usuarios.',
-        details: [
-            'Research y user personas',
-            'Wireframing y prototyping',
-            'Diseño de interfaces responsivas',
-            'Design systems'
-        ],
-        price: 'Desde €2,000',
-        color: 'from-purple-500 to-pink-500',
+        price: 'Desde $300 USD',
+        color: 'from-purple-500 to-indigo-500',
         popular: false
     },
     {
-        id: 'web',
-        icon: <FiMonitor className="w-10 h-10" />,
-        title: 'Diseño Web',
-        description: 'Desarrollamos sitios web modernos, rápidos y optimizados para todos los dispositivos.',
+        id: 'publicidad-digital',
+        icon: <FiTarget className="w-10 h-10" />,
+        title: 'Publicidad Digital',
+        description: 'Diseño publicitario estratégico optimizado para captar la atención en Meta Ads, Google Ads y redes sociales.',
         details: [
-            'Diseño web responsivo',
-            'Landing pages optimizadas',
-            'E-commerce y tiendas online',
-            'Websites corporativos'
+            '3 Conceptos iniciales en Mockup',
+            'Optimización para conversión (CTR)',
+            'Formatos listos para publicación',
+            'Revisiones de color y tipografía'
         ],
-        price: 'Desde €1,800',
-        color: 'from-green-500 to-teal-500',
-        popular: false
-    },
-    {
-        id: 'mobile',
-        icon: <FiSmartphone className="w-10 h-10" />,
-        title: 'App Design',
-        description: 'Interfaces móviles nativas que ofrecen experiencias fluidas y memorables en iOS y Android.',
-        details: [
-            'UI design para móviles',
-            'Prototipos interactivos',
-            'Seguimiento de guías nativas',
-            'Testing de usabilidad'
-        ],
-        price: 'Desde €2,500',
+        price: 'Desde $45 USD',
         color: 'from-orange-500 to-red-500',
         popular: true
     },
     {
-        id: 'graphic',
-        icon: <FiEdit3 className="w-10 h-10" />,
-        title: 'Diseño Gráfico',
-        description: 'Materiales impresos y digitales que comunican tu mensaje de forma clara y profesional.',
+        id: 'ilustraciones-digitales',
+        icon: <FiFeather className="w-10 h-10" />,
+        title: 'Ilustraciones Digitales',
+        description: 'Convertimos tus ideas y personajes en piezas visuales únicas con acabado profesional y alta resolución.',
         details: [
-            'Diseño de presentaciones',
-            'Materiales de marketing',
-            'Papelería corporativa',
-            'Infografías y reportes'
+            'Boceto inicial de composición',
+            'Renderizado de luces y texturas',
+            'Archivos en 300 DPI (PSD/PNG)',
+            'Licencia de uso comercial'
         ],
-        price: 'Desde €800',
-        color: 'from-yellow-500 to-orange-500',
-        popular: false
-    },
-    {
-        id: 'packaging',
-        icon: <FiPackage className="w-10 h-10" />,
-        title: 'Packaging Design',
-        description: 'Diseños de empaque que destacan en el punto de venta y crean conexión emocional.',
-        details: [
-            'Diseño de packaging 3D',
-            'Mockups realistas',
-            'Sustentabilidad y materiales',
-            'Producción y seguimiento'
-        ],
-        price: 'Desde €1,200',
-        color: 'from-indigo-500 to-purple-500',
-        popular: false
-    },
-    {
-        id: 'marketing',
-        icon: <FiTrendingUp className="w-10 h-10" />,
-        title: 'Marketing Digital',
-        description: 'Campañas y materiales de marketing que generan engagement y conversiones.',
-        details: [
-            'Social media graphics',
-            'Email marketing templates',
-            'Banners y anuncios digitales',
-            'Campañas publicitarias'
-        ],
-        price: 'Desde €900',
+        price: 'Desde $50 USD',
         color: 'from-pink-500 to-rose-500',
         popular: false
     },
     {
-        id: 'motion',
-        icon: <FiFilm className="w-10 h-10" />,
-        title: 'Motion Graphics',
-        description: 'Animaciones y videos que captan atención y comunican mensajes complejos de forma simple.',
+        id: 'logotipo-identidad',
+        icon: <FiAward className="w-10 h-10" />,
+        title: 'Logotipo e Identidad',
+        description: 'Creamos la cara de tu negocio. Una identidad profesional que comunica confianza y calidad desde el primer segundo.',
         details: [
-            'Animación de logotipos',
-            'Videos explicativos',
-            'Animated infographics',
-            'Social media animations'
+            '3 Propuestas de concepto original',
+            'Manual de Marca (Uso y Color)',
+            'Archivos vectoriales (.AI / .SVG)',
+            'Kit adaptado para Redes Sociales'
         ],
-        price: 'Desde €1,500',
-        color: 'from-cyan-500 to-blue-500',
+        price: 'Desde $150 USD',
+        color: 'from-amber-400 to-orange-600',
+        popular: true
+    },
+    {
+        id: 'diseno-editorial',
+        icon: <FiBookOpen className="w-10 h-10" />,
+        title: 'Diseño Editorial',
+        description: 'Transformamos tu contenido en una experiencia profesional, equilibrando estética visual con una lectura fluida y organizada.',
+        details: [
+            'Maquetación profesional por páginas',
+            'Diseño integral (Gráficos e imágenes)',
+            'PDF para imprenta (CMYK) y digital',
+            'Archivos fuente empaquetados (.INDD/.AI)'
+        ],
+        price: '$15 USD / pág.',
+        color: 'from-emerald-500 to-teal-700',
+        popular: false
+    },
+    {
+        id: 'web-design-ui',
+        icon: <FiMonitor className="w-10 h-10" />,
+        title: 'Diseño de Interfaz',
+        description: 'Plano visual estratégico para sitios web modernos. Entregamos el diseño listo para que un desarrollador lo haga realidad (No incluye código).',
+        details: [
+            'Mapa de sitio y flujo de navegación',
+            'Mockups de alta fidelidad (UI)',
+            'Guía de estilo (Colores y Tipografía)',
+            'Archivos fuente y activos exportados'
+        ],
+        price: 'Desde $400 USD',
+        color: 'from-violet-600 to-fuchsia-600',
         popular: false
     }
 ];
@@ -148,10 +121,11 @@ export default function ServicesGrid() {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {services.map((service) => (
                         <div
                             key={service.id}
+                            id={service.id}
                             className={`group relative bg-white rounded-2xl p-8 border-2 hover:border-transparent shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer ${activeService === service.id ? 'border-blue-500' : 'border-gray-200'
                                 }`}
                             onClick={() => setActiveService(service.id === activeService ? null : service.id)}

@@ -19,10 +19,10 @@ export default function Footer() {
                     <div>
                         <h4 className="text-lg font-semibold mb-4">Servicios</h4>
                         <ul className="space-y-2">
-                            <li><Link href="/services#branding" className="text-gray-300 hover:text-white">Branding</Link></li>
-                            <li><Link href="/services#uxui" className="text-gray-300 hover:text-white">UX/UI Design</Link></li>
-                            <li><Link href="/services#graphic" className="text-gray-300 hover:text-white">Diseño Gráfico</Link></li>
-                            <li><Link href="/services#web" className="text-gray-300 hover:text-white">Web Design</Link></li>
+                            <li><Link href="/services#modelado-3d" className="text-gray-300 hover:text-white">Modelado 3D</Link></li>
+                            <li><Link href="/services#publicidad-digital" className="text-gray-300 hover:text-white">Publicidad Digital</Link></li>
+                            <li><Link href="/services#ilustraciones-digitales" className="text-gray-300 hover:text-white">Ilustraciones Digitales</Link></li>
+                            <li><Link href="/services#logotipo-identidad" className="text-gray-300 hover:text-white">Logotipo e Identidad</Link></li>
                         </ul>
                     </div>
 
