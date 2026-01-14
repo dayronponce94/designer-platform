@@ -254,6 +254,15 @@ export default function DashboardPage() {
 
     const nextSteps = user?.role === 'designer' ? designerNextSteps : clientNextSteps;
 
+    const SPECIALTY_LABELS: Record<string, string> = {
+        branding: 'Branding & Identidad',
+        'ux-ui': 'UX/UI Design',
+        graphic: 'Diseño Gráfico',
+        web: 'Diseño Web',
+        motion: 'Motion Graphics',
+        other: 'Otra Especialidad'
+    };
+
     return (
         <div className="space-y-6">
             {/* Header con Bienvenida */}
@@ -355,10 +364,12 @@ export default function DashboardPage() {
                                     <p className="font-medium">{user.company}</p>
                                 </div>
                             )}
-                            {user?.specialty && user.specialty !== 'other' && (
+                            {user?.specialty && (
                                 <div>
                                     <p className="text-sm text-gray-500">Especialidad</p>
-                                    <p className="font-medium capitalize">{user.specialty.replace('-', ' ')}</p>
+                                    <p className="font-medium">
+                                        {SPECIALTY_LABELS[user.specialty] || user.specialty}
+                                    </p>
                                 </div>
                             )}
                             <div>
