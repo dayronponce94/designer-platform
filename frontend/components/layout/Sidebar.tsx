@@ -38,11 +38,11 @@ export default function Sidebar() {
     // Navegación para DISEÑADORES
     const designerNavigation = [
         { name: 'Inicio', href: '/dashboard', icon: FiHome },
-        { name: 'Proyectos Asignados', href: '/dashboard/projects', icon: FiBriefcase },
+        { name: 'Proyectos Asignados', href: '/dashboard/designer/projects', icon: FiBriefcase },
         { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
-        { name: 'Mi Portafolio', href: '/dashboard/portfolio', icon: FiFolder },
-        { name: 'Mis Ingresos', href: '/dashboard/earnings', icon: FiDollarSign },
-        { name: 'Mis Plazos', href: '/dashboard/deadlines', icon: FiCalendar },
+        { name: 'Mi Portafolio', href: '/dashboard/designer/portfolio/', icon: FiFolder },
+        { name: 'Mis Ingresos', href: '/dashboard/designer/earnings', icon: FiDollarSign },
+        { name: 'Mis Plazos', href: '/dashboard/designer/deadlines', icon: FiCalendar },
     ];
 
     // Navegación para ADMIN
