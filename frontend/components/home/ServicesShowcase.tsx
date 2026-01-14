@@ -1,4 +1,4 @@
-import { FiBox, FiTarget, FiAward, FiBookOpen, FiLayout, FiFeather } from 'react-icons/fi';
+import { FiBox, FiTarget, FiAward, FiBookOpen, FiMonitor, FiFeather } from 'react-icons/fi';
 
 const services = [
     {
@@ -37,7 +37,7 @@ const services = [
         gradient: 'from-indigo-500 to-purple-500',
     },
     {
-        icon: <FiLayout className="w-8 h-8" />,
+        icon: <FiMonitor className="w-8 h-8" />,
         title: 'Diseño Web',
         description: 'Diseño visual estratégico para sitios web modernos, enfocado en la estética y la experiencia del usuario. Se entrega el plano visual listo para que un desarrollador lo haga realidad.',
         features: ['Estructura y Navegación', 'Guía de Estilo Web', 'Mockups en Alta Resolución'],
