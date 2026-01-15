@@ -6,7 +6,7 @@ import { FiArrowRight, FiCheckCircle } from 'react-icons/fi';
 
 export default function ModernHero() {
     const [currentText, setCurrentText] = useState(0);
-    const texts = ['Branding', 'UX/UI Design', 'Web Design', 'Diseño Gráfico'];
+    const texts = ['Modelos-3D', 'Publicidad', 'Logotipos', 'Banners', 'Animaciones', 'Interfases'];
 
     useEffect(() => {
         const interval = setInterval(() => {

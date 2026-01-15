@@ -49,8 +49,13 @@ export default function RegisterPage() {
             role: selectedRole,
             phone: formData.phone || undefined,
             company: selectedRole === 'client' ? formData.company || undefined : undefined,
-            specialty: selectedRole === 'designer' ? formData.specialty || undefined : undefined,
+            specialty: selectedRole === 'designer' ? formData.specialty : undefined,
         };
+
+        if (selectedRole === 'designer' && !formData.specialty) {
+            alert('Debes seleccionar una especialidad');
+            return;
+        }
 
         const result = await registerUser(userData);
     };
@@ -73,14 +78,13 @@ export default function RegisterPage() {
     };
 
     const designerSpecialties = [
-        'Branding',
-        'UX/UI Design',
-        'Diseño Gráfico',
-        'Web Design',
-        'Motion Graphics',
-        'Ilustración',
-        'Packaging',
-        'Otro'
+        { value: 'branding', label: 'Diseño de Marca' },
+        { value: 'ux-ui', label: 'Diseño UX/UI' },
+        { value: 'graphic', label: 'Diseño Gráfico' },
+        { value: 'web', label: 'Diseño Web' },
+        { value: 'motion', label: 'Animación Gráfica' },
+        { value: 'illustration', label: 'Ilustración' },
+        { value: 'other', label: 'Otro' }
     ];
 
     return (
@@ -253,9 +257,9 @@ export default function RegisterPage() {
                                 required
                             >
                                 <option value="">Selecciona tu especialidad</option>
-                                {designerSpecialties.map((specialty) => (
-                                    <option key={specialty} value={specialty.toLowerCase()}>
-                                        {specialty}
+                                {designerSpecialties.map(spec => (
+                                    <option key={spec.value} value={spec.value}>
+                                        {spec.label}
                                     </option>
                                 ))}
                             </select>

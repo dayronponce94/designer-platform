@@ -255,11 +255,11 @@ export default function DashboardPage() {
     const nextSteps = user?.role === 'designer' ? designerNextSteps : clientNextSteps;
 
     const SPECIALTY_LABELS: Record<string, string> = {
-        branding: 'Branding & Identidad',
-        'ux-ui': 'UX/UI Design',
+        branding: 'Diseño de Marca',
+        'ux-ui': 'Diseño UX/UI',
         graphic: 'Diseño Gráfico',
         web: 'Diseño Web',
-        motion: 'Motion Graphics',
+        motion: 'Animación Gráfica',
         other: 'Otra Especialidad'
     };
 

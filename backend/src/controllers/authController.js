@@ -7,7 +7,7 @@ const logger = require('../utils/logger');
 // @route   POST /api/auth/register
 // @access  Public
 const register = asyncHandler(async (req, res) => {
-    const { name, email, password, role, company, phone } = req.body;
+    const { name, email, password, role, company, phone, specialty } = req.body;
 
 
     // Verificar si el usuario ya existe
@@ -26,7 +26,8 @@ const register = asyncHandler(async (req, res) => {
         password,
         role: role || 'client',
         company,
-        phone
+        phone,
+        specialty
     });
 
     // Generar token

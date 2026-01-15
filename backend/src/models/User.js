@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema(
         // Campos específicos para diseñadores
         specialty: {
             type: String,
-            enum: ['branding', 'ux-ui', 'graphic', 'web', 'motion', 'other'],
+            enum: ['branding', 'ux-ui', 'graphic', 'web', 'motion', 'illustration', 'other'],
             default: 'other'
         },
 
