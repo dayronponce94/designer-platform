@@ -254,15 +254,6 @@ export default function DashboardPage() {
 
     const nextSteps = user?.role === 'designer' ? designerNextSteps : clientNextSteps;
 
-    const SPECIALTY_LABELS: Record<string, string> = {
-        branding: 'Diseño de Marca',
-        'ux-ui': 'Diseño UX/UI',
-        graphic: 'Diseño Gráfico',
-        web: 'Diseño Web',
-        motion: 'Animación Gráfica',
-        other: 'Otra Especialidad'
-    };
-
     return (
         <div className="space-y-6">
             {/* Header con Bienvenida */}
