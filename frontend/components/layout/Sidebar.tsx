@@ -115,7 +115,7 @@ export default function Sidebar() {
 
                     {user?.role === 'designer' && (
                         <Link
-                            href="/dashboard/portfolio/upload"
+                            href="/dashboard/designer/portfolio/upload"
                             className="flex items-center justify-center w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mb-3"
                         >
                             <FiUpload className="mr-2" />

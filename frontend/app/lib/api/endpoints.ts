@@ -247,3 +247,17 @@ export const projectAPI = {
     deleteProject: (id: string) => apiClient.delete(`/projects/${id}`),
     addMessage: (id: string, data: any) => apiClient.post(`/projects/${id}/messages`, data),
 };
+
+export const portfolioAPI = {
+    getPortfolio: (params?: any) => apiClient.get('/portfolio', { params }),
+    getMyPortfolio: (params?: any) => apiClient.get('/portfolio/my-portfolio', { params }),
+    getPortfolioItem: (id: string) => apiClient.get(`/portfolio/${id}`),
+    createPortfolioItem: (data: any) => apiClient.post('/portfolio', data),
+    updatePortfolioItem: (id: string, data: any) => apiClient.put(`/portfolio/${id}`, data),
+    deletePortfolioItem: (id: string) => apiClient.delete(`/portfolio/${id}`),
+    uploadPortfolioImages: (formData: FormData) => apiClient.post('/portfolio/upload-images', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }),
+};
