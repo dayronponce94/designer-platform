@@ -24,7 +24,7 @@ const projectSchema = new mongoose.Schema(
         },
         serviceType: {
             type: String,
-            enum: ['branding', 'ux-ui', 'graphic', 'web', 'motion', 'other'],
+            enum: ['branding', 'ux-ui', 'graphic', 'web', 'motion', 'illustration', 'other'],
             required: true
         },
         status: {

@@ -16,6 +16,7 @@ const SPECIALTIES = [
     { value: 'graphic', label: 'Diseño Gráfico' },
     { value: 'web', label: 'Diseño Web' },
     { value: 'motion', label: 'Animación Gráfica' },
+    { value: 'illustration', label: 'Ilustración' },
     { value: 'other', label: 'Otra Especialidad' }
 ];
 

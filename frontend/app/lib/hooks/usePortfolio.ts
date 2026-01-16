@@ -16,6 +16,7 @@ export interface PortfolioItem {
     category: 'branding' | 'ux-ui' | 'graphic' | 'web' | 'motion' | 'illustration' | 'other';
     tags: string[];
     images: Array<{
+        _id?: string;
         url: string;
         filename: string;
         isThumbnail: boolean;
@@ -24,10 +25,6 @@ export interface PortfolioItem {
     clientName?: string;
     projectDate?: string;
     tools: string[];
-    isFeatured: boolean;
-    isVisible: boolean;
-    views: number;
-    likes: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -96,7 +93,7 @@ export function usePortfolio(): UsePortfolioReturn {
         try {
             setLoading(true);
             const response = await portfolioAPI.getPortfolioItem(id);
-            setItem(response.data.data);
+            setItem(response.data.message);
             setError(null);
         } catch (err: any) {
             if (err.response?.status === 404) {

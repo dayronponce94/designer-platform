@@ -58,23 +58,7 @@ const portfolioItemSchema = new mongoose.Schema(
         tools: [{
             type: String,
             trim: true
-        }],
-        isFeatured: {
-            type: Boolean,
-            default: false
-        },
-        isVisible: {
-            type: Boolean,
-            default: true
-        },
-        views: {
-            type: Number,
-            default: 0
-        },
-        likes: {
-            type: Number,
-            default: 0
-        }
+        }]
     },
     {
         timestamps: true
@@ -85,20 +69,8 @@ const portfolioItemSchema = new mongoose.Schema(
 portfolioItemSchema.index({ designerId: 1, createdAt: -1 });
 portfolioItemSchema.index({ category: 1, createdAt: -1 });
 portfolioItemSchema.index({ tags: 1 });
-portfolioItemSchema.index({ isFeatured: 1 });
-portfolioItemSchema.index({ isVisible: 1 });
 
-// Método para incrementar vistas
-portfolioItemSchema.methods.incrementView = function () {
-    this.views += 1;
-    return this.save();
-};
 
-// Método para agregar like
-portfolioItemSchema.methods.addLike = function () {
-    this.likes += 1;
-    return this.save();
-};
 
 // Método para obtener datos públicos
 portfolioItemSchema.methods.toPublicJSON = function () {

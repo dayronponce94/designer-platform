@@ -99,9 +99,6 @@ exports.getPortfolioItem = asyncHandler(async (req, res, next) => {
         });
     }
 
-    // Incrementar vistas
-    await item.incrementView();
-
     res.json(new ApiResponse('Item del portafolio obtenido exitosamente', item));
 });
 
@@ -155,8 +152,17 @@ exports.updatePortfolioItem = asyncHandler(async (req, res, next) => {
         });
     }
 
+    // Extraer imágenes del body para no sobrescribirlas incorrectamente
+    const { images, ...updateData } = req.body;
+
     // Actualizar campos
-    Object.assign(portfolioItem, req.body);
+    Object.assign(portfolioItem, updateData);
+
+    // Actualizar imágenes si se proporcionan
+    if (images) {
+        portfolioItem.images = images;
+    }
+
     await portfolioItem.save();
 
     res.json(new ApiResponse('Item del portafolio actualizado exitosamente', portfolioItem));

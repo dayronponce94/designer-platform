@@ -27,8 +27,6 @@ interface FormData {
     clientName: string;
     projectDate: string;
     tools: string[];
-    isFeatured: boolean;
-    isVisible: boolean;
 }
 
 interface ImageFile {
@@ -49,9 +47,7 @@ export default function UploadPortfolioPage() {
         tags: [],
         clientName: '',
         projectDate: '',
-        tools: [],
-        isFeatured: false,
-        isVisible: true
+        tools: []
     });
 
     const [images, setImages] = useState<ImageFile[]>([]);
@@ -527,7 +523,7 @@ export default function UploadPortfolioPage() {
                             </h2>
                             <div className="space-y-4">
                                 <div>
-                                    <div className="flex space-x-2">
+                                    <div className="flex-col space-y-2">
                                         <input
                                             type="text"
                                             value={toolInput}
@@ -565,46 +561,6 @@ export default function UploadPortfolioPage() {
                                         ))}
                                     </div>
                                 )}
-                            </div>
-                        </div>
-
-                        {/* Configuración */}
-                        <div className="bg-white rounded-xl shadow p-6">
-                            <h2 className="text-lg font-bold text-gray-900 mb-4">Configuración</h2>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="font-medium text-gray-900">Destacar trabajo</p>
-                                        <p className="text-sm text-gray-500">Mostrar en la página principal</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            name="isFeatured"
-                                            checked={formData.isFeatured}
-                                            onChange={handleInputChange}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                    </label>
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="font-medium text-gray-900">Visible públicamente</p>
-                                        <p className="text-sm text-gray-500">Mostrar en tu perfil público</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            name="isVisible"
-                                            checked={formData.isVisible}
-                                            onChange={handleInputChange}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                                    </label>
-                                </div>
                             </div>
                         </div>
                     </div>

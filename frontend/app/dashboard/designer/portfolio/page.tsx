@@ -16,7 +16,8 @@ import {
     FiStar,
     FiSearch,
     FiDownload,
-    FiShare2
+    FiShare2,
+    FiCalendar
 } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -39,11 +40,11 @@ export default function DesignerPortfolioPage() {
 
     const categories = [
         { value: 'all', label: 'Todas las categorías' },
-        { value: 'branding', label: 'Branding' },
-        { value: 'ux-ui', label: 'UX/UI' },
+        { value: 'branding', label: 'Diseño de Marca' },
+        { value: 'ux-ui', label: 'Diseño UX/UI' },
         { value: 'graphic', label: 'Diseño Gráfico' },
         { value: 'web', label: 'Diseño Web' },
-        { value: 'motion', label: 'Motion Graphics' },
+        { value: 'motion', label: 'Animación Gráfica' },
         { value: 'illustration', label: 'Ilustración' },
         { value: 'other', label: 'Otro' }
     ];
@@ -84,7 +85,7 @@ export default function DesignerPortfolioPage() {
 
     if (loading && items.length === 0) {
         return (
-            <div className="flex justify-center items-center min-h-[400px]">
+            <div className="flex justify-center items-center min-h-100">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-gray-600">Cargando portafolio...</p>
@@ -202,7 +203,7 @@ export default function DesignerPortfolioPage() {
                         const thumbnail = item.images.find(img => img.isThumbnail) || item.images[0];
 
                         return (
-                            <div key={item._id} className="bg-white rounded-xl shadow overflow-hidden hover:shadow-lg transition-shadow">
+                            <div key={item._id} className="bg-white rounded-xl shadow overflow-hidden hover:shadow-lg transition-shadow group">
                                 {/* Imagen */}
                                 <div className="relative aspect-video bg-gray-100 overflow-hidden">
                                     {thumbnail ? (
@@ -222,37 +223,6 @@ export default function DesignerPortfolioPage() {
                                         <span className="px-2 py-1 bg-white bg-opacity-90 text-xs font-medium rounded">
                                             {getCategoryLabel(item.category)}
                                         </span>
-                                        {item.isFeatured && (
-                                            <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded flex items-center">
-                                                <FiStar className="w-3 h-3 mr-1" />
-                                                Destacado
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {/* Acciones */}
-                                    <div className="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={() => router.push(`/portfolio/${item._id}`)}
-                                            className="p-2 bg-white rounded-full shadow hover:bg-gray-50"
-                                            title="Vista previa pública"
-                                        >
-                                            <FiEye className="w-4 h-4 text-gray-600" />
-                                        </button>
-                                        <button
-                                            onClick={() => router.push(`/dashboard/designer/portfolio/edit/${item._id}`)}
-                                            className="p-2 bg-white rounded-full shadow hover:bg-gray-50"
-                                            title="Editar"
-                                        >
-                                            <FiEdit className="w-4 h-4 text-blue-600" />
-                                        </button>
-                                        <button
-                                            onClick={() => setDeleteConfirm(item._id)}
-                                            className="p-2 bg-white rounded-full shadow hover:bg-gray-50"
-                                            title="Eliminar"
-                                        >
-                                            <FiTrash2 className="w-4 h-4 text-red-600" />
-                                        </button>
                                     </div>
                                 </div>
 
@@ -265,17 +235,43 @@ export default function DesignerPortfolioPage() {
                                         {item.description}
                                     </p>
 
-                                    <div className="flex items-center justify-between text-sm text-gray-500">
+                                    {/* Botones de acción - Siempre visibles */}
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() => router.push(`/dashboard/designer/portfolio/${item._id}`)}
+                                            className="p-2 text-green-400 hover:text-green-600"
+                                            title="Detalles"
+                                        >
+                                            <FiEye className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => router.push(`/dashboard/designer/portfolio/edit/${item._id}`)}
+                                            className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+                                        >
+                                            <FiEdit className="mr-1" />
+                                        </button>
+                                        <button
+                                            onClick={() => setDeleteConfirm(item._id)}
+                                            className="flex items-center text-red-600 hover:text-red-700 text-sm"
+                                        >
+                                            <FiTrash2 className="mr-1" />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-3">
                                         <div className="flex items-center">
-                                            <FiEye className="mr-1" />
-                                            <span>{item.views} vistas</span>
+                                            <FiCalendar className="mr-1" />
+                                            <span>{formatDate(item.createdAt)}</span>
                                         </div>
-                                        <span>{formatDate(item.createdAt)}</span>
+                                        <div className="flex items-center">
+                                            <FiImage className="mr-1" />
+                                            <span>{item.images.length} {item.images.length === 1 ? 'imagen' : 'imágenes'}</span>
+                                        </div>
                                     </div>
 
                                     {/* Tags */}
                                     {item.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mt-3 pt-3 border-t border-gray-100">
+                                        <div className="flex flex-wrap gap-1 mt-3">
                                             {item.tags.slice(0, 3).map(tag => (
                                                 <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
                                                     {tag}
@@ -304,7 +300,7 @@ export default function DesignerPortfolioPage() {
                                 <div key={item._id} className="p-6 hover:bg-gray-50 transition-colors">
                                     <div className="flex items-start space-x-4">
                                         {/* Miniatura */}
-                                        <div className="w-32 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                        <div className="w-32 h-24 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                                             {thumbnail ? (
                                                 <img
                                                     src={thumbnail.url}
@@ -329,21 +325,15 @@ export default function DesignerPortfolioPage() {
                                                         <span className="px-2 py-1 bg-gray-100 rounded">
                                                             {getCategoryLabel(item.category)}
                                                         </span>
-                                                        {item.isFeatured && (
-                                                            <span className="flex items-center text-yellow-600">
-                                                                <FiStar className="w-3 h-3 mr-1" />
-                                                                Destacado
-                                                            </span>
-                                                        )}
                                                         <span>{formatDate(item.createdAt)}</span>
                                                     </div>
                                                 </div>
 
                                                 <div className="flex items-center space-x-2">
                                                     <button
-                                                        onClick={() => router.push(`/portfolio/${item._id}`)}
-                                                        className="p-2 text-gray-400 hover:text-gray-600"
-                                                        title="Vista previa pública"
+                                                        onClick={() => router.push(`/dashboard/designer/portfolio/${item._id}`)}
+                                                        className="p-2 text-green-400 hover:text-green-600"
+                                                        title="Detalles"
                                                     >
                                                         <FiEye className="w-4 h-4" />
                                                     </button>
@@ -369,18 +359,6 @@ export default function DesignerPortfolioPage() {
                                             </p>
 
                                             <div className="flex items-center justify-between">
-                                                <div className="flex items-center space-x-4 text-sm text-gray-500">
-                                                    <div className="flex items-center">
-                                                        <FiEye className="mr-1" />
-                                                        <span>{item.views} vistas</span>
-                                                    </div>
-                                                    {item.clientName && (
-                                                        <div>
-                                                            Cliente: <span className="font-medium">{item.clientName}</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-
                                                 {item.tags.length > 0 && (
                                                     <div className="flex flex-wrap gap-1">
                                                         {item.tags.slice(0, 3).map(tag => (
@@ -402,7 +380,7 @@ export default function DesignerPortfolioPage() {
 
             {/* Modal de confirmación de eliminación */}
             {deleteConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-300 bg-opacity-90">
                     <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
                         <div className="text-center">
                             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
@@ -434,7 +412,7 @@ export default function DesignerPortfolioPage() {
             )}
 
             {/* Información */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl shadow p-6">
+            <div className="bg-linear-to-r from-purple-50 to-pink-50 rounded-xl shadow p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-3">
                     Consejos para un portafolio efectivo
                 </h3>
