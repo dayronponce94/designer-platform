@@ -376,11 +376,109 @@ const addMessage = asyncHandler(async (req, res) => {
     );
 });
 
+// @desc    Obtener plazos de proyectos para diseñador
+// @route   GET /api/projects/designer/deadlines
+// @access  Private (solo diseñadores)
+const getDesignerDeadlines = asyncHandler(async (req, res) => {
+    // Verificar que el usuario sea diseñador
+    if (req.user.role !== 'designer') {
+        return res.status(403).json(
+            ApiResponse.forbidden('Acceso solo para diseñadores').toJSON()
+        );
+    }
+
+    const { status, timeframe } = req.query;
+    const designerId = req.user.id;
+
+    let query = { designer: designerId };
+
+    // Filtrar por estado si se proporciona
+    if (status) {
+        query.status = status;
+    } else {
+        // Por defecto, excluir proyectos completados y cancelados
+        query.status = { $nin: ['completed', 'cancelled'] };
+    }
+
+    // Asegurar que haya fecha límite
+    query.deadline = { $exists: true, $ne: null };
+
+    // Filtrar por período de tiempo si se proporciona
+    if (timeframe) {
+        const now = new Date();
+        let startDate, endDate;
+
+        switch (timeframe) {
+            case 'today':
+                startDate = new Date(now.setHours(0, 0, 0, 0));
+                endDate = new Date(now.setHours(23, 59, 59, 999));
+                query.deadline = { $gte: startDate, $lte: endDate };
+                break;
+            case 'week':
+                startDate = new Date();
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 7);
+                query.deadline = { $gte: startDate, $lte: endDate };
+                break;
+            case 'month':
+                startDate = new Date();
+                endDate = new Date(startDate);
+                endDate.setMonth(startDate.getMonth() + 1);
+                query.deadline = { $gte: startDate, $lte: endDate };
+                break;
+            case 'overdue':
+                query.deadline = { $lt: new Date() };
+                query.status = { $nin: ['completed'] };
+                break;
+        }
+    }
+
+    const projects = await Project.find(query)
+        .populate('client', 'name email company')
+        .populate('designer', 'name email')
+        .select('title description status deadline budget serviceType client')
+        .sort({ deadline: 1, createdAt: -1 });
+
+    // Calcular estadísticas
+    const stats = {
+        upcoming: 0,
+        urgent: 0,
+        completed: 0,
+        overdue: 0,
+        total: projects.length
+    };
+
+    const now = new Date();
+    const twoDaysFromNow = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000);
+
+    projects.forEach(project => {
+        const deadline = new Date(project.deadline);
+
+        if (project.status === 'completed') {
+            stats.completed++;
+        } else if (deadline < now) {
+            stats.overdue++;
+        } else if (deadline <= twoDaysFromNow) {
+            stats.urgent++;
+        } else {
+            stats.upcoming++;
+        }
+    });
+
+    res.status(200).json(
+        ApiResponse.success('Plazos obtenidos', {
+            projects,
+            stats
+        }).toJSON()
+    );
+});
+
 module.exports = {
     getProjects,
     getProjectById,
     createProject,
     updateProject,
     deleteProject,
-    addMessage
+    addMessage,
+    getDesignerDeadlines
 };

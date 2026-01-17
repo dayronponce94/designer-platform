@@ -246,6 +246,7 @@ export const projectAPI = {
     updateProject: (id: string, data: any) => apiClient.put(`/projects/${id}`, data),
     deleteProject: (id: string) => apiClient.delete(`/projects/${id}`),
     addMessage: (id: string, data: any) => apiClient.post(`/projects/${id}/messages`, data),
+    getDesignerDeadlines: (params?: any) => apiClient.get('/projects/designer/deadlines', { params }),
 };
 
 export const portfolioAPI = {

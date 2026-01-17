@@ -6,7 +6,8 @@ const {
     createProject,
     updateProject,
     deleteProject,
-    addMessage
+    addMessage,
+    getDesignerDeadlines
 } = require('../controllers/projectController');
 const { protect } = require('../middleware/auth');
 
@@ -16,6 +17,10 @@ router.use(protect);
 router.route('/')
     .get(getProjects)
     .post(createProject);
+
+// Nueva ruta para plazos de diseñadores
+router.route('/designer/deadlines')
+    .get(getDesignerDeadlines);
 
 router.route('/:id')
     .get(getProjectById)

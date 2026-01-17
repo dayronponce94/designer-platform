@@ -5,7 +5,7 @@ export interface Project {
     _id: string;
     title: string;
     description: string;
-    client: string | { _id: string; name: string; email: string };
+    client: string | { _id: string; name: string; email: string; company?: string; };
     designer?: string | { _id: string; name: string; email: string };
     serviceType: string;
     status: 'requested' | 'quoted' | 'approved' | 'in-progress' | 'review' | 'completed' | 'cancelled';
