@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 import { useState } from 'react';
 import { FiUser, FiLogOut, FiMenu, FiX } from 'react-icons/fi';
+import Image from 'next/image';
 
 export default function Navbar() {
     const pathname = usePathname();
@@ -30,8 +31,14 @@ export default function Navbar() {
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
                     <div className="flex items-center">
-                        <Link href="/" className="text-2xl font-bold text-blue-600">
-                            DesignerPlatform
+                        <Link href="/" className="flex items-center">
+                            <Image
+                                src="/projects/full-logo.png"
+                                alt="DesignerPlatform Logo"
+                                width={200}
+                                height={40}
+                                priority
+                            />
                         </Link>
                     </div>
 

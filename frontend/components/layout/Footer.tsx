@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
     const currentYear = new Date().getFullYear();
@@ -9,7 +10,13 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Company Info */}
                     <div>
-                        <h3 className="text-2xl font-bold mb-4">DesignerPlatform</h3>
+                        <Image
+                            src="/projects/white-logo.png"
+                            alt="DesignerPlatform Logo"
+                            width={200}
+                            height={5}
+                            priority
+                        />
                         <p className="text-gray-300">
                             Conectamos clientes con talento en diseño. Proyectos profesionales con gestión centralizada.
                         </p>

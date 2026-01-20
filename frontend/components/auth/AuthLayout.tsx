@@ -48,23 +48,6 @@ export default function AuthLayout({
                 className="w-full lg:w-1/2 flex flex-col justify-center items-center p-6 sm:p-8 bg-white"
             >
                 <div className="w-full max-w-md">
-                    {/* Botón Atrás 
-                    {showBackButton && (
-                        <Link
-                            href="/"
-                            className="inline-flex items-center text-gray-600 hover:text-blue-600 mb-6"
-                        >
-                            <FiArrowLeft className="mr-2" />
-                            Volver al inicio
-                        </Link>
-                    )}*/}
-
-                    {/* Logo */}
-                    <div className="mb-8">
-                        <Link href="/" className="text-3xl font-bold text-blue-600">
-                            DesignerPlatform
-                        </Link>
-                    </div>
 
                     {/* Título y Subtítulo */}
                     <h1 className="text-4xl font-bold text-gray-900 mb-2">{title}</h1>

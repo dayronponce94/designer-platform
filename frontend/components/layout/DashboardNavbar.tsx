@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 import { FiLogOut, FiUser, FiBell, FiMenu, FiX } from 'react-icons/fi';
 import { useNotifications } from '@/app/lib/hooks/useNotifications';
+import Image from 'next/image';
 
 export default function DashboardNavbar() {
     const { user, logout } = useAuthContext();
@@ -26,9 +27,13 @@ export default function DashboardNavbar() {
                         </button>
 
                         <Link href="/dashboard" className="flex items-center">
-                            <span className="text-2xl font-bold text-blue-600">
-                                DesignerPlatform
-                            </span>
+                            <Image
+                                src="/projects/full-logo.png"
+                                alt="DesignerPlatform Logo"
+                                width={200}
+                                height={40}
+                                priority
+                            />
                             <span className="ml-2 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
                                 Dashboard
                             </span>
