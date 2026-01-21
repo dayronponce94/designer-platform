@@ -262,3 +262,20 @@ export const portfolioAPI = {
         }
     }),
 };
+
+export const adminAPI = {
+    // Gestión de usuarios
+    getAllUsers: (params?: any) => apiClient.get('/admin/users', { params }),
+    getUserStats: () => apiClient.get('/admin/users/stats'),
+    updateUser: (id: string, data: any) => apiClient.put(`/admin/users/${id}`, data),
+
+    // Gestión de proyectos
+    getAllProjects: (params?: any) => apiClient.get('/admin/projects', { params }),
+    assignDesigner: (projectId: string, designerId: string) =>
+        apiClient.put(`/admin/projects/${projectId}/assign`, { designerId }),
+    updateProjectStatus: (projectId: string, status: string, reason?: string) =>
+        apiClient.put(`/admin/projects/${projectId}/status`, { status, reason }),
+
+    // Reportes
+    getReports: (params?: any) => apiClient.get('/admin/reports', { params }),
+};

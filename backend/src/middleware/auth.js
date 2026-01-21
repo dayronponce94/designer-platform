@@ -1,36 +1,57 @@
 const jwt = require('jsonwebtoken');
-const env = require('../config/env');
+const User = require('../models/User');
 const ApiResponse = require('../utils/apiResponse');
-const asyncHandler = require('../utils/asyncHandler');
+const env = require('../config/env');
 
-const protect = asyncHandler(async (req, res, next) => {
+// Middleware para proteger rutas (requiere login)
+const protect = async (req, res, next) => {
     let token;
 
-    // Get token from header or cookie
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        token = req.headers.authorization.split(' ')[1];
-    } else if (req.cookies && req.cookies.token) {
-        token = req.cookies.token;
+        try {
+            token = req.headers.authorization.split(' ')[1];
+
+            // Verificar token
+            const decoded = jwt.verify(token, env.JWT_SECRET);
+
+            // Obtener usuario del token
+            req.user = await User.findById(decoded.id).select('-password');
+
+            if (!req.user) {
+                return res.status(401).json(
+                    ApiResponse.unauthorized('Usuario no encontrado').toJSON()
+                );
+            }
+
+            // Verificar si el usuario está activo
+            if (!req.user.isActive) {
+                return res.status(401).json(
+                    ApiResponse.unauthorized('Cuenta desactivada').toJSON()
+                );
+            }
+
+            next();
+        } catch (error) {
+            console.error('Error en autenticación:', error);
+            return res.status(401).json(
+                ApiResponse.unauthorized('Token no válido').toJSON()
+            );
+        }
     }
 
     if (!token) {
-        return res.status(401).json(ApiResponse.unauthorized().toJSON());
+        return res.status(401).json(
+            ApiResponse.unauthorized('No autorizado, token no proporcionado').toJSON()
+        );
     }
+};
 
-    try {
-        const decoded = jwt.verify(token, env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (error) {
-        return res.status(401).json(ApiResponse.unauthorized('Token inválido').toJSON());
-    }
-});
-
+// Middleware genérico para roles
 const authorize = (...roles) => {
     return (req, res, next) => {
-        if (!roles.includes(req.user.role)) {
+        if (!req.user || !roles.includes(req.user.role)) {
             return res.status(403).json(
-                ApiResponse.forbidden(`El rol ${req.user.role} no tiene acceso a este recurso`).toJSON()
+                ApiResponse.forbidden(`El rol ${req.user?.role} no tiene acceso a este recurso`).toJSON()
             );
         }
         next();

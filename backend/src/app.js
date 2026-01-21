@@ -12,6 +12,7 @@ const projectRoutes = require('./routes/projects');
 const path = require('path');
 const notificationRoutes = require('./routes/notifications');
 const portfolioRoutes = require('./routes/portfolio');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -47,6 +48,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/admin', adminRoutes);
+
 
 // 404 handler
 app.use('*', (req, res) => {
