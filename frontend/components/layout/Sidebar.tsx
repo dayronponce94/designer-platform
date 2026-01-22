@@ -17,7 +17,9 @@ import {
     FiCalendar,
     FiDollarSign,
     FiUpload,
-    FiList
+    FiList,
+    FiUserCheck,
+    FiPieChart
 } from 'react-icons/fi';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 
@@ -47,13 +49,13 @@ export default function Sidebar() {
 
     // Navegación para ADMIN
     const adminNavigation = [
-        { name: 'Inicio', href: '/dashboard', icon: FiHome },
-        { name: 'Gestión de Proyectos', href: '/dashboard/projects', icon: FiBriefcase },
-        { name: 'Clientes', href: '/dashboard/clients', icon: FiUsers },
-        { name: 'Diseñadores', href: '/dashboard/designers', icon: FiUsers },
-        { name: 'Portafolios', href: '/dashboard/portfolios', icon: FiFolder },
-        { name: 'Pagos', href: '/dashboard/payments', icon: FiCreditCard },
-        { name: 'Reportes', href: '/dashboard/reports', icon: FiFileText },
+        { name: 'Inicio', href: '/dashboard/admin', icon: FiHome },
+        { name: 'Gestión de Proyectos', href: '/dashboard/admin/projects', icon: FiBriefcase },
+        { name: 'Gestión de Usuarios', href: '/dashboard/admin/users', icon: FiUsers },
+        { name: 'Clientes', href: '/dashboard/admin/clients', icon: FiUserCheck },
+        { name: 'Diseñadores', href: '/dashboard/admin/designers', icon: FiUsers },
+        { name: 'Reportes', href: '/dashboard/admin/reports', icon: FiPieChart },
+        { name: 'Configuración', href: '/dashboard/admin/settings', icon: FiSettings },
     ];
 
     // Seleccionar navegación según el rol
