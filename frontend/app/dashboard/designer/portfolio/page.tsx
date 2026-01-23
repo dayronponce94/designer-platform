@@ -21,6 +21,8 @@ import {
 } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import ConfirmModal from '@/components/modals/ConfirmModal';
+
 
 export default function DesignerPortfolioPage() {
     const router = useRouter();
@@ -379,37 +381,16 @@ export default function DesignerPortfolioPage() {
             )}
 
             {/* Modal de confirmación de eliminación */}
-            {deleteConfirm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-300 bg-opacity-90">
-                    <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
-                        <div className="text-center">
-                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                                <FiTrash2 className="h-6 w-6 text-red-600" />
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">
-                                ¿Eliminar trabajo del portafolio?
-                            </h3>
-                            <p className="text-gray-600 mb-6">
-                                Esta acción no se puede deshacer. El trabajo será eliminado permanentemente.
-                            </p>
-                            <div className="flex space-x-3">
-                                <button
-                                    onClick={() => setDeleteConfirm(null)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(deleteConfirm)}
-                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                                >
-                                    Eliminar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmModal
+                isOpen={!!deleteConfirm}
+                onClose={() => setDeleteConfirm(null)}
+                onConfirm={() => handleDelete(deleteConfirm!)}
+                title="¿Eliminar trabajo del portafolio?"
+                message="Esta acción no se puede deshacer. El trabajo será eliminado permanentemente."
+                confirmText="Eliminar"
+                cancelText="Cancelar"
+                type="danger"
+            />
 
             {/* Información */}
             <div className="bg-linear-to-r from-purple-50 to-pink-50 rounded-xl shadow p-6">

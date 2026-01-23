@@ -19,7 +19,8 @@ import {
     FiUpload,
     FiList,
     FiUserCheck,
-    FiPieChart
+    FiPieChart,
+    FiUserPlus
 } from 'react-icons/fi';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 
@@ -53,9 +54,11 @@ export default function Sidebar() {
         { name: 'Gestión de Proyectos', href: '/dashboard/admin/projects', icon: FiBriefcase },
         { name: 'Gestión de Usuarios', href: '/dashboard/admin/users', icon: FiUsers },
         { name: 'Clientes', href: '/dashboard/admin/clients', icon: FiUserCheck },
-        { name: 'Diseñadores', href: '/dashboard/admin/designers', icon: FiUsers },
+        { name: 'Diseñadores', href: '/dashboard/admin/designers', icon: FiUserPlus },
+        { name: 'Pagos', href: '/dashboard/admin/payments', icon: FiCreditCard },
+        { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
         { name: 'Reportes', href: '/dashboard/admin/reports', icon: FiPieChart },
-        { name: 'Configuración', href: '/dashboard/admin/settings', icon: FiSettings },
+
     ];
 
     // Seleccionar navegación según el rol

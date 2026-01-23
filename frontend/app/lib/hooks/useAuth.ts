@@ -131,7 +131,7 @@ export const useAuth = () => {
 
                 // Redirigir según el rol
                 if (user.role === 'admin') {
-                    router.push('/admin/dashboard');
+                    router.push('/dashboard/admin');
                 } else {
                     router.push('/dashboard');
                 }
