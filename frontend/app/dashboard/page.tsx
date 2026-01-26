@@ -260,6 +260,7 @@ export default function DashboardPage() {
         graphic: 'Diseño Gráfico',
         web: 'Diseño Web',
         motion: 'Animación Gráfica',
+        illustration: 'Ilustración',
         other: 'Otra Especialidad'
     };
 

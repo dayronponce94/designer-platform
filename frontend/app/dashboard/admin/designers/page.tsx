@@ -56,11 +56,11 @@ export default function AdminDesignersPage() {
 
     const getSpecialtyLabel = (specialty: string) => {
         const labels: Record<string, string> = {
-            'branding': 'Branding',
-            'ux-ui': 'UX/UI Design',
+            'branding': 'Diseño de Marca',
+            'ux-ui': 'Diseño UX/UI',
             'graphic': 'Diseño Gráfico',
             'web': 'Diseño Web',
-            'motion': 'Motion Graphics',
+            'motion': 'Animación Gráfica',
             'illustration': 'Ilustración',
             'other': 'Otro'
         };

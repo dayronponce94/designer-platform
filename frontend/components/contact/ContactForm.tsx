@@ -17,14 +17,12 @@ export default function ContactForm() {
     });
 
     const services = [
-        'Branding Corporativo',
-        'UX/UI Design',
+        'Diseño de Marca',
+        'Diseño UX/UI',
         'Diseño Web',
-        'App Design',
         'Diseño Gráfico',
-        'Packaging',
-        'Marketing Digital',
-        'Motion Graphics',
+        'Animación Gráfica',
+        'Ilustración',
         'No estoy seguro',
         'Otro'
     ];

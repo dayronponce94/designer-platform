@@ -66,7 +66,7 @@ export default function PortfolioHero() {
 
                         {/* Especialidades */}
                         <div className="flex flex-wrap gap-3">
-                            {['Branding', 'Diseño Web', 'Ilustración', 'Personajes 3D'].map((skill) => (
+                            {['Diseño de Marca', 'Diseño Web', 'Ilustración', 'Personajes 3D'].map((skill) => (
                                 <span
                                     key={skill}
                                     className="flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full font-medium hover:bg-white/30 transition-colors"

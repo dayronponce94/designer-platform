@@ -155,6 +155,7 @@ export default function ProjectDetailPage() {
             'graphic': 'Diseño Gráfico',
             'web': 'Diseño Web',
             'motion': 'Animación Gráfica',
+            'illustration': 'Ilustración',
             'other': 'Otro'
         };
         return labels[type] || type;
@@ -237,12 +238,19 @@ export default function ProjectDetailPage() {
             {/* Header */}
             <div className="mb-8">
                 <button
-                    onClick={() => router.push('/dashboard/projects')}
+                    onClick={() => {
+                        if (user?.role === 'admin') {
+                            router.push('/dashboard/admin/projects');
+                        } else {
+                            router.push('/dashboard/projects');
+                        }
+                    }}
                     className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
                 >
                     <FiArrowLeft className="mr-2" />
                     Volver a Mis Proyectos
                 </button>
+
 
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                     <div>
