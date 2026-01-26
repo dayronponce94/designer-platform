@@ -64,6 +64,19 @@ export default function AdminReportsPage() {
         }).format(amount);
     };
 
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'requested': return 'Solicitado';
+            case 'quoted': return 'Cotizado';
+            case 'approved': return 'Aprobado';
+            case 'in-progress': return 'En progreso';
+            case 'review': return 'En revisión';
+            case 'completed': return 'Completado';
+            case 'cancelled': return 'Cancelado';
+            default: return status;
+        }
+    };
+
     // Datos para gráficos
     const revenueData = reports?.projectsByMonth?.map((item: any) => ({
         name: `${getMonthName(item.month)} ${item.year}`,
@@ -72,7 +85,7 @@ export default function AdminReportsPage() {
     })) || [];
 
     const projectStatusData = reports?.projectsByStatus?.map((item: any) => ({
-        name: item.status,
+        name: getStatusLabel(item.status),
         value: item.count
     })) || [];
 
@@ -311,7 +324,7 @@ export default function AdminReportsPage() {
                                         <tr key={index}>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
-                                                    {item.status}
+                                                    {getStatusLabel(item.status)}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

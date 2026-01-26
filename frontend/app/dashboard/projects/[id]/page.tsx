@@ -150,11 +150,11 @@ export default function ProjectDetailPage() {
 
     const getServiceTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            'branding': 'Branding & Identidad',
+            'branding': 'Diseño de Marca',
             'ux-ui': 'Diseño UX/UI',
             'graphic': 'Diseño Gráfico',
             'web': 'Diseño Web',
-            'motion': 'Motion Graphics',
+            'motion': 'Animación Gráfica',
             'other': 'Otro'
         };
         return labels[type] || type;

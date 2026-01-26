@@ -241,20 +241,22 @@ export default function DesignerPortfolioPage() {
                                     <div className="flex items-center space-x-2">
                                         <button
                                             onClick={() => router.push(`/dashboard/designer/portfolio/${item._id}`)}
-                                            className="p-2 text-green-400 hover:text-green-600"
+                                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-blue-50 rounded-lg transition"
                                             title="Detalles"
                                         >
                                             <FiEye className="w-4 h-4" />
                                         </button>
                                         <button
                                             onClick={() => router.push(`/dashboard/designer/portfolio/edit/${item._id}`)}
-                                            className="flex items-center text-blue-600 hover:text-blue-700 text-sm"
+                                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                            title="Editar"
                                         >
                                             <FiEdit className="mr-1" />
                                         </button>
                                         <button
                                             onClick={() => setDeleteConfirm(item._id)}
-                                            className="flex items-center text-red-600 hover:text-red-700 text-sm"
+                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                            title="Eliminar"
                                         >
                                             <FiTrash2 className="mr-1" />
                                         </button>
@@ -334,21 +336,21 @@ export default function DesignerPortfolioPage() {
                                                 <div className="flex items-center space-x-2">
                                                     <button
                                                         onClick={() => router.push(`/dashboard/designer/portfolio/${item._id}`)}
-                                                        className="p-2 text-green-400 hover:text-green-600"
+                                                        className="p-2 text-gray-500 hover:text-green-600 hover:bg-blue-50 rounded-lg transition"
                                                         title="Detalles"
                                                     >
                                                         <FiEye className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => router.push(`/dashboard/designer/portfolio/edit/${item._id}`)}
-                                                        className="p-2 text-blue-400 hover:text-blue-600"
+                                                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                                                         title="Editar"
                                                     >
                                                         <FiEdit className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => setDeleteConfirm(item._id)}
-                                                        className="p-2 text-red-400 hover:text-red-600"
+                                                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                                                         title="Eliminar"
                                                     >
                                                         <FiTrash2 className="w-4 h-4" />

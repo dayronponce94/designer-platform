@@ -56,7 +56,7 @@ export default function Footer() {
                 </div>
 
                 <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-                    <p>&copy; {currentYear} DesignerPlatform. Todos los derechos reservados.</p>
+                    <p>&copy; {currentYear} Llerandi Design. Todos los derechos reservados.</p>
                     <p className="mt-2">Desarrollado para diseñadores y clientes</p>
                 </div>
             </div>

@@ -10,11 +10,11 @@ import {
 } from 'react-icons/fi';
 
 const SERVICE_TYPES = [
-    { value: 'branding', label: 'Branding & Identidad Visual' },
+    { value: 'branding', label: 'Diseño de Marca' },
     { value: 'ux-ui', label: 'Diseño UX/UI' },
     { value: 'graphic', label: 'Diseño Gráfico' },
     { value: 'web', label: 'Diseño Web' },
-    { value: 'motion', label: 'Motion Graphics' },
+    { value: 'motion', label: 'Animación Gráfica' },
     { value: 'other', label: 'Otro tipo de proyecto' },
 ];
 

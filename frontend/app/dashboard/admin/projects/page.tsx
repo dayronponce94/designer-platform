@@ -81,13 +81,26 @@ export default function AdminProjectsPage() {
         }
     };
 
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'requested': return 'Solicitado';
+            case 'quoted': return 'Cotizado';
+            case 'approved': return 'Aprobado';
+            case 'in-progress': return 'En progreso';
+            case 'review': return 'En revisión';
+            case 'completed': return 'Completado';
+            case 'cancelled': return 'Cancelado';
+            default: return status;
+        }
+    };
+
     const getServiceTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            'branding': 'Branding',
-            'ux-ui': 'UX/UI',
-            'graphic': 'Gráfico',
-            'web': 'Web',
-            'motion': 'Motion',
+            'branding': 'Diseño de Marca',
+            'ux-ui': 'Diseño UX/UI',
+            'graphic': 'DiseñoGráfico',
+            'web': 'Diseño Web',
+            'motion': 'Animación Gráfica',
             'illustration': 'Ilustración',
             'other': 'Otro'
         };
@@ -202,7 +215,7 @@ export default function AdminProjectsPage() {
                                     <tr key={project._id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4">
                                             <div>
-                                                <div className="font-medium text-gray-900">{project.title}</div>
+                                                {project.title.length > 30 ? project.title.substring(0, 30) + '...' : project.title}
                                                 <div className="text-sm text-gray-500">{getServiceTypeLabel(project.serviceType)}</div>
                                             </div>
                                         </td>
@@ -211,8 +224,10 @@ export default function AdminProjectsPage() {
                                             <div className="text-xs text-gray-500">{project.client?.email}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}>
-                                                {project.status}
+                                            <span
+                                                className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}
+                                            >
+                                                {getStatusLabel(project.status)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -244,6 +259,7 @@ export default function AdminProjectsPage() {
                                                 <Link
                                                     href={`/dashboard/projects/${project._id}`}
                                                     className="text-blue-600 hover:text-blue-900"
+                                                    title='Detalles'
                                                 >
                                                     <FiEye className="w-4 h-4" />
                                                 </Link>
@@ -251,6 +267,7 @@ export default function AdminProjectsPage() {
                                                     className="text-green-600 hover:text-green-900"
                                                     onClick={() => handleUpdateStatus(project._id, 'approved')}
                                                     disabled={project.status !== 'requested'}
+                                                    title='Aprobar'
                                                 >
                                                     <FiCheck className="w-4 h-4" />
                                                 </button>
@@ -258,6 +275,7 @@ export default function AdminProjectsPage() {
                                                     className="text-red-600 hover:text-red-900"
                                                     onClick={() => handleUpdateStatus(project._id, 'cancelled')}
                                                     disabled={project.status === 'completed' || project.status === 'cancelled'}
+                                                    title='Cancelar'
                                                 >
                                                     <FiX className="w-4 h-4" />
                                                 </button>
