@@ -374,8 +374,8 @@ const projects = [
 const categories = [
     { id: 'all', name: 'Todos', icon: <FiGrid />, count: projects.length },
     { id: 'branding', name: 'Diseño de Marca', icon: <FiPenTool />, count: projects.filter(p => p.category === 'branding').length },
-    { id: 'web', name: 'Web', icon: <FiMonitor />, count: projects.filter(p => p.category === 'web').length },
-    { id: '3d', name: '3D', icon: <FiUsers />, count: projects.filter(p => p.category === '3d').length },
+    { id: 'web', name: 'Diseño Web', icon: <FiMonitor />, count: projects.filter(p => p.category === 'web').length },
+    { id: '3d', name: 'Modelos-3D', icon: <FiUsers />, count: projects.filter(p => p.category === '3d').length },
     { id: 'illustration', name: 'Ilustración', icon: <FiImage />, count: projects.filter(p => p.category === 'illustration').length },
     { id: 'magazing', name: 'Revista', icon: <FiBook />, count: projects.filter(p => p.category === 'magazing').length }
 ];

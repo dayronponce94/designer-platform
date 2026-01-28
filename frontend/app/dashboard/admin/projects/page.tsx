@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export default function AdminProjectsPage() {
-    const { fetchProjects, assignDesigner, updateProjectStatus, loading } = useAdmin();
+    const { fetchProjects, assignDesigner, updateProjectStatus, fetchUsers, loading } = useAdmin();
     const [projects, setProjects] = useState<any[]>([]);
     const [designers, setDesigners] = useState<any[]>([]);
     const [filters, setFilters] = useState({
@@ -38,8 +38,8 @@ export default function AdminProjectsPage() {
 
     const loadDesigners = async () => {
         try {
-            const response = await fetch('/api/admin/users?role=designer&isActive=true');
-            const data = await response.json();
+            // Usa el hook que ya envía el token
+            const data = await fetchUsers({ role: 'designer', isActive: true });
             setDesigners(data.users || []);
         } catch (error) {
             console.error('Error loading designers:', error);
