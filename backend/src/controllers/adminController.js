@@ -12,13 +12,33 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
     let query = {};
 
-    // Filtros
-    if (role) query.role = role;
-    if (isActive !== undefined) query.isActive = isActive === 'true';
-    if (isVerified !== undefined) query.isVerified = isVerified === 'true';
+    // Filtros - solo aplicar si no están vacíos
+    if (role && role.trim() !== '') {
+        query.role = role;
+    }
+
+    if (isActive !== undefined && isActive !== '') {
+        // Convertir string a booleano
+        if (isActive === 'true') {
+            query.isActive = true;
+        } else if (isActive === 'false') {
+            query.isActive = false;
+        }
+        // Si es 'all' o vacío, no aplicar filtro
+    }
+
+    if (isVerified !== undefined && isVerified !== '') {
+        // Convertir string a booleano
+        if (isVerified === 'true') {
+            query.isVerified = true;
+        } else if (isVerified === 'false') {
+            query.isVerified = false;
+        }
+        // Si es 'all' o vacío, no aplicar filtro
+    }
 
     // Búsqueda por texto
-    if (search) {
+    if (search && search.trim() !== '') {
         query.$or = [
             { name: { $regex: search, $options: 'i' } },
             { email: { $regex: search, $options: 'i' } },

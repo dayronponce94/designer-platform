@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuthContext } from '@/app/providers/AuthProvider';
+import { adminAPI } from '@/app/lib/api/endpoints';
 
 export default function AdminDashboardPage() {
     const { fetchReports, loading } = useAdmin();
@@ -25,14 +26,12 @@ export default function AdminDashboardPage() {
             setStats(reports);
 
             // Obtener usuarios recientes
-            const usersResponse = await fetch('/api/admin/users?limit=5&sort=-createdAt');
-            const usersData = await usersResponse.json();
-            setRecentUsers(usersData.users || []);
+            const usersData = await adminAPI.getAllUsers({ limit: 5, sort: '-createdAt' });
+            setRecentUsers(usersData.data.data.users || []);
 
             // Obtener proyectos recientes
-            const projectsResponse = await fetch('/api/admin/projects?limit=5&sort=-createdAt');
-            const projectsData = await projectsResponse.json();
-            setRecentProjects(projectsData.projects || []);
+            const projectsData = await adminAPI.getAllProjects({ limit: 5, sort: '-createdAt' });
+            setRecentProjects(projectsData.data.data.projects || []);
         } catch (error) {
             console.error('Error loading dashboard data:', error);
         }
