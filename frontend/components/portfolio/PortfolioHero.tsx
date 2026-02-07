@@ -25,7 +25,7 @@ export default function PortfolioHero() {
                             */}
                             {/* Para usar una imagen real: */}
                             <Image
-                                src="/veronica.jpeg" // Ruta en public/
+                                src="/vero-photo.jpeg" // Ruta en public/
                                 alt="Verónica Llerandi Rodríguez"
                                 fill
                                 className="object-cover"

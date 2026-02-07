@@ -67,7 +67,7 @@ export default function Sidebar() {
     if (user?.role === 'admin') navigation = adminNavigation;
 
     return (
-        <div className={`bg-white border-r border-gray-200 min-h-screen transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'} sticky top-0 h-screen`}>
+        <div className={`bg-white border-r border-gray-200 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'} sticky top-0 h-full`}>
             <div className="p-4 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-8">
                     {!isCollapsed && (

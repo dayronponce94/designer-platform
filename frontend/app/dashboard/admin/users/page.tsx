@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAdmin } from '@/app/lib/hooks/useAdmin';
-import { FiUsers, FiUserCheck, FiUserX, FiFilter, FiSearch, FiEdit, FiEye } from 'react-icons/fi';
+import { FiUsers, FiUserCheck, FiUserX, FiTrash2, FiSearch, FiEdit, FiEye } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -229,20 +229,32 @@ export default function AdminUsersPage() {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex space-x-2">
                                                 <button
-                                                    className="text-blue-600 hover:text-blue-900"
+                                                    className="text-green-600 hover:text-green-900"
                                                     onClick={() => {
+
                                                         // Ver perfil
                                                     }}
+                                                    title="Ver perfil"
                                                 >
                                                     <FiEye className="w-4 h-4" />
                                                 </button>
                                                 <button
-                                                    className="text-gray-600 hover:text-gray-900"
+                                                    className="text-blue-600 hover:text-blue-900"
                                                     onClick={() => {
                                                         // Editar usuario
                                                     }}
+                                                    title="Editar usuario"
                                                 >
                                                     <FiEdit className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    className="text-red-600 hover:text-red-900"
+                                                    onClick={() => {
+                                                        // Eliminar usuario
+                                                    }}
+                                                    title="Eliminar usuario"
+                                                >
+                                                    <FiTrash2 className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </td>
