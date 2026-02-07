@@ -438,11 +438,85 @@ const getReports = asyncHandler(async (req, res) => {
     );
 });
 
+// @desc    Eliminar usuario (con eliminación en cascada)
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
+const deleteUser = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+        return res.status(404).json(
+            ApiResponse.notFound('Usuario no encontrado').toJSON()
+        );
+    }
+
+    // Verificar que no sea el admin principal (Verónica Llerandi)
+    if (user.email === 'verallero@gmail.com') {
+        return res.status(400).json(
+            ApiResponse.error('No se puede eliminar al administrador principal del sistema', 400).toJSON()
+        );
+    }
+
+    // Verificar que no sea el usuario actual
+    if (req.user.id === user._id.toString()) {
+        return res.status(400).json(
+            ApiResponse.error('No puedes eliminar tu propia cuenta', 400).toJSON()
+        );
+    }
+
+    // Eliminación en cascada
+    // 1. Proyectos donde el usuario es cliente
+    await Project.deleteMany({ client: user._id });
+
+    // 2. Proyectos donde el usuario es diseñador
+    await Project.deleteMany({ designer: user._id });
+
+    // 3. Notificaciones relacionadas (si hay)
+    // await Notification.deleteMany({ 
+    //     $or: [
+    //         { userId: user._id },
+    //         { relatedUserId: user._id }
+    //     ] 
+    // });
+
+    // 4. Elementos del portafolio (si es diseñador)
+    if (user.role === 'designer') {
+        // Aquí se eliminaría el portafolio cuando tengamos el modelo
+        // await Portfolio.deleteMany({ designer: user._id });
+    }
+
+    // 5. Finalmente eliminar el usuario
+    await User.findByIdAndDelete(user._id);
+
+    res.status(200).json(
+        ApiResponse.success('Usuario eliminado exitosamente (con eliminación en cascada)').toJSON()
+    );
+});
+
+// @desc    Obtener un usuario por ID
+// @route   GET /api/admin/users/:id
+// @access  Private/Admin
+const getUserById = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id).select('-password');
+
+    if (!user) {
+        return res.status(404).json(
+            ApiResponse.notFound('Usuario no encontrado').toJSON()
+        );
+    }
+
+    res.status(200).json(
+        ApiResponse.success('Usuario encontrado', { user }).toJSON()
+    );
+});
+
 module.exports = {
     getAllUsers,
     getUserStats,
     updateUser,
+    deleteUser,
     getAllProjects,
+    getUserById,
     assignDesignerToProject,
     updateProjectStatus,
     getReports

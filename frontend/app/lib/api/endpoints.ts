@@ -23,6 +23,7 @@ export const notificationAPI = {
     getUnreadCount: () => apiClient.get('/notifications/unread-count'),
 };
 
+
 export const paymentAPI = {
     // Datos simulados - luego se conectará a API real
     getPayments: (params?: any) => Promise.resolve({
@@ -268,6 +269,8 @@ export const adminAPI = {
     getAllUsers: (params?: any) => apiClient.get('/admin/users', { params }),
     getUserStats: () => apiClient.get('/admin/users/stats'),
     updateUser: (id: string, data: any) => apiClient.put(`/admin/users/${id}`, data),
+    deleteUser: (id: string) => apiClient.delete(`/admin/users/${id}`),
+    getUserById: (id: string) => apiClient.get(`/admin/users/${id}`),
 
     // Gestión de proyectos
     getAllProjects: (params?: any) => apiClient.get('/admin/projects', { params }),

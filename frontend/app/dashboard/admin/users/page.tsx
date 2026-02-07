@@ -1,13 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAdmin } from '@/app/lib/hooks/useAdmin';
-import { FiUsers, FiUserCheck, FiUserX, FiTrash2, FiSearch, FiEdit, FiEye } from 'react-icons/fi';
+import { useAuthContext } from '@/app/providers/AuthProvider';
+import { FiUsers, FiUserCheck, FiUserX, FiTrash2, FiSearch, FiEdit, FiEye, FiFilter } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import ConfirmModal from '@/components/modals/ConfirmModal';
 
 export default function AdminUsersPage() {
-    const { fetchUsers, toggleUserStatus, verifyUser, updateUserRole, loading } = useAdmin();
+    const router = useRouter();
+    const { user: currentUser } = useAuthContext();
+    const {
+        fetchUsers,
+        toggleUserStatus,
+        verifyUser,
+        updateUserRole,
+        deleteUser,
+        loading
+    } = useAdmin();
+
     const [users, setUsers] = useState<any[]>([]);
     const [filters, setFilters] = useState({
         role: '',
@@ -18,6 +31,12 @@ export default function AdminUsersPage() {
         limit: 20
     });
     const [pagination, setPagination] = useState<any>({});
+
+    // Estados para el modal de confirmación
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState<any>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     useEffect(() => {
         loadUsers();
@@ -60,8 +79,61 @@ export default function AdminUsersPage() {
         }
     };
 
+    // Función para ver detalles del usuario
+    const handleViewDetails = (userId: string) => {
+        router.push(`/dashboard/admin/users/${userId}`);
+    };
+
+    // Función para editar usuario
+    const handleEditUser = (userId: string) => {
+        router.push(`/dashboard/admin/users/${userId}/edit`);
+    };
+
+    // Función para preparar la eliminación
+    const handlePrepareDelete = (user: any) => {
+        setUserToDelete(user);
+        setShowDeleteModal(true);
+        setDeleteError(null);
+    };
+
+    // Función para confirmar eliminación
+    const handleConfirmDelete = async () => {
+        if (!userToDelete) return;
+
+        setDeleteLoading(true);
+        setDeleteError(null);
+
+        try {
+            await deleteUser(userToDelete._id);
+            setShowDeleteModal(false);
+            setUserToDelete(null);
+            loadUsers(); // Recargar la lista
+        } catch (error: any) {
+            setDeleteError(error.message || 'Error al eliminar el usuario');
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
+
+    // Función para cancelar eliminación
+    const handleCancelDelete = () => {
+        setShowDeleteModal(false);
+        setUserToDelete(null);
+        setDeleteError(null);
+    };
+
     const formatDate = (dateString: string) => {
         return format(new Date(dateString), "dd/MM/yyyy", { locale: es });
+    };
+
+    // Verificar si es el usuario admin principal
+    const isMainAdmin = (user: any) => {
+        return user.email === 'verallero@gmail.com';
+    };
+
+    // Verificar si es el usuario actual
+    const isCurrentUser = (user: any) => {
+        return currentUser?._id === user._id;
     };
 
     return (
@@ -170,96 +242,107 @@ export default function AdminUsersPage() {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {users.map((user) => (
-                                    <tr key={user._id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-600' : user.role === 'designer' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
-                                                    <FiUsers className="w-5 h-5" />
-                                                </div>
-                                                <div>
-                                                    <div className="font-medium text-gray-900">{user.name}</div>
-                                                    <div className="text-sm text-gray-500">{user.email}</div>
-                                                    {user.company && (
-                                                        <div className="text-xs text-gray-400">{user.company}</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <select
-                                                className={`px-3 py-1 text-sm font-medium rounded-full border ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : user.role === 'designer' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200'}`}
-                                                value={user.role}
-                                                onChange={(e) => handleRoleChange(user._id, e.target.value)}
-                                            >
-                                                <option value="client">Cliente</option>
-                                                <option value="designer">Diseñador</option>
-                                                <option value="admin">Administrador</option>
-                                            </select>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <button
-                                                onClick={() => handleToggleStatus(user._id, user.isActive)}
-                                                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-                                            >
-                                                {user.isActive ? (
-                                                    <>
-                                                        <FiUserCheck className="w-3 h-3 mr-1" />
-                                                        Activo
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <FiUserX className="w-3 h-3 mr-1" />
-                                                        Inactivo
-                                                    </>
-                                                )}
-                                            </button>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <button
-                                                onClick={() => handleVerifyUser(user._id, user.isVerified)}
-                                                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${user.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
-                                            >
-                                                {user.isVerified ? 'Verificado' : 'No Verificado'}
-                                            </button>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {formatDate(user.createdAt)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex space-x-2">
-                                                <button
-                                                    className="text-green-600 hover:text-green-900"
-                                                    onClick={() => {
+                                {users.map((user) => {
+                                    const isMainAdminUser = isMainAdmin(user);
+                                    const isCurrentUserUser = isCurrentUser(user);
 
-                                                        // Ver perfil
-                                                    }}
-                                                    title="Ver perfil"
+                                    return (
+                                        <tr key={user._id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-600' : user.role === 'designer' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+                                                        <FiUsers className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-medium text-gray-900">{user.name}</div>
+                                                        <div className="text-sm text-gray-500">{user.email}</div>
+                                                        {user.company && (
+                                                            <div className="text-xs text-gray-400">{user.company}</div>
+                                                        )}
+                                                        {isMainAdminUser && (
+                                                            <div className="text-xs text-indigo-600 font-medium">
+                                                                Administrador Principal
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <select
+                                                    className={`px-3 py-1 text-sm font-medium rounded-full border ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : user.role === 'designer' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200'} ${isMainAdminUser ? 'cursor-not-allowed opacity-50' : ''}`}
+                                                    value={user.role}
+                                                    onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                                                    disabled={isMainAdminUser}
                                                 >
-                                                    <FiEye className="w-4 h-4" />
-                                                </button>
+                                                    <option value="client">Cliente</option>
+                                                    <option value="designer">Diseñador</option>
+                                                    <option value="admin">Administrador</option>
+                                                </select>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
                                                 <button
-                                                    className="text-blue-600 hover:text-blue-900"
-                                                    onClick={() => {
-                                                        // Editar usuario
-                                                    }}
-                                                    title="Editar usuario"
+                                                    onClick={() => !isMainAdminUser && handleToggleStatus(user._id, user.isActive)}
+                                                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} ${isMainAdminUser ? 'cursor-not-allowed opacity-50' : ''}`}
+                                                    disabled={isMainAdminUser}
+                                                    title={isMainAdminUser ? "No se puede desactivar al administrador principal" : ""}
                                                 >
-                                                    <FiEdit className="w-4 h-4" />
+                                                    {user.isActive ? (
+                                                        <>
+                                                            <FiUserCheck className="w-3 h-3 mr-1" />
+                                                            Activo
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <FiUserX className="w-3 h-3 mr-1" />
+                                                            Inactivo
+                                                        </>
+                                                    )}
                                                 </button>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
                                                 <button
-                                                    className="text-red-600 hover:text-red-900"
-                                                    onClick={() => {
-                                                        // Eliminar usuario
-                                                    }}
-                                                    title="Eliminar usuario"
+                                                    onClick={() => handleVerifyUser(user._id, user.isVerified)}
+                                                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${user.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
                                                 >
-                                                    <FiTrash2 className="w-4 h-4" />
+                                                    {user.isVerified ? 'Verificado' : 'No Verificado'}
                                                 </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {formatDate(user.createdAt)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div className="flex space-x-2">
+                                                    <button
+                                                        className="text-green-600 hover:text-green-900 transition-colors"
+                                                        onClick={() => handleViewDetails(user._id)}
+                                                        title="Ver detalles del usuario"
+                                                    >
+                                                        <FiEye className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        className="text-blue-600 hover:text-blue-900 transition-colors"
+                                                        onClick={() => handleEditUser(user._id)}
+                                                        title="Editar usuario"
+                                                    >
+                                                        <FiEdit className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        className={`${isMainAdminUser || isCurrentUserUser ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-900 transition-colors'}`}
+                                                        onClick={() => !isMainAdminUser && !isCurrentUserUser && handlePrepareDelete(user)}
+                                                        disabled={isMainAdminUser || isCurrentUserUser}
+                                                        title={
+                                                            isMainAdminUser ? "No se puede eliminar al administrador principal" :
+                                                                isCurrentUserUser ? "No puedes eliminar tu propia cuenta" :
+                                                                    "Eliminar usuario"
+                                                        }
+                                                    >
+                                                        <FiTrash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -271,7 +354,7 @@ export default function AdminUsersPage() {
                 <div className="flex justify-center">
                     <div className="flex space-x-2">
                         <button
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                             disabled={filters.page === 1}
                             onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
                         >
@@ -281,7 +364,7 @@ export default function AdminUsersPage() {
                             Página {filters.page} de {pagination.pages}
                         </span>
                         <button
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                             disabled={filters.page === pagination.pages}
                             onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
                         >
@@ -290,6 +373,22 @@ export default function AdminUsersPage() {
                     </div>
                 </div>
             )}
+
+            {/* Modal de confirmación para eliminar */}
+            <ConfirmModal
+                isOpen={showDeleteModal}
+                onClose={handleCancelDelete}
+                onConfirm={handleConfirmDelete}
+                title="Eliminar Usuario"
+                message={
+                    userToDelete ?
+                        `¿Estás seguro de que deseas eliminar al usuario "${userToDelete.name}"? Esta acción eliminará todos los datos relacionados (proyectos, portafolios, etc.) y no se puede deshacer.`
+                        : ''
+                }
+                confirmText={deleteLoading ? "Eliminando..." : "Eliminar"}
+                cancelText="Cancelar"
+                type="danger"
+            />
         </div>
     );
 }

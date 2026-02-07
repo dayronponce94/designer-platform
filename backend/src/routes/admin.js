@@ -4,7 +4,9 @@ const {
     getAllUsers,
     getUserStats,
     updateUser,
+    deleteUser,
     getAllProjects,
+    getUserById,
     assignDesignerToProject,
     updateProjectStatus,
     getReports
@@ -22,7 +24,10 @@ router.route('/users/stats')
     .get(getUserStats);
 
 router.route('/users/:id')
-    .put(updateUser);
+    .get(getUserById)
+    .put(updateUser)
+    .delete(deleteUser);
+
 
 // Rutas de gestión de proyectos
 router.route('/projects')

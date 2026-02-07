@@ -164,6 +164,19 @@ export function useAdmin() {
         }
     }, []);
 
+    const deleteUser = useCallback(async (userId: string) => {
+        try {
+            setLoading(true);
+            const response = await adminAPI.deleteUser(userId);
+            return response.data.data;
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Error al eliminar usuario');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     return {
         loading,
         error,
@@ -172,6 +185,7 @@ export function useAdmin() {
         toggleUserStatus,
         verifyUser,
         updateUserRole,
+        deleteUser,
         // Proyectos
         fetchProjects,
         assignDesigner,
