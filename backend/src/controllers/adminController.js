@@ -538,7 +538,7 @@ const getDesignerPortfolio = asyncHandler(async (req, res) => {
     // Necesitamos el modelo Portfolio - asumo que existe
     const Portfolio = require('../models/Portfolio');
 
-    const portfolioItems = await Portfolio.find({ designer: designerId })
+    const portfolioItems = await Portfolio.find({ designerId: designerId })
         .sort({ createdAt: -1 });
 
     res.status(200).json(
