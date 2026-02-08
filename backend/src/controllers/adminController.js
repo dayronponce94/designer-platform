@@ -115,29 +115,30 @@ const getUserStats = asyncHandler(async (req, res) => {
     );
 });
 
-// @desc    Actualizar usuario (activar/desactivar, verificar, cambiar rol)
+// @desc    Actualizar usuario (admin puede editar todo)
 // @route   PUT /api/admin/users/:id
 // @access  Private/Admin
 const updateUser = asyncHandler(async (req, res) => {
-    const { isActive, isVerified, role } = req.body;
+    const { name, company, phone, bio, specialty, experience, skills, portfolio,
+        isActive, isVerified, role } = req.body;
 
-    // No permitir modificar al admin principal
-    if (req.params.id === req.user.id && (isActive === false || role !== 'admin')) {
+    // No permitir modificar rol o estado del admin principal
+    if (req.params.id === req.user.id && (isActive === false || (role && role !== 'admin'))) {
         return res.status(400).json(
             ApiResponse.error('No puedes desactivar o cambiar el rol de tu propia cuenta de administrador', 400).toJSON()
         );
     }
 
-    const user = await User.findById(req.params.id);
-
-    if (!user) {
-        return res.status(404).json(
-            ApiResponse.notFound('Usuario no encontrado').toJSON()
-        );
-    }
-
-    // Campos que se pueden actualizar
     const updates = {};
+    if (name !== undefined) updates.name = name;
+    if (company !== undefined) updates.company = company;
+    if (phone !== undefined) updates.phone = phone;
+    if (bio !== undefined) updates.bio = bio;
+    if (specialty !== undefined) updates.specialty = specialty;
+    if (experience !== undefined) updates.experience = experience;
+    if (skills !== undefined) updates.skills = skills;
+    if (portfolio !== undefined) updates.portfolio = portfolio;
+
     if (isActive !== undefined) updates.isActive = isActive;
     if (isVerified !== undefined) updates.isVerified = isVerified;
     if (role && ['client', 'designer', 'admin'].includes(role)) updates.role = role;
@@ -148,10 +149,12 @@ const updateUser = asyncHandler(async (req, res) => {
         { new: true, runValidators: true }
     ).select('-password');
 
+    if (!updatedUser) {
+        return res.status(404).json(ApiResponse.notFound('Usuario no encontrado').toJSON());
+    }
+
     res.status(200).json(
-        ApiResponse.success('Usuario actualizado', {
-            user: updatedUser
-        }).toJSON()
+        ApiResponse.success('Usuario actualizado correctamente', { user: updatedUser }).toJSON()
     );
 });
 
@@ -510,6 +513,48 @@ const getUserById = asyncHandler(async (req, res) => {
     );
 });
 
+// @desc    Obtener portafolio de un diseñador específico
+// @route   GET /api/admin/designers/:id/portfolio
+// @access  Private/Admin
+const getDesignerPortfolio = asyncHandler(async (req, res) => {
+    const designerId = req.params.id;
+
+    // Verificar que el usuario sea un diseñador
+    const designer = await User.findOne({
+        _id: designerId,
+        role: 'designer'
+    }).select('-password');
+
+    if (!designer) {
+        return res.status(404).json(
+            ApiResponse.notFound('Diseñador no encontrado').toJSON()
+        );
+    }
+
+    // Obtener los items del portafolio del diseñador
+    // Necesitamos el modelo Portfolio - asumo que existe
+    const Portfolio = require('../models/Portfolio');
+
+    const portfolioItems = await Portfolio.find({ designer: designerId })
+        .sort({ createdAt: -1 });
+
+    res.status(200).json(
+        ApiResponse.success('Portafolio obtenido', {
+            designer: {
+                _id: designer._id,
+                name: designer.name,
+                email: designer.email,
+                specialty: designer.specialty,
+                experience: designer.experience,
+                bio: designer.bio,
+                skills: designer.skills
+            },
+            portfolio: portfolioItems,
+            count: portfolioItems.length
+        }).toJSON()
+    );
+});
+
 module.exports = {
     getAllUsers,
     getUserStats,
@@ -517,6 +562,7 @@ module.exports = {
     deleteUser,
     getAllProjects,
     getUserById,
+    getDesignerPortfolio,
     assignDesignerToProject,
     updateProjectStatus,
     getReports

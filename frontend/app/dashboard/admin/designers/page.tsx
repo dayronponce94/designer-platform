@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useAdmin } from '@/app/lib/hooks/useAdmin';
-import { FiUsers, FiUserCheck, FiUserX, FiFilter, FiSearch, FiMail, FiAward, FiBriefcase } from 'react-icons/fi';
+import { FiUsers, FiUserCheck, FiUserX, FiFilter, FiSearch, FiMail, FiAward, FiBriefcase, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useRouter } from 'next/navigation';
 
 export default function AdminDesignersPage() {
     const { fetchUsers, toggleUserStatus, verifyUser, loading } = useAdmin();
@@ -17,6 +18,7 @@ export default function AdminDesignersPage() {
         limit: 20
     });
     const [pagination, setPagination] = useState<any>({});
+    const router = useRouter();
 
     useEffect(() => {
         loadDesigners();
@@ -159,15 +161,6 @@ export default function AdminDesignersPage() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={() => handleToggleStatus(designer._id, designer.isActive)}
-                                        className={`p-2 rounded-lg ${designer.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}
-                                        title={designer.isActive ? 'Desactivar' : 'Activar'}
-                                    >
-                                        {designer.isActive ? <FiUserCheck /> : <FiUserX />}
-                                    </button>
-                                </div>
                             </div>
 
                             <div className="space-y-3 mb-6">
@@ -213,18 +206,24 @@ export default function AdminDesignersPage() {
                                 </div>
                                 <div className="flex space-x-2">
                                     <button
+                                        onClick={() => handleToggleStatus(designer._id, designer.isActive)}
+                                        className={`p-2 rounded-lg ${designer.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}
+                                        title={designer.isActive ? 'Desactivar' : 'Activar'}
+                                    >
+                                        {designer.isActive ? <FiUserCheck /> : <FiUserX />}
+                                    </button>
+                                    <button
                                         onClick={() => handleVerifyUser(designer._id, designer.isVerified)}
                                         className={`px-3 py-1 text-xs rounded-full ${designer.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
                                     >
-                                        {designer.isVerified ? 'Quitar verificación' : 'Verificar'}
+                                        {designer.isVerified ? <FiCheckCircle /> : <FiAlertCircle />}
                                     </button>
                                     <button
-                                        className="px-3 py-1 text-xs bg-purple-100 text-purple-800 rounded-full"
-                                        onClick={() => {
-                                            // Ver portafolio del diseñador
-                                        }}
+                                        onClick={() => router.push(`/dashboard/admin/portfolio/${designer._id}`)}
+                                        className="px-3 py-1 text-xs bg-purple-100 text-purple-800 rounded-full hover:bg-purple-200"
+                                        title="Ver portafolio"
                                     >
-                                        Portafolio
+                                        <FiBriefcase />
                                     </button>
                                 </div>
                             </div>

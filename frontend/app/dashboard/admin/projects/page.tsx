@@ -6,6 +6,8 @@ import { FiBriefcase, FiFilter, FiSearch, FiUserPlus, FiCheck, FiX, FiEye, FiEdi
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useSearchParams } from 'next/navigation';
+import { adminAPI } from '@/app/lib/api/endpoints';
 
 export default function AdminProjectsPage() {
     const { fetchProjects, assignDesigner, updateProjectStatus, fetchUsers, loading } = useAdmin();
@@ -20,11 +22,21 @@ export default function AdminProjectsPage() {
         limit: 20
     });
     const [pagination, setPagination] = useState<any>({});
+    const params = useSearchParams();
+    const clientId = params.get('clientId');
 
     useEffect(() => {
-        loadProjects();
-        loadDesigners();
-    }, [filters]);
+        const fetchProjects = async () => {
+            const response = await adminAPI.getAllProjects({
+                clientId,
+                ...filters
+            });
+            setProjects(response.data.data.projects);
+        };
+
+        fetchProjects();
+        loadDesigners(); // si quieres que siempre se carguen los diseñadores
+    }, [clientId, filters]);
 
     const loadProjects = async () => {
         try {

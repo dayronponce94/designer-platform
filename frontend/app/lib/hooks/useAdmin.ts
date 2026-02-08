@@ -177,6 +177,21 @@ export function useAdmin() {
         }
     }, []);
 
+    // Agregar en el hook useAdmin
+    const getDesignerPortfolio = useCallback(async (designerId: string) => {
+        try {
+            setLoading(true);
+            const response = await adminAPI.getDesignerPortfolio(designerId);
+            return response.data.data;
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Error al cargar el portafolio');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+
     return {
         loading,
         error,
@@ -191,6 +206,8 @@ export function useAdmin() {
         assignDesigner,
         updateProjectStatus,
         // Reportes
-        fetchReports
+        fetchReports,
+        // Portafolio de diseñador
+        getDesignerPortfolio,
     };
 }

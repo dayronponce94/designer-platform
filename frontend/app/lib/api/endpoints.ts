@@ -281,4 +281,7 @@ export const adminAPI = {
 
     // Reportes
     getReports: (params?: any) => apiClient.get('/admin/reports', { params }),
+
+    // Portafolio de diseñador
+    getDesignerPortfolio: (designerId: string) => apiClient.get(`/admin/designers/${designerId}/portfolio`),
 };

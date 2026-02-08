@@ -6,6 +6,7 @@ const {
     updateUser,
     deleteUser,
     getAllProjects,
+    getDesignerPortfolio,
     getUserById,
     assignDesignerToProject,
     updateProjectStatus,
@@ -42,5 +43,9 @@ router.route('/projects/:id/status')
 // Rutas de reportes
 router.route('/reports')
     .get(getReports);
+
+// Agregar cerca de las otras rutas
+router.route('/designers/:id/portfolio')
+    .get(getDesignerPortfolio);
 
 module.exports = router;

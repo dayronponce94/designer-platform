@@ -350,22 +350,32 @@ export default function DashboardPage() {
                         <div className="space-y-3">
                             <div>
                                 <p className="text-sm text-gray-500">Tipo de cuenta</p>
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${user?.role === 'designer'
-                                    ? 'bg-purple-100 text-purple-800'
-                                    : user?.role === 'admin'
-                                        ? 'bg-red-100 text-red-800'
-                                        : 'bg-blue-100 text-blue-800'
-                                    }`}>
-                                    {user?.role === 'designer' ? 'Diseñador' : user?.role === 'admin' ? 'Administrador' : 'Cliente'}
+                                <span
+                                    className={`px-3 py-1 rounded-full text-sm font-medium ${user?.role === 'designer'
+                                            ? 'bg-purple-100 text-purple-800'
+                                            : user?.role === 'admin'
+                                                ? 'bg-red-100 text-red-800'
+                                                : 'bg-blue-100 text-blue-800'
+                                        }`}
+                                >
+                                    {user?.role === 'designer'
+                                        ? 'Diseñador'
+                                        : user?.role === 'admin'
+                                            ? 'Administrador'
+                                            : 'Cliente'}
                                 </span>
                             </div>
-                            {user?.company && (
+
+                            {/* Solo clientes muestran empresa */}
+                            {user?.role === 'client' && user?.company && (
                                 <div>
                                     <p className="text-sm text-gray-500">Empresa</p>
                                     <p className="font-medium">{user.company}</p>
                                 </div>
                             )}
-                            {user?.specialty && (
+
+                            {/* Solo diseñadores muestran especialidad */}
+                            {user?.role === 'designer' && user?.specialty && (
                                 <div>
                                     <p className="text-sm text-gray-500">Especialidad</p>
                                     <p className="font-medium">
@@ -373,9 +383,12 @@ export default function DashboardPage() {
                                     </p>
                                 </div>
                             )}
+
                             <div>
                                 <p className="text-sm text-gray-500">Miembro desde</p>
-                                <p className="font-medium">{user?.createdAt ? formatDate(user.createdAt) : 'Recientemente'}</p>
+                                <p className="font-medium">
+                                    {user?.createdAt ? formatDate(user.createdAt) : 'Recientemente'}
+                                </p>
                             </div>
                         </div>
                     </div>

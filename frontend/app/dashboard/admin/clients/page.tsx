@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useAdmin } from '@/app/lib/hooks/useAdmin';
-import { FiUsers, FiUserCheck, FiUserX, FiFilter, FiSearch, FiMail, FiPhone, FiBriefcase } from 'react-icons/fi';
+import { FiUsers, FiUserCheck, FiUserX, FiFilter, FiSearch, FiMail, FiPhone, FiBriefcase, FiCheckCircle, FiAlertCircle, FiFolder } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useRouter } from 'next/navigation';
+
+
 
 export default function AdminClientsPage() {
     const { fetchUsers, toggleUserStatus, verifyUser, loading } = useAdmin();
@@ -17,6 +20,7 @@ export default function AdminClientsPage() {
         limit: 20
     });
     const [pagination, setPagination] = useState<any>({});
+    const router = useRouter();
 
     useEffect(() => {
         loadClients();
@@ -48,6 +52,10 @@ export default function AdminClientsPage() {
         } catch (error) {
             console.error('Error verifying client:', error);
         }
+    };
+
+    const handleViewProjects = (clientId: string) => {
+        router.push(`/dashboard/admin/projects?clientId=${clientId}`);
     };
 
     const formatDate = (dateString: string) => {
@@ -140,15 +148,7 @@ export default function AdminClientsPage() {
                                         <p className="text-sm text-gray-500">{client.email}</p>
                                     </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={() => handleToggleStatus(client._id, client.isActive)}
-                                        className={`p-2 rounded-lg ${client.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}
-                                        title={client.isActive ? 'Desactivar' : 'Activar'}
-                                    >
-                                        {client.isActive ? <FiUserCheck /> : <FiUserX />}
-                                    </button>
-                                </div>
+
                             </div>
 
                             <div className="space-y-3 mb-6">
@@ -178,19 +178,31 @@ export default function AdminClientsPage() {
                                 </div>
                                 <div className="flex space-x-2">
                                     <button
-                                        onClick={() => handleVerifyUser(client._id, client.isVerified)}
-                                        className={`px-3 py-1 text-xs rounded-full ${client.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
+                                        onClick={() => handleToggleStatus(client._id, client.isActive)}
+                                        className={`p-2 rounded-lg ${client.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}
+                                        title={client.isActive ? 'Desactivar' : 'Activar'}
                                     >
-                                        {client.isVerified ? 'Quitar verificación' : 'Verificar'}
+                                        {client.isActive ? <FiUserCheck /> : <FiUserX />}
                                     </button>
                                     <button
-                                        className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
-                                        onClick={() => {
-                                            // Ver proyectos del cliente
-                                        }}
+                                        onClick={() => handleVerifyUser(client._id, client.isVerified)}
+                                        className={`p-2 rounded-lg ${client.isVerified
+                                            ? 'bg-green-100 text-green-600'
+                                            : 'bg-yellow-100 text-yellow-600'
+                                            }`}
+                                        title={client.isVerified ? 'Quitar verificación' : 'Verificar'}
                                     >
-                                        Proyectos
+                                        {client.isVerified ? <FiCheckCircle /> : <FiAlertCircle />}
                                     </button>
+                                    <button
+                                        onClick={() => handleViewProjects(client._id)}
+                                        className="p-2 rounded-lg bg-blue-100 text-blue-600"
+                                        title="Ver proyectos"
+                                    >
+                                        <FiFolder />
+                                    </button>
+
+
                                 </div>
                             </div>
                         </div>
