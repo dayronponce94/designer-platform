@@ -179,7 +179,7 @@ export default function AdminClientsPage() {
                                 <div className="flex space-x-2">
                                     <button
                                         onClick={() => handleToggleStatus(client._id, client.isActive)}
-                                        className={`p-2 rounded-lg ${client.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}
+                                        className={`p-2 rounded-lg ${client.isActive ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}
                                         title={client.isActive ? 'Desactivar' : 'Activar'}
                                     >
                                         {client.isActive ? <FiUserCheck /> : <FiUserX />}
@@ -187,8 +187,8 @@ export default function AdminClientsPage() {
                                     <button
                                         onClick={() => handleVerifyUser(client._id, client.isVerified)}
                                         className={`p-2 rounded-lg ${client.isVerified
-                                            ? 'bg-green-100 text-green-600'
-                                            : 'bg-yellow-100 text-yellow-600'
+                                            ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                                            : 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
                                             }`}
                                         title={client.isVerified ? 'Quitar verificación' : 'Verificar'}
                                     >
@@ -196,7 +196,7 @@ export default function AdminClientsPage() {
                                     </button>
                                     <button
                                         onClick={() => handleViewProjects(client._id)}
-                                        className="p-2 rounded-lg bg-blue-100 text-blue-600"
+                                        className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200"
                                         title="Ver proyectos"
                                     >
                                         <FiFolder />

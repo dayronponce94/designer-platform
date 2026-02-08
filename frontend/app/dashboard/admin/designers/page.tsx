@@ -207,14 +207,15 @@ export default function AdminDesignersPage() {
                                 <div className="flex space-x-2">
                                     <button
                                         onClick={() => handleToggleStatus(designer._id, designer.isActive)}
-                                        className={`p-2 rounded-lg ${designer.isActive ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}
+                                        className={`p-2 rounded-lg ${designer.isActive ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}
                                         title={designer.isActive ? 'Desactivar' : 'Activar'}
                                     >
                                         {designer.isActive ? <FiUserCheck /> : <FiUserX />}
                                     </button>
                                     <button
                                         onClick={() => handleVerifyUser(designer._id, designer.isVerified)}
-                                        className={`px-3 py-1 text-xs rounded-full ${designer.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
+                                        className={`px-3 py-1 text-xs rounded-full ${designer.isVerified ? 'bg-green-100 text-green-800 rounded-full hover:bg-green-200' : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'}`}
+                                        title={designer.isVerified ? 'Quitar verificación' : 'Verificar'}
                                     >
                                         {designer.isVerified ? <FiCheckCircle /> : <FiAlertCircle />}
                                     </button>

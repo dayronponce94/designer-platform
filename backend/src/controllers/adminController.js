@@ -3,6 +3,7 @@ const Project = require('../models/Project');
 const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const mongoose = require('mongoose');
+const Portfolio = require('../models/Portfolio');
 
 // @desc    Obtener todos los usuarios
 // @route   GET /api/admin/users
@@ -472,7 +473,10 @@ const deleteUser = asyncHandler(async (req, res) => {
     await Project.deleteMany({ client: user._id });
 
     // 2. Proyectos donde el usuario es diseñador
-    await Project.deleteMany({ designer: user._id });
+    await Project.updateMany(
+        { designer: user._id },
+        { $set: { designer: null } }
+    );
 
     // 3. Notificaciones relacionadas (si hay)
     // await Notification.deleteMany({ 
@@ -484,8 +488,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 
     // 4. Elementos del portafolio (si es diseñador)
     if (user.role === 'designer') {
-        // Aquí se eliminaría el portafolio cuando tengamos el modelo
-        // await Portfolio.deleteMany({ designer: user._id });
+        await Portfolio.deleteMany({ designerId: user._id });
     }
 
     // 5. Finalmente eliminar el usuario
