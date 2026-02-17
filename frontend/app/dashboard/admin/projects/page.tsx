@@ -2,12 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import { useAdmin } from '@/app/lib/hooks/useAdmin';
-import { FiBriefcase, FiFilter, FiSearch, FiUserPlus, FiCheck, FiX, FiEye, FiEdit } from 'react-icons/fi';
+import {
+    FiBriefcase,
+    FiFilter,
+    FiSearch,
+    FiUserPlus,
+    FiCheck,
+    FiX,
+    FiEye,
+    FiEdit,
+    FiFileText,
+} from 'react-icons/fi';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useSearchParams } from 'next/navigation';
 import { adminAPI } from '@/app/lib/api/endpoints';
+import CreateQuoteModal from '@/components/modals/CreateQuoteModal';
 
 export default function AdminProjectsPage() {
     const { fetchProjects, assignDesigner, updateProjectStatus, fetchUsers, loading } = useAdmin();
@@ -19,9 +30,14 @@ export default function AdminProjectsPage() {
         hasDesigner: '',
         search: '',
         page: 1,
-        limit: 20
+        limit: 20,
     });
     const [pagination, setPagination] = useState<any>({});
+
+    // Estados para el modal de cotización
+    const [quoteModalOpen, setQuoteModalOpen] = useState(false);
+    const [selectedProject, setSelectedProject] = useState<{ id: string; title: string } | null>(null);
+
     const params = useSearchParams();
     const clientId = params.get('clientId');
 
@@ -29,13 +45,13 @@ export default function AdminProjectsPage() {
         const fetchProjects = async () => {
             const response = await adminAPI.getAllProjects({
                 clientId,
-                ...filters
+                ...filters,
             });
             setProjects(response.data.data.projects);
         };
 
         fetchProjects();
-        loadDesigners(); // si quieres que siempre se carguen los diseñadores
+        loadDesigners();
     }, [clientId, filters]);
 
     const loadProjects = async () => {
@@ -50,7 +66,6 @@ export default function AdminProjectsPage() {
 
     const loadDesigners = async () => {
         try {
-            // Usa el hook que ya envía el token
             const data = await fetchUsers({ role: 'designer', isActive: true });
             setDesigners(data.users || []);
         } catch (error) {
@@ -76,45 +91,90 @@ export default function AdminProjectsPage() {
         }
     };
 
+    // Función para abrir el modal de cotización
+    const handleOpenQuoteModal = (projectId: string, projectTitle: string) => {
+        setSelectedProject({ id: projectId, title: projectTitle });
+        setQuoteModalOpen(true);
+    };
+
+    // Función para enviar la cotización
+    const handleCreateQuote = async (quoteData: any) => {
+        if (!selectedProject) return;
+
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/admin/projects/${selectedProject.id}/quote`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(quoteData),
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+            throw new Error(data.message || 'Error al crear cotización');
+        }
+
+        // Opcional: mostrar notificación de éxito
+        alert('Cotización creada exitosamente');
+    };
+
     const formatDate = (dateString: string) => {
-        return format(new Date(dateString), "dd/MM/yyyy", { locale: es });
+        return format(new Date(dateString), 'dd/MM/yyyy', { locale: es });
     };
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'requested': return 'bg-gray-100 text-gray-800';
-            case 'quoted': return 'bg-blue-100 text-blue-800';
-            case 'approved': return 'bg-green-100 text-green-800';
-            case 'in-progress': return 'bg-yellow-100 text-yellow-800';
-            case 'review': return 'bg-purple-100 text-purple-800';
-            case 'completed': return 'bg-indigo-100 text-indigo-800';
-            case 'cancelled': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'requested':
+                return 'bg-gray-100 text-gray-800';
+            case 'quoted':
+                return 'bg-blue-100 text-blue-800';
+            case 'approved':
+                return 'bg-green-100 text-green-800';
+            case 'in-progress':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'review':
+                return 'bg-purple-100 text-purple-800';
+            case 'completed':
+                return 'bg-indigo-100 text-indigo-800';
+            case 'cancelled':
+                return 'bg-red-100 text-red-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
         }
     };
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'requested': return 'Solicitado';
-            case 'quoted': return 'Cotizado';
-            case 'approved': return 'Aprobado';
-            case 'in-progress': return 'En progreso';
-            case 'review': return 'En revisión';
-            case 'completed': return 'Completado';
-            case 'cancelled': return 'Cancelado';
-            default: return status;
+            case 'requested':
+                return 'Solicitado';
+            case 'quoted':
+                return 'Cotizado';
+            case 'approved':
+                return 'Aprobado';
+            case 'in-progress':
+                return 'En progreso';
+            case 'review':
+                return 'En revisión';
+            case 'completed':
+                return 'Completado';
+            case 'cancelled':
+                return 'Cancelado';
+            default:
+                return status;
         }
     };
 
     const getServiceTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            'branding': 'Diseño de Marca',
+            branding: 'Diseño de Marca',
             'ux-ui': 'Diseño UX/UI',
-            'graphic': 'DiseñoGráfico',
-            'web': 'Diseño Web',
-            'motion': 'Animación Gráfica',
-            'illustration': 'Ilustración',
-            'other': 'Otro'
+            graphic: 'Diseño Gráfico',
+            web: 'Diseño Web',
+            motion: 'Animación Gráfica',
+            illustration: 'Ilustración',
+            other: 'Otro',
         };
         return labels[type] || type;
     };
@@ -129,7 +189,9 @@ export default function AdminProjectsPage() {
                             <FiBriefcase className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Gestión de Proyectos</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                                Gestión de Proyectos
+                            </h1>
                             <p className="text-gray-600 mt-1">
                                 Administra y asigna todos los proyectos de la plataforma
                             </p>
@@ -149,7 +211,9 @@ export default function AdminProjectsPage() {
                                 placeholder="Buscar proyectos..."
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 value={filters.search}
-                                onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
+                                onChange={(e) =>
+                                    setFilters({ ...filters, search: e.target.value, page: 1 })
+                                }
                             />
                         </div>
                     </div>
@@ -157,7 +221,9 @@ export default function AdminProjectsPage() {
                         <select
                             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             value={filters.status}
-                            onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
+                            onChange={(e) =>
+                                setFilters({ ...filters, status: e.target.value, page: 1 })
+                            }
                         >
                             <option value="">Todos los estados</option>
                             <option value="requested">Solicitado</option>
@@ -171,7 +237,9 @@ export default function AdminProjectsPage() {
                         <select
                             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             value={filters.hasDesigner}
-                            onChange={(e) => setFilters({ ...filters, hasDesigner: e.target.value, page: 1 })}
+                            onChange={(e) =>
+                                setFilters({ ...filters, hasDesigner: e.target.value, page: 1 })
+                            }
                         >
                             <option value="">Todos</option>
                             <option value="true">Con diseñador</option>
@@ -191,8 +259,12 @@ export default function AdminProjectsPage() {
                 ) : projects.length === 0 ? (
                     <div className="text-center py-12">
                         <FiBriefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-xl font-medium text-gray-900 mb-2">No hay proyectos</h3>
-                        <p className="text-gray-500">No se encontraron proyectos con los filtros seleccionados.</p>
+                        <h3 className="text-xl font-medium text-gray-900 mb-2">
+                            No hay proyectos
+                        </h3>
+                        <p className="text-gray-500">
+                            No se encontraron proyectos con los filtros seleccionados.
+                        </p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -212,7 +284,7 @@ export default function AdminProjectsPage() {
                                         Diseñador
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Presupuesto
+                                        Presupuesto / Cliente
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Fecha
@@ -227,29 +299,43 @@ export default function AdminProjectsPage() {
                                     <tr key={project._id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4">
                                             <div>
-                                                {project.title.length > 30 ? project.title.substring(0, 30) + '...' : project.title}
-                                                <div className="text-sm text-gray-500">{getServiceTypeLabel(project.serviceType)}</div>
+                                                {project.title.length > 30
+                                                    ? project.title.substring(0, 30) + '...'
+                                                    : project.title}
+                                                <div className="text-sm text-gray-500">
+                                                    {getServiceTypeLabel(project.serviceType)}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-sm text-gray-900">{project.client?.name}</div>
-                                            <div className="text-xs text-gray-500">{project.client?.email}</div>
+                                            <div className="text-sm text-gray-900">
+                                                {project.client?.name}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                {project.client?.email}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span
-                                                className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status)}`}
+                                                className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                                                    project.status
+                                                )}`}
                                             >
                                                 {getStatusLabel(project.status)}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             {project.designer ? (
-                                                <div className="text-sm text-gray-900">{project.designer.name}</div>
+                                                <div className="text-sm text-gray-900">
+                                                    {project.designer.name}
+                                                </div>
                                             ) : (
                                                 <select
                                                     className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     value=""
-                                                    onChange={(e) => handleAssignDesigner(project._id, e.target.value)}
+                                                    onChange={(e) =>
+                                                        handleAssignDesigner(project._id, e.target.value)
+                                                    }
                                                 >
                                                     <option value="">Asignar diseñador...</option>
                                                     {designers.map((designer) => (
@@ -271,23 +357,45 @@ export default function AdminProjectsPage() {
                                                 <Link
                                                     href={`/dashboard/projects/${project._id}`}
                                                     className="text-blue-600 hover:text-blue-900"
-                                                    title='Detalles'
+                                                    title="Detalles"
                                                 >
                                                     <FiEye className="w-4 h-4" />
                                                 </Link>
+
+                                                {/* Botón para crear cotización (solo visible si el proyecto está en estado 'requested' o incluso 'quoted' para permitir otra cotización) */}
+                                                {(project.status === 'requested' ||
+                                                    project.status === 'quoted') && (
+                                                        <button
+                                                            className="text-purple-600 hover:text-purple-900"
+                                                            onClick={() =>
+                                                                handleOpenQuoteModal(project._id, project.title)
+                                                            }
+                                                            title="Crear cotización"
+                                                        >
+                                                            <FiFileText className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+
                                                 <button
                                                     className="text-green-600 hover:text-green-900"
-                                                    onClick={() => handleUpdateStatus(project._id, 'approved')}
+                                                    onClick={() =>
+                                                        handleUpdateStatus(project._id, 'approved')
+                                                    }
                                                     disabled={project.status !== 'requested'}
-                                                    title='Aprobar'
+                                                    title="Aprobar"
                                                 >
                                                     <FiCheck className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     className="text-red-600 hover:text-red-900"
-                                                    onClick={() => handleUpdateStatus(project._id, 'cancelled')}
-                                                    disabled={project.status === 'completed' || project.status === 'cancelled'}
-                                                    title='Cancelar'
+                                                    onClick={() =>
+                                                        handleUpdateStatus(project._id, 'cancelled')
+                                                    }
+                                                    disabled={
+                                                        project.status === 'completed' ||
+                                                        project.status === 'cancelled'
+                                                    }
+                                                    title="Cancelar"
                                                 >
                                                     <FiX className="w-4 h-4" />
                                                 </button>
@@ -325,6 +433,18 @@ export default function AdminProjectsPage() {
                     </div>
                 </div>
             )}
+
+            {/* Modal de creación de cotización */}
+            <CreateQuoteModal
+                isOpen={quoteModalOpen}
+                onClose={() => {
+                    setQuoteModalOpen(false);
+                    setSelectedProject(null);
+                }}
+                onSubmit={handleCreateQuote}
+                projectId={selectedProject?.id || ''}
+                projectTitle={selectedProject?.title || ''}
+            />
         </div>
     );
 }

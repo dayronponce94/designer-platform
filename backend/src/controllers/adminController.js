@@ -4,6 +4,7 @@ const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const mongoose = require('mongoose');
 const Portfolio = require('../models/Portfolio');
+const Quote = require('../models/Quote');
 
 // @desc    Obtener todos los usuarios
 // @route   GET /api/admin/users
@@ -558,6 +559,45 @@ const getDesignerPortfolio = asyncHandler(async (req, res) => {
     );
 });
 
+// @desc    Crear una cotización para un proyecto
+// @route   POST /api/admin/projects/:projectId/quote
+// @access  Private/Admin
+const createQuote = asyncHandler(async (req, res) => {
+    const { projectId } = req.params;
+    const { amount, deadline, description, adminNotes, validUntil } = req.body;
+
+    // Validar proyecto
+    const project = await Project.findById(projectId);
+    if (!project) {
+        return res.status(404).json(ApiResponse.notFound('Proyecto no encontrado').toJSON());
+    }
+
+    // Crear cotización
+    const quote = await Quote.create({
+        project: projectId,
+        createdBy: req.user.id,
+        amount,
+        deadline,
+        description,
+        adminNotes,
+        validUntil,
+        status: 'pending',
+    });
+
+    // Actualizar estado del proyecto a 'quoted' si no lo está
+    if (project.status !== 'quoted') {
+        project.status = 'quoted';
+        await project.save();
+    }
+
+    // Opcional: enviar notificación al cliente
+    // (Implementar después con NotificationHelper)
+
+    res.status(201).json(
+        ApiResponse.success('Cotización creada exitosamente', { quote }, 201).toJSON()
+    );
+});
+
 module.exports = {
     getAllUsers,
     getUserStats,
@@ -568,5 +608,6 @@ module.exports = {
     getDesignerPortfolio,
     assignDesignerToProject,
     updateProjectStatus,
-    getReports
+    getReports,
+    createQuote
 };

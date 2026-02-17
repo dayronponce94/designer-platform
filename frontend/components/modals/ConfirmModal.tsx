@@ -7,10 +7,10 @@ interface ConfirmModalProps {
     onClose: () => void;
     onConfirm: () => void;
     title: string;
-    message: string;
+    message: React.ReactNode;
     confirmText?: string;
     cancelText?: string;
-    type?: 'danger' | 'warning' | 'info';
+    type?: 'danger' | 'warning' | 'info' | 'success';
 }
 
 export default function ConfirmModal({
@@ -41,6 +41,12 @@ export default function ConfirmModal({
             icon: 'text-blue-600',
             button: 'bg-blue-600 hover:bg-blue-700',
         },
+        success: {
+            bg: 'bg-green-100',
+            icon: 'text-green-600',
+            button: 'bg-green-600 hover:bg-green-700',
+        },
+
     };
 
     const styles = typeStyles[type];
@@ -66,7 +72,7 @@ export default function ConfirmModal({
                             </div>
                             <div className="ml-4">
                                 <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-                                <p className="mt-2 text-sm text-gray-500">{message}</p>
+                                <div className="mt-2 text-sm text-gray-500">{message}</div>
                             </div>
                         </div>
                     </div>

@@ -13,6 +13,7 @@ const {
     getReports
 } = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/auth');
+const { createQuote } = require('../controllers/adminController');
 
 // Aplicar protección y rol de admin a todas las rutas
 router.use(protect, authorize('admin'));
@@ -40,12 +41,17 @@ router.route('/projects/:id/assign')
 router.route('/projects/:id/status')
     .put(updateProjectStatus);
 
+// Rutas de cotizaciones
+router.route('/projects/:projectId/quote')
+    .post(createQuote);
+
 // Rutas de reportes
 router.route('/reports')
     .get(getReports);
 
-// Agregar cerca de las otras rutas
+// Ruta para obtener el portafolio de un diseñador
 router.route('/designers/:id/portfolio')
     .get(getDesignerPortfolio);
+
 
 module.exports = router;

@@ -33,6 +33,7 @@ export default function Sidebar() {
     const clientNavigation = [
         { name: 'Inicio', href: '/dashboard', icon: FiHome },
         { name: 'Mis Proyectos', href: '/dashboard/projects', icon: FiBriefcase },
+        { name: 'Cotizaciones', href: '/dashboard/quotes', icon: FiFileText },
         { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
         { name: 'Mis Pagos', href: '/dashboard/payments', icon: FiCreditCard },
         { name: 'Próximas Entregas', href: '/dashboard/deliveries', icon: FiCalendar },
@@ -54,11 +55,12 @@ export default function Sidebar() {
         { name: 'Gestión de Proyectos', href: '/dashboard/admin/projects', icon: FiBriefcase },
         { name: 'Gestión de Usuarios', href: '/dashboard/admin/users', icon: FiUsers },
         { name: 'Clientes', href: '/dashboard/admin/clients', icon: FiUserCheck },
+        { name: 'Cotizaciones de Clientes', href: '/dashboard/admin/client-quotes', icon: FiFileText },
         { name: 'Diseñadores', href: '/dashboard/admin/designers', icon: FiUserPlus },
+        { name: 'Cotizaciones de Diseñadores', href: '/dashboard/admin/designer-quotes', icon: FiFileText },
         { name: 'Pagos', href: '/dashboard/admin/payments', icon: FiCreditCard },
         { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
         { name: 'Reportes', href: '/dashboard/admin/reports', icon: FiPieChart },
-
     ];
 
     // Seleccionar navegación según el rol
