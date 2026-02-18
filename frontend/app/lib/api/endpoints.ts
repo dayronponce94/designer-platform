@@ -284,4 +284,17 @@ export const adminAPI = {
 
     // Portafolio de diseñador
     getDesignerPortfolio: (designerId: string) => apiClient.get(`/admin/designers/${designerId}/portfolio`),
+
+    // Cotizaciones
+    getAllQuotes: (params?: any) => apiClient.get('/admin/quotes', { params }),
+    getQuoteById: (id: string) => apiClient.get(`/admin/quotes/${id}`),
+    createDesignerQuote: (projectId: string, data: any) => apiClient.post(`/admin/projects/${projectId}/designer-quote`, data),
+    getAllDesignerQuotes: (params?: any) => apiClient.get('/admin/designer-quotes', { params }),
+};
+
+export const designerQuoteAPI = {
+    getMyQuotes: () => apiClient.get('/designer/quotes'),
+    getQuoteById: (id: string) => apiClient.get(`/designer/quotes/${id}`),
+    acceptQuote: (id: string, notes?: string) => apiClient.post(`/designer/quotes/${id}/accept`, { designerNotes: notes }),
+    rejectQuote: (id: string, notes?: string) => apiClient.post(`/designer/quotes/${id}/reject`, { designerNotes: notes }),
 };

@@ -51,6 +51,15 @@ const projectSchema = new mongoose.Schema(
         deadline: {
             type: Date
         },
+        type: {
+            type: String,
+            enum: ['request', 'task'],
+            default: 'request'
+        },
+        designerQuote: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'DesignerQuote'
+        },
         messages: [
             {
                 sender: {
@@ -73,7 +82,7 @@ const projectSchema = new mongoose.Schema(
     },
     {
         timestamps: true
-    }
+    },
 );
 
 // Índices para mejorar las consultas

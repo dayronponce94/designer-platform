@@ -5,6 +5,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const mongoose = require('mongoose');
 const Portfolio = require('../models/Portfolio');
 const Quote = require('../models/Quote');
+const DesignerQuote = require('../models/DesignerQuote');
 
 // @desc    Obtener todos los usuarios
 // @route   GET /api/admin/users
@@ -598,6 +599,127 @@ const createQuote = asyncHandler(async (req, res) => {
     );
 });
 
+// @desc    Obtener todas las cotizaciones de clientes
+// @route   GET /api/admin/quotes
+const getAllQuotes = asyncHandler(async (req, res) => {
+    const { status, page = 1, limit = 20 } = req.query;
+    const query = {};
+    if (status) query.status = status;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const quotes = await Quote.find(query)
+        .populate('project', 'title client serviceType')
+        .populate('createdBy', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+
+    const total = await Quote.countDocuments(query);
+
+    res.status(200).json(
+        ApiResponse.success('Cotizaciones obtenidas', {
+            quotes,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / parseInt(limit))
+            }
+        }).toJSON()
+    );
+});
+
+// @desc    Obtener una cotización de cliente por ID
+// @route   GET /api/admin/quotes/:id
+const getQuoteById = asyncHandler(async (req, res) => {
+    const quote = await Quote.findById(req.params.id)
+        .populate('project', 'title description serviceType client')
+        .populate('createdBy', 'name email');
+
+    if (!quote) {
+        return res.status(404).json(ApiResponse.notFound('Cotización no encontrada').toJSON());
+    }
+
+    res.status(200).json(
+        ApiResponse.success('Cotización obtenida', { quote }).toJSON()
+    );
+});
+
+// @desc    Crear cotización para diseñador a partir de una cotización de cliente aceptada
+// @route   POST /api/admin/projects/:projectId/designer-quote
+const createDesignerQuote = asyncHandler(async (req, res) => {
+    const { projectId } = req.params;
+    const { designerId, amount, description, deadline, adminNotes } = req.body;
+
+    // Verificar proyecto
+    const project = await Project.findById(projectId);
+    if (!project) {
+        return res.status(404).json(ApiResponse.notFound('Proyecto no encontrado').toJSON());
+    }
+
+    // Buscar cotización de cliente aceptada para este proyecto
+    const clientQuote = await Quote.findOne({ project: projectId, status: 'accepted' });
+    if (!clientQuote) {
+        return res.status(400).json(ApiResponse.error('No hay una cotización de cliente aceptada para este proyecto', 400).toJSON());
+    }
+
+    // Verificar diseñador activo
+    const designer = await User.findOne({ _id: designerId, role: 'designer', isActive: true });
+    if (!designer) {
+        return res.status(400).json(ApiResponse.error('Diseñador no válido o inactivo', 400).toJSON());
+    }
+
+    const designerQuote = await DesignerQuote.create({
+        clientQuote: clientQuote._id,
+        designer: designerId,
+        amount,
+        description: description || `Trabajo para el proyecto: ${project.title}`,
+        deadline,
+        adminNotes,
+        status: 'pending'
+    });
+
+    res.status(201).json(
+        ApiResponse.success('Cotización para diseñador creada', { designerQuote }, 201).toJSON()
+    );
+});
+
+// @desc    Obtener todas las cotizaciones de diseñadores
+// @route   GET /api/admin/designer-quotes
+// @access  Private/Admin
+const getAllDesignerQuotes = asyncHandler(async (req, res) => {
+    const { status, page = 1, limit = 20 } = req.query;
+    const query = {};
+    if (status) query.status = status;
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const quotes = await DesignerQuote.find(query)
+        .populate({
+            path: 'clientQuote',
+            populate: { path: 'project', select: 'title status' }
+        })
+        .populate('designer', 'name email')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+
+    const total = await DesignerQuote.countDocuments(query);
+
+    res.status(200).json(
+        ApiResponse.success('Cotizaciones de diseñadores obtenidas', {
+            quotes,
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total,
+                pages: Math.ceil(total / parseInt(limit))
+            }
+        }).toJSON()
+    );
+});
+
 module.exports = {
     getAllUsers,
     getUserStats,
@@ -609,5 +731,9 @@ module.exports = {
     assignDesignerToProject,
     updateProjectStatus,
     getReports,
-    createQuote
+    createQuote,
+    getAllQuotes,
+    getQuoteById,
+    createDesignerQuote,
+    getAllDesignerQuotes
 };

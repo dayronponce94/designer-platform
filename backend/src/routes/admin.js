@@ -10,10 +10,14 @@ const {
     getUserById,
     assignDesignerToProject,
     updateProjectStatus,
-    getReports
+    getReports,
+    createQuote,
+    getAllQuotes,
+    getQuoteById,
+    createDesignerQuote,
+    getAllDesignerQuotes
 } = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/auth');
-const { createQuote } = require('../controllers/adminController');
 
 // Aplicar protección y rol de admin a todas las rutas
 router.use(protect, authorize('admin'));
@@ -52,6 +56,21 @@ router.route('/reports')
 // Ruta para obtener el portafolio de un diseñador
 router.route('/designers/:id/portfolio')
     .get(getDesignerPortfolio);
+
+// Cotizaciones de clientes
+router.route('/quotes')
+    .get(getAllQuotes);
+
+router.route('/quotes/:id')
+    .get(getQuoteById);
+
+// Crear cotización de diseñador
+router.route('/projects/:projectId/designer-quote')
+    .post(createDesignerQuote);
+
+// Cotizaciones de diseñadores
+router.route('/designer-quotes')
+    .get(getAllDesignerQuotes);
 
 
 module.exports = router;

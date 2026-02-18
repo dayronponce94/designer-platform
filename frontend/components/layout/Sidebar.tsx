@@ -42,6 +42,7 @@ export default function Sidebar() {
     // Navegación para DISEÑADORES
     const designerNavigation = [
         { name: 'Inicio', href: '/dashboard', icon: FiHome },
+        { name: 'Cotizaciones', href: '/dashboard/designer/quotes', icon: FiFileText },
         { name: 'Proyectos Asignados', href: '/dashboard/designer/projects', icon: FiBriefcase },
         { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
         { name: 'Mi Portafolio', href: '/dashboard/designer/portfolio/', icon: FiFolder },
