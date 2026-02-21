@@ -353,16 +353,10 @@ export default function DashboardPage() {
                                 <span
                                     className={`px-3 py-1 rounded-full text-sm font-medium ${user?.role === 'designer'
                                             ? 'bg-purple-100 text-purple-800'
-                                            : user?.role === 'admin'
-                                                ? 'bg-red-100 text-red-800'
-                                                : 'bg-blue-100 text-blue-800'
+                                            : 'bg-blue-100 text-blue-800'
                                         }`}
                                 >
-                                    {user?.role === 'designer'
-                                        ? 'Diseñador'
-                                        : user?.role === 'admin'
-                                            ? 'Administrador'
-                                            : 'Cliente'}
+                                    {user?.role === 'designer' ? 'Diseñador' : 'Cliente'}
                                 </span>
                             </div>
 
@@ -412,10 +406,12 @@ export default function DashboardPage() {
                                 <p className="font-medium">Verificación</p>
                                 <p className="text-sm text-gray-500">Estado de la cuenta</p>
                             </div>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${user?.isVerified
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                                }`}>
+                            <span
+                                className={`px-3 py-1 rounded-full text-sm font-medium ${user?.isVerified
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-yellow-100 text-yellow-800'
+                                    }`}
+                            >
                                 {user?.isVerified ? 'Verificada' : 'Pendiente'}
                             </span>
                         </div>

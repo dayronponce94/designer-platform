@@ -87,7 +87,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Tarjetas de estadísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <div className="bg-white rounded-xl shadow p-6">
                     <div className="flex items-center justify-between">
                         <div>
@@ -153,6 +153,93 @@ export default function AdminDashboardPage() {
                         </div>
                         <div className="p-3 bg-yellow-100 text-yellow-600 rounded-lg">
                             <FiBarChart2 className="w-6 h-6" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Información del Administrador */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-white rounded-xl shadow p-6">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">Información de la Cuenta</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                            <div>
+                                <p className="text-sm text-gray-500">Nombre completo</p>
+                                <p className="font-medium">{user?.name}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Email</p>
+                                <p className="font-medium">{user?.email}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Teléfono</p>
+                                <p className="font-medium">{user?.phone || 'No especificado'}</p>
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            <div>
+                                <p className="text-sm text-gray-500">Tipo de cuenta</p>
+                                <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                    Administrador
+                                </span>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Miembro desde</p>
+                                <p className="font-medium">
+                                    {user?.createdAt ? formatDate(user.createdAt) : 'Recientemente'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                        <a
+                            href="/dashboard/profile"
+                            className="inline-flex items-center text-blue-600 hover:text-blue-700"
+                        >
+                            <FiSettings className="mr-2" />
+                            Editar información del perfil
+                        </a>
+                    </div>
+                </div>
+
+                {/* Estado de la Cuenta */}
+                <div className="bg-white rounded-xl shadow p-6">
+                    <h2 className="text-xl font-bold text-gray-900 mb-4">Estado de la Cuenta</h2>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p className="font-medium">Verificación</p>
+                                <p className="text-sm text-gray-500">Estado de la cuenta</p>
+                            </div>
+                            <span
+                                className={`px-3 py-1 rounded-full text-sm font-medium ${user?.isVerified
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-yellow-100 text-yellow-800'
+                                    }`}
+                            >
+                                {user?.isVerified ? 'Verificada' : 'Pendiente'}
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p className="font-medium">Actividad</p>
+                                <p className="text-sm text-gray-500">Último acceso</p>
+                            </div>
+                            <span className="text-sm text-gray-600">
+                                {user?.lastLogin ? formatDate(user.lastLogin) : 'Hoy'}
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p className="font-medium">Estado</p>
+                                <p className="text-sm text-gray-500">Cuenta activa</p>
+                            </div>
+                            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                Activa
+                            </span>
                         </div>
                     </div>
                 </div>

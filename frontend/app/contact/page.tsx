@@ -6,7 +6,7 @@ import ContactInfo from '@/components/contact/ContactInfo';
 import dynamic from "next/dynamic";
 
 const ContactMap = dynamic(() => import("@/components/contact/ContactMap"), {
-    ssr: false, // 👈 evita que se ejecute en el servidor
+    ssr: false,
 });
 
 
