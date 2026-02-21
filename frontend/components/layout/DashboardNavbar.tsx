@@ -11,6 +11,7 @@ export default function DashboardNavbar() {
     const { user, logout } = useAuthContext();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const { unreadCount } = useNotifications();
+    const isAdmin = user?.role === 'admin';
 
     return (
         <nav className="bg-white shadow-lg border-b border-gray-200">
@@ -34,9 +35,11 @@ export default function DashboardNavbar() {
                                 height={40}
                                 priority
                             />
-                            <span className="ml-2 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                Dashboard
-                            </span>
+                            {!isAdmin && (
+                                <span className="ml-2 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                    Dashboard
+                                </span>
+                            )}
                         </Link>
                     </div>
 
@@ -90,13 +93,15 @@ export default function DashboardNavbar() {
             {mobileMenuOpen && (
                 <div className="md:hidden absolute top-16 left-0 right-0 bg-white shadow-lg z-50">
                     <div className="px-4 pt-4 pb-6 space-y-4">
-                        <Link
-                            href="/dashboard"
-                            className="flex items-center p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            Dashboard
-                        </Link>
+                        {!isAdmin && (
+                            <Link
+                                href="/dashboard"
+                                className="flex items-center p-3 text-gray-700 hover:bg-gray-100 rounded-lg"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Dashboard
+                            </Link>
+                        )}
 
                         <Link
                             href="/dashboard/notifications"
