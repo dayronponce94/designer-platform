@@ -59,6 +59,22 @@ export default function AdminDashboardPage() {
             .substring(0, 2);
     };
 
+    const ROLE_CONFIG: Record<string, { label: string, classes: string }> = {
+        admin: { label: 'Administrador', classes: 'bg-indigo-100 text-indigo-800' },
+        designer: { label: 'Diseñador', classes: 'bg-purple-100 text-purple-800' },
+        client: { label: 'Cliente', classes: 'bg-blue-100 text-blue-800' }
+    };
+
+    const STATUS_CONFIG: Record<string, { label: string, classes: string }> = {
+        requested: { label: 'Solicitado', classes: 'bg-gray-100 text-gray-800' },
+        quoted: { label: 'Cotizado', classes: 'bg-orange-100 text-orange-800' },
+        approved: { label: 'Aprobado', classes: 'bg-cyan-100 text-cyan-800' },
+        'in-progress': { label: 'En Progreso', classes: 'bg-yellow-100 text-yellow-800' },
+        review: { label: 'En Revisión', classes: 'bg-magenta-100 text-magenta-800' },
+        completed: { label: 'Completado', classes: 'bg-green-100 text-green-800' },
+        cancelled: { label: 'Cancelado', classes: 'bg-red-100 text-red-800' }
+    };
+
     return (
         <div className="space-y-6">
             {/* Header con Bienvenida */}
@@ -214,8 +230,8 @@ export default function AdminDashboardPage() {
                             </div>
                             <span
                                 className={`px-3 py-1 rounded-full text-sm font-medium ${user?.isVerified
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-yellow-100 text-yellow-800'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-yellow-100 text-yellow-800'
                                     }`}
                             >
                                 {user?.isVerified ? 'Verificada' : 'Pendiente'}
@@ -281,7 +297,7 @@ export default function AdminDashboardPage() {
                                         </div>
                                         <div className="text-right">
                                             <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-800' : user.role === 'designer' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
-                                                {user.role}
+                                                {ROLE_CONFIG[user.role]?.label || user.role}
                                             </span>
                                             <p className="text-xs text-gray-500 mt-1">{formatDate(user.createdAt)}</p>
                                         </div>
@@ -318,7 +334,7 @@ export default function AdminDashboardPage() {
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="font-medium text-gray-900 truncate">{project.title}</h3>
                                             <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${project.status === 'completed' ? 'bg-green-100 text-green-800' : project.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}`}>
-                                                {project.status}
+                                                {STATUS_CONFIG[project.status]?.label || project.status}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between text-sm text-gray-500">
