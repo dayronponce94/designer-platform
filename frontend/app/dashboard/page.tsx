@@ -236,19 +236,13 @@ export default function DashboardPage() {
             title: 'Completa tu portafolio',
             description: 'Sube tus mejores trabajos para atraer más clientes',
             completed: !!user?.portfolio,
-            action: '/dashboard/portfolio/edit'
+            action: '/dashboard/designer/portfolio'
         },
         {
             title: 'Especifica especialidades',
             description: 'Define tus áreas de expertise para recibir proyectos relevantes',
             completed: user?.skills && user.skills.length > 0,
             action: '/dashboard/profile'
-        },
-        {
-            title: 'Configura tarifas',
-            description: 'Establece tus precios por tipo de proyecto',
-            completed: false,
-            action: '/dashboard/pricing'
         },
     ];
 
@@ -352,8 +346,8 @@ export default function DashboardPage() {
                                 <p className="text-sm text-gray-500">Tipo de cuenta</p>
                                 <span
                                     className={`px-3 py-1 rounded-full text-sm font-medium ${user?.role === 'designer'
-                                            ? 'bg-purple-100 text-purple-800'
-                                            : 'bg-blue-100 text-blue-800'
+                                        ? 'bg-purple-100 text-purple-800'
+                                        : 'bg-blue-100 text-blue-800'
                                         }`}
                                 >
                                     {user?.role === 'designer' ? 'Diseñador' : 'Cliente'}
@@ -408,8 +402,8 @@ export default function DashboardPage() {
                             </div>
                             <span
                                 className={`px-3 py-1 rounded-full text-sm font-medium ${user?.isVerified
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-yellow-100 text-yellow-800'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-yellow-100 text-yellow-800'
                                     }`}
                             >
                                 {user?.isVerified ? 'Verificada' : 'Pendiente'}

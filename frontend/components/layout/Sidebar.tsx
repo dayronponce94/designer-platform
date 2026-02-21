@@ -121,11 +121,11 @@ export default function Sidebar() {
 
                     {user?.role === 'designer' && (
                         <Link
-                            href="/dashboard/designer/portfolio/upload"
+                            href="/dashboard/projects/deliver"
                             className="flex items-center justify-center w-full py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors mb-3"
                         >
                             <FiUpload className="mr-2" />
-                            {!isCollapsed && <span>Subir Trabajo</span>}
+                            {!isCollapsed && <span>Subir Entregable</span>}
                         </Link>
                     )}
 
