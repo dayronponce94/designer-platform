@@ -44,6 +44,17 @@ export default function UserDetailsPage() {
         return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: es });
     };
 
+    const SPECIALTY_LABELS: Record<string, string> = {
+        branding: 'Diseño de Marca',
+        'ux-ui': 'Diseño UX/UI',
+        graphic: 'Diseño Gráfico',
+        web: 'Diseño Web',
+        motion: 'Animación Gráfica',
+        illustration: 'Ilustración',
+        other: 'Otra Especialidad'
+    };
+
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-96">
@@ -165,7 +176,7 @@ export default function UserDetailsPage() {
                                     {user.specialty && (
                                         <div>
                                             <span className="text-gray-600">Especialidad:</span>
-                                            <p className="font-medium">{user.specialty}</p>
+                                            <p className="font-medium"> {SPECIALTY_LABELS[user.specialty] || user.specialty}</p>
                                         </div>
                                     )}
                                     {user.experience && (
