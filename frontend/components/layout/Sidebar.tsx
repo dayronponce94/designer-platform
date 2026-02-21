@@ -53,12 +53,10 @@ export default function Sidebar() {
     // Navegación para ADMIN
     const adminNavigation = [
         { name: 'Inicio', href: '/dashboard/admin', icon: FiHome },
-        { name: 'Gestión de Proyectos', href: '/dashboard/admin/projects', icon: FiBriefcase },
-        { name: 'Gestión de Usuarios', href: '/dashboard/admin/users', icon: FiUsers },
-        { name: 'Clientes', href: '/dashboard/admin/clients', icon: FiUserCheck },
-        { name: 'Cotizaciones de Clientes', href: '/dashboard/admin/client-quotes', icon: FiFileText },
-        { name: 'Diseñadores', href: '/dashboard/admin/designers', icon: FiUserPlus },
-        { name: 'Cotizaciones de Diseñadores', href: '/dashboard/admin/designer-quotes', icon: FiFileText },
+        { name: 'Proyectos', href: '/dashboard/admin/projects', icon: FiBriefcase },
+        { name: 'Usuarios', href: '/dashboard/admin/users', icon: FiUsers },
+        { name: 'Cotizaciones / Clientes', href: '/dashboard/admin/client-quotes', icon: FiFileText },
+        { name: 'Cotizaciones / Diseñadores', href: '/dashboard/admin/designer-quotes', icon: FiFileText },
         { name: 'Pagos', href: '/dashboard/admin/payments', icon: FiCreditCard },
         { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
         { name: 'Reportes', href: '/dashboard/admin/reports', icon: FiPieChart },

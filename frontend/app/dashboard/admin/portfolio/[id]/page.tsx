@@ -141,10 +141,10 @@ export default function AdminDesignerPortfolioPage() {
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                 <p>{error || 'Diseñador no encontrado'}</p>
                 <button
-                    onClick={() => router.push('/dashboard/admin/designers')}
+                    onClick={() => router.push('/dashboard/admin/users')}
                     className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                 >
-                    Volver a Diseñadores
+                    Volver a Usuarios
                 </button>
             </div>
         );
@@ -158,7 +158,7 @@ export default function AdminDesignerPortfolioPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center space-x-3">
                     <button
-                        onClick={() => router.push('/dashboard/admin/designers')}
+                        onClick={() => router.push('/dashboard/admin/users')}
                         className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
                     >
                         <FiArrowLeft className="w-5 h-5" />

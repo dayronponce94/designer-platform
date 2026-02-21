@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdmin } from '@/app/lib/hooks/useAdmin';
 import { useAuthContext } from '@/app/providers/AuthProvider';
-import { FiUsers, FiUserCheck, FiUserX, FiTrash2, FiSearch, FiEdit, FiEye, FiFilter } from 'react-icons/fi';
+import { FiUsers, FiUserCheck, FiUserX, FiTrash2, FiSearch, FiEdit, FiEye, FiFilter, FiBriefcase, FiFolder, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import ConfirmModal from '@/components/modals/ConfirmModal';
@@ -134,6 +134,10 @@ export default function AdminUsersPage() {
     // Verificar si es el usuario actual
     const isCurrentUser = (user: any) => {
         return currentUser?._id === user._id;
+    };
+
+    const handleViewProjects = (clientId: string) => {
+        router.push(`/dashboard/admin/projects?clientId=${clientId}`);
     };
 
     return (
@@ -269,14 +273,14 @@ export default function AdminUsersPage() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <select
-                                                    className={`px-3 py-1 text-sm font-medium rounded-full border ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : user.role === 'designer' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200'} ${isMainAdminUser ? 'cursor-not-allowed opacity-50' : ''}`}
+                                                    className={`px-2 py-0.5 text-sm font-medium rounded-full border ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : user.role === 'designer' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200'} ${isMainAdminUser ? 'cursor-not-allowed opacity-50' : ''}`}
                                                     value={user.role}
                                                     onChange={(e) => handleRoleChange(user._id, e.target.value)}
                                                     disabled={isMainAdminUser}
                                                 >
                                                     <option value="client">Cliente</option>
                                                     <option value="designer">Diseñador</option>
-                                                    <option value="admin">Administrador</option>
+                                                    <option value="admin">Admin</option>
                                                 </select>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
@@ -303,8 +307,24 @@ export default function AdminUsersPage() {
                                                 <button
                                                     onClick={() => handleVerifyUser(user._id, user.isVerified)}
                                                     className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${user.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
+                                                    title={user.isVerified ? 'Quitar verificación' : 'Verificar'}
                                                 >
-                                                    {user.isVerified ? 'Verificado' : 'No Verificado'}
+                                                    <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full ${user.isVerified
+                                                        ? 'bg-green-100 text-green-700'
+                                                        : 'bg-amber-100 text-amber-700'
+                                                        }`}>
+                                                        {user.isVerified ? (
+                                                            <>
+                                                                <FiCheckCircle className="w-3 h-3" />
+                                                                <span>Verificado</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <FiAlertCircle className="w-3 h-3" />
+                                                                <span>No Verificado</span>
+                                                            </>
+                                                        )}
+                                                    </span>
                                                 </button>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -312,6 +332,7 @@ export default function AdminUsersPage() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <div className="flex space-x-2">
+                                                    {/* --- BOTONES EXISTENTES --- */}
                                                     <button
                                                         className="text-green-600 hover:text-green-900 transition-colors"
                                                         onClick={() => handleViewDetails(user._id)}
@@ -319,6 +340,7 @@ export default function AdminUsersPage() {
                                                     >
                                                         <FiEye className="w-4 h-4" />
                                                     </button>
+
                                                     <button
                                                         className="text-blue-600 hover:text-blue-900 transition-colors"
                                                         onClick={() => handleEditUser(user._id)}
@@ -326,6 +348,32 @@ export default function AdminUsersPage() {
                                                     >
                                                         <FiEdit className="w-4 h-4" />
                                                     </button>
+
+                                                    {/* --- NUEVOS BOTONES DINÁMICOS --- */}
+
+                                                    {/* Si es CLIENTE, mostramos Ver Proyectos */}
+                                                    {user.role === 'client' && (
+                                                        <button
+                                                            className="text-yellow-500 hover:text-yellow-700 transition-colors"
+                                                            onClick={() => handleViewProjects(user._id)}
+                                                            title="Ver proyectos del cliente"
+                                                        >
+                                                            <FiFolder className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+
+                                                    {/* Si es DISEÑADOR, mostramos Ver Portafolio */}
+                                                    {user.role === 'designer' && (
+                                                        <button
+                                                            className="text-purple-600 hover:text-purple-900 transition-colors"
+                                                            onClick={() => router.push(`/dashboard/admin/portfolio/${user._id}`)}
+                                                            title="Ver portafolio del diseñador"
+                                                        >
+                                                            <FiBriefcase className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+
+                                                    {/* --- BOTÓN ELIMINAR EXISTENTE --- */}
                                                     <button
                                                         className={`${isMainAdminUser || isCurrentUserUser ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-900 transition-colors'}`}
                                                         onClick={() => !isMainAdminUser && !isCurrentUserUser && handlePrepareDelete(user)}
