@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 const Portfolio = require('../models/Portfolio');
 const Quote = require('../models/Quote');
 const DesignerQuote = require('../models/DesignerQuote');
+const Request = require('../models/Request');
+
 
 // @desc    Obtener todos los usuarios
 // @route   GET /api/admin/users
@@ -720,6 +722,101 @@ const getAllDesignerQuotes = asyncHandler(async (req, res) => {
     );
 });
 
+// @desc    Obtener todas las solicitudes (admin)
+// @route   GET /api/admin/requests
+// @access  Private/Admin
+const getAllRequests = asyncHandler(async (req, res) => {
+    const { status, serviceType, fromDate, toDate } = req.query;
+    let query = {};
+
+    if (status) query.status = status;
+    if (serviceType) query.serviceType = serviceType;
+    if (fromDate || toDate) {
+        query.createdAt = {};
+        if (fromDate) query.createdAt.$gte = new Date(fromDate);
+        if (toDate) query.createdAt.$lte = new Date(toDate);
+    }
+
+    const requests = await Request.find(query)
+        .populate('client', 'name email company phone')
+        .sort({ createdAt: -1 });
+
+    res.status(200).json(
+        ApiResponse.success('Solicitudes obtenidas', {
+            requests,
+            count: requests.length
+        }).toJSON()
+    );
+});
+
+// @desc    Obtener una solicitud por ID (admin)
+// @route   GET /api/admin/requests/:id
+// @access  Private/Admin
+const getRequestById = asyncHandler(async (req, res) => {
+    const request = await Request.findById(req.params.id)
+        .populate('client', 'name email company phone');
+
+    if (!request) {
+        return res.status(404).json(
+            ApiResponse.notFound('Solicitud no encontrada').toJSON()
+        );
+    }
+
+    res.status(200).json(
+        ApiResponse.success('Solicitud obtenida', {
+            request
+        }).toJSON()
+    );
+});
+
+// @desc    Actualizar estado de una solicitud (admin)
+// @route   PUT /api/admin/requests/:id/status
+// @access  Private/Admin
+const updateRequestStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    if (!status || !['requested', 'quoted', 'cancelled'].includes(status)) {
+        return res.status(400).json(
+            ApiResponse.error('Estado inválido', 400).toJSON()
+        );
+    }
+
+    const request = await Request.findByIdAndUpdate(
+        req.params.id,
+        { status, updatedAt: Date.now() },
+        { new: true, runValidators: true }
+    ).populate('client', 'name email');
+
+    if (!request) {
+        return res.status(404).json(
+            ApiResponse.notFound('Solicitud no encontrada').toJSON()
+        );
+    }
+
+    res.status(200).json(
+        ApiResponse.success('Estado de solicitud actualizado', {
+            request
+        }).toJSON()
+    );
+});
+
+// @desc    Eliminar una solicitud (admin)
+// @route   DELETE /api/admin/requests/:id
+// @access  Private/Admin
+const deleteRequest = asyncHandler(async (req, res) => {
+    const request = await Request.findById(req.params.id);
+    if (!request) {
+        return res.status(404).json(
+            ApiResponse.notFound('Solicitud no encontrada').toJSON()
+        );
+    }
+
+    await request.deleteOne();
+    res.status(200).json(
+        ApiResponse.success('Solicitud eliminada').toJSON()
+    );
+});
+
+
 module.exports = {
     getAllUsers,
     getUserStats,
@@ -735,5 +832,9 @@ module.exports = {
     getAllQuotes,
     getQuoteById,
     createDesignerQuote,
-    getAllDesignerQuotes
+    getAllDesignerQuotes,
+    getAllRequests,
+    getRequestById,
+    updateRequestStatus,
+    deleteRequest
 };

@@ -15,7 +15,11 @@ const {
     getAllQuotes,
     getQuoteById,
     createDesignerQuote,
-    getAllDesignerQuotes
+    getAllDesignerQuotes,
+    getAllRequests,
+    getRequestById,
+    updateRequestStatus,
+    deleteRequest
 } = require('../controllers/adminController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -71,6 +75,12 @@ router.route('/projects/:projectId/designer-quote')
 // Cotizaciones de diseñadores
 router.route('/designer-quotes')
     .get(getAllDesignerQuotes);
+
+// Rutas para solicitudes (admin)
+router.get('/requests', getAllRequests);
+router.get('/requests/:id', getRequestById);
+router.put('/requests/:id/status', updateRequestStatus);
+router.delete('/requests/:id', deleteRequest);
 
 
 module.exports = router;

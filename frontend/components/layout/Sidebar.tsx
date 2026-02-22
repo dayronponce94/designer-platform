@@ -32,6 +32,7 @@ export default function Sidebar() {
     // Navegación para CLIENTES
     const clientNavigation = [
         { name: 'Inicio', href: '/dashboard', icon: FiHome },
+        { name: 'Mis Solicitudes', href: '/dashboard/requests', icon: FiBriefcase },
         { name: 'Mis Proyectos', href: '/dashboard/projects', icon: FiBriefcase },
         { name: 'Cotizaciones', href: '/dashboard/quotes', icon: FiFileText },
         { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
@@ -53,10 +54,11 @@ export default function Sidebar() {
     // Navegación para ADMIN
     const adminNavigation = [
         { name: 'Inicio', href: '/dashboard/admin', icon: FiHome },
-        { name: 'Proyectos', href: '/dashboard/admin/projects', icon: FiBriefcase },
         { name: 'Usuarios', href: '/dashboard/admin/users', icon: FiUsers },
+        { name: 'Solicitudes', href: '/dashboard/admin/requests', icon: FiBriefcase },
         { name: 'Cotizaciones / Clientes', href: '/dashboard/admin/client-quotes', icon: FiFileText },
         { name: 'Cotizaciones / Diseñadores', href: '/dashboard/admin/designer-quotes', icon: FiFileText },
+        { name: 'Proyectos', href: '/dashboard/admin/projects', icon: FiBriefcase },
         { name: 'Pagos', href: '/dashboard/admin/payments', icon: FiCreditCard },
         { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
         { name: 'Reportes', href: '/dashboard/admin/reports', icon: FiPieChart },
@@ -111,7 +113,7 @@ export default function Sidebar() {
                 <div className="mt-auto pt-4 border-t border-gray-200">
                     {user?.role === 'client' && (
                         <Link
-                            href="/dashboard/projects/new"
+                            href="/dashboard/requests/new"
                             className="flex items-center justify-center w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-3"
                         >
                             <FiUpload className="mr-2" />

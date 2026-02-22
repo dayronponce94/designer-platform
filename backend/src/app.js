@@ -15,6 +15,7 @@ const portfolioRoutes = require('./routes/portfolio');
 const adminRoutes = require('./routes/admin');
 const quoteRoutes = require('./routes/quotes');
 const designerQuoteRoutes = require('./routes/designerQuotes');
+const requestRoutes = require('./routes/requests');
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/quotes', quoteRoutes);
 app.use('/api/designer/quotes', designerQuoteRoutes);
+app.use('/api/requests', requestRoutes);
 
 
 // 404 handler

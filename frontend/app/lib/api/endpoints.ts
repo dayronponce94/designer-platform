@@ -298,3 +298,11 @@ export const designerQuoteAPI = {
     acceptQuote: (id: string, notes?: string) => apiClient.post(`/designer/quotes/${id}/accept`, { designerNotes: notes }),
     rejectQuote: (id: string, notes?: string) => apiClient.post(`/designer/quotes/${id}/reject`, { designerNotes: notes }),
 };
+
+export const requestAPI = {
+    getRequests: (params?: any) => apiClient.get('/requests', { params }),
+    getRequestById: (id: string) => apiClient.get(`/requests/${id}`),
+    createRequest: (data: any) => apiClient.post('/requests', data),
+    updateRequest: (id: string, data: any) => apiClient.put(`/requests/${id}`, data),
+    deleteRequest: (id: string) => apiClient.delete(`/requests/${id}`),
+};
