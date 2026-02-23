@@ -9,7 +9,7 @@ import CreateDesignerQuoteModal from '@/components/modals/CreateDesignerQuoteMod
 
 interface ClientQuote {
     _id: string;
-    project: {
+    request: {
         _id: string;
         title: string;
         serviceType: string;
@@ -130,8 +130,8 @@ export default function AdminClientQuotesPage() {
                                 {quotes.map((quote) => (
                                     <tr key={quote._id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4">
-                                            <div className="text-sm font-medium text-gray-900">{quote.project.title}</div>
-                                            <div className="text-sm text-gray-500">{quote.project.client.name}</div>
+                                            <div className="text-sm font-medium text-gray-900">{quote.request.title}</div>
+                                            <div className="text-sm text-gray-500">{quote.request.client.name}</div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-900">
                                             ${quote.amount.toLocaleString()}

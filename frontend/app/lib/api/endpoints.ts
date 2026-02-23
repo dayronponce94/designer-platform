@@ -290,6 +290,11 @@ export const adminAPI = {
     getQuoteById: (id: string) => apiClient.get(`/admin/quotes/${id}`),
     createDesignerQuote: (projectId: string, data: any) => apiClient.post(`/admin/projects/${projectId}/designer-quote`, data),
     getAllDesignerQuotes: (params?: any) => apiClient.get('/admin/designer-quotes', { params }),
+
+    // Gestión de solicitudes
+    getAllRequests: (params?: any) => apiClient.get('/admin/requests', { params }),
+    updateRequestStatus: (requestId: string, status: string, reason?: string) =>
+        apiClient.put(`/admin/requests/${requestId}/status`, { status, reason }),
 };
 
 export const designerQuoteAPI = {

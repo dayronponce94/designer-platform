@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 const quoteSchema = new mongoose.Schema(
     {
-        project: {
+        request: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'Project',
+            ref: 'Request',
             required: true,
         },
         createdBy: {
@@ -50,7 +50,7 @@ const quoteSchema = new mongoose.Schema(
 );
 
 // Índices para consultas eficientes
-quoteSchema.index({ project: 1, createdAt: -1 });
+quoteSchema.index({ request: 1, createdAt: -1 });
 quoteSchema.index({ status: 1 });
 
 const Quote = mongoose.model('Quote', quoteSchema);

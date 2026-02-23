@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { adminAPI } from '../api/endpoints';
 import { Project } from './useProjects';
+import { Request } from '@/app/types/request';
 
 export interface User {
     _id: string;
@@ -191,6 +192,34 @@ export function useAdmin() {
         }
     }, []);
 
+    // Gestión de solicitudes
+    const fetchRequests = useCallback(async (params?: any) => {
+        try {
+            setLoading(true);
+            const response = await adminAPI.getAllRequests(params);
+            return response.data.data;
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Error al cargar solicitudes');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const updateRequestStatus = useCallback(async (requestId: string, status: string, reason?: string) => {
+        try {
+            setLoading(true);
+            const response = await adminAPI.updateRequestStatus(requestId, status, reason);
+            return response.data.data;
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Error al actualizar estado');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+
 
     return {
         loading,
@@ -209,5 +238,8 @@ export function useAdmin() {
         fetchReports,
         // Portafolio de diseñador
         getDesignerPortfolio,
+        //Solicitudes
+        fetchRequests,
+        updateRequestStatus,
     };
 }

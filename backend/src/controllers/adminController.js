@@ -562,22 +562,22 @@ const getDesignerPortfolio = asyncHandler(async (req, res) => {
     );
 });
 
-// @desc    Crear una cotización para un proyecto
-// @route   POST /api/admin/projects/:projectId/quote
+// @desc    Crear una cotización para una solicitud de proyecto
+// @route   POST /api/admin/requests/:requestId/quote
 // @access  Private/Admin
 const createQuote = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
+    const { requestId } = req.params;
     const { amount, deadline, description, adminNotes, validUntil } = req.body;
 
-    // Validar proyecto
-    const project = await Project.findById(projectId);
-    if (!project) {
-        return res.status(404).json(ApiResponse.notFound('Proyecto no encontrado').toJSON());
+    // Validar solicitud
+    const request = await Request.findById(requestId);
+    if (!request) {
+        return res.status(404).json(ApiResponse.notFound('Solicitud no encontrada').toJSON());
     }
 
     // Crear cotización
     const quote = await Quote.create({
-        project: projectId,
+        request: requestId,
         createdBy: req.user.id,
         amount,
         deadline,
@@ -587,10 +587,10 @@ const createQuote = asyncHandler(async (req, res) => {
         status: 'pending',
     });
 
-    // Actualizar estado del proyecto a 'quoted' si no lo está
-    if (project.status !== 'quoted') {
-        project.status = 'quoted';
-        await project.save();
+    // Actualizar estado de la solicitud a 'quoted' si no lo está
+    if (request.status !== 'quoted') {
+        request.status = 'quoted';
+        await request.save();
     }
 
     // Opcional: enviar notificación al cliente
@@ -611,7 +611,14 @@ const getAllQuotes = asyncHandler(async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const quotes = await Quote.find(query)
-        .populate('project', 'title client serviceType')
+        .populate({
+            path: 'request',
+            select: 'title serviceType client',
+            populate: {
+                path: 'client',
+                select: 'name email'
+            }
+        })
         .populate('createdBy', 'name email')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -636,7 +643,7 @@ const getAllQuotes = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/quotes/:id
 const getQuoteById = asyncHandler(async (req, res) => {
     const quote = await Quote.findById(req.params.id)
-        .populate('project', 'title description serviceType client')
+        .populate('request', 'title description serviceType client')
         .populate('createdBy', 'name email');
 
     if (!quote) {

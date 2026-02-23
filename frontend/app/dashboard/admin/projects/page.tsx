@@ -434,7 +434,7 @@ export default function AdminProjectsPage() {
                 </div>
             )}
 
-            {/* Modal de creación de cotización */}
+            {/* Modal de creación de cotización
             <CreateQuoteModal
                 isOpen={quoteModalOpen}
                 onClose={() => {
@@ -444,7 +444,7 @@ export default function AdminProjectsPage() {
                 onSubmit={handleCreateQuote}
                 projectId={selectedProject?.id || ''}
                 projectTitle={selectedProject?.title || ''}
-            />
+            /> */}
         </div>
     );
 }

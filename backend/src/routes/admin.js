@@ -50,7 +50,7 @@ router.route('/projects/:id/status')
     .put(updateProjectStatus);
 
 // Rutas de cotizaciones
-router.route('/projects/:projectId/quote')
+router.route('/requests/:requestId/quote')
     .post(createQuote);
 
 // Rutas de reportes

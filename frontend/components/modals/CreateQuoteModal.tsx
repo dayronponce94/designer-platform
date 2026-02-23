@@ -7,16 +7,16 @@ interface CreateQuoteModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: any) => Promise<void>;
-    projectId: string;
-    projectTitle: string;
+    requestId: string;
+    requestTitle: string;
 }
 
 export default function CreateQuoteModal({
     isOpen,
     onClose,
     onSubmit,
-    projectId,
-    projectTitle,
+    requestId,
+    requestTitle,
 }: CreateQuoteModalProps) {
     const [amount, setAmount] = useState('');
     const [deadline, setDeadline] = useState('');
@@ -71,7 +71,7 @@ export default function CreateQuoteModal({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">Crear cotización para "{projectTitle}"</h2>
+                    <h2 className="text-xl font-bold text-gray-900">Crear cotización para "{requestTitle}"</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                         <FiX size={24} />
                     </button>
