@@ -33,8 +33,8 @@ export default function Sidebar() {
     const clientNavigation = [
         { name: 'Inicio', href: '/dashboard', icon: FiHome },
         { name: 'Mis Solicitudes', href: '/dashboard/requests', icon: FiBriefcase },
-        { name: 'Mis Proyectos', href: '/dashboard/projects', icon: FiBriefcase },
         { name: 'Cotizaciones', href: '/dashboard/quotes', icon: FiFileText },
+        { name: 'Mis Proyectos', href: '/dashboard/projects', icon: FiBriefcase },
         { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },
         { name: 'Mis Pagos', href: '/dashboard/payments', icon: FiCreditCard },
         { name: 'Próximas Entregas', href: '/dashboard/deliveries', icon: FiCalendar },

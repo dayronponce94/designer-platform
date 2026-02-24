@@ -16,7 +16,7 @@ import {
 
 interface Quote {
     _id: string;
-    project: {
+    request: {
         _id: string;
         title: string;
         description: string;
@@ -132,8 +132,8 @@ export default function QuotesPage() {
                         <div key={quote._id} className="bg-white rounded-xl shadow hover:shadow-md transition p-6">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 wrap-break-word hyphens-auto line-clamp-2">{quote.project.title}</h3>
-                                    <p className="text-sm text-gray-500 mt-1">{getServiceTypeLabel(quote.project.serviceType)} </p>
+                                    <h3 className="text-lg font-semibold text-gray-900 wrap-break-word hyphens-auto line-clamp-2">{quote.request.title}</h3>
+                                    <p className="text-sm text-gray-500 mt-1">{getServiceTypeLabel(quote.request.serviceType)} </p>
                                 </div>
                                 {getStatusBadge(quote.status)}
                             </div>

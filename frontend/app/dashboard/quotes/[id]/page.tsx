@@ -19,7 +19,7 @@ import {
 
 interface Quote {
     _id: string;
-    project: {
+    request: {
         _id: string;
         title: string;
         description: string;
@@ -205,8 +205,8 @@ export default function QuoteDetailPage() {
                 <div className="p-6 border-b border-gray-200">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Cotización para "{quote.project.title}"</h1>
-                            <p className="text-sm text-gray-500 mt-1">{getServiceTypeLabel(quote.project.serviceType)} </p>
+                            <h1 className="text-2xl font-bold text-gray-900">Cotización para "{quote.request.title}"</h1>
+                            <p className="text-sm text-gray-500 mt-1">{getServiceTypeLabel(quote.request.serviceType)} </p>
                         </div>
                         {getStatusBadge(quote.status)}
                     </div>
