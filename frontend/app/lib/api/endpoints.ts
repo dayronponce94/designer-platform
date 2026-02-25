@@ -288,7 +288,7 @@ export const adminAPI = {
     // Cotizaciones
     getAllQuotes: (params?: any) => apiClient.get('/admin/quotes', { params }),
     getQuoteById: (id: string) => apiClient.get(`/admin/quotes/${id}`),
-    createDesignerQuote: (projectId: string, data: any) => apiClient.post(`/admin/projects/${projectId}/designer-quote`, data),
+    createDesignerQuote: (quoteId: string, data: any) => apiClient.post(`/admin/quotes/${quoteId}/designer-quote`, data),
     getAllDesignerQuotes: (params?: any) => apiClient.get('/admin/designer-quotes', { params }),
 
     // Gestión de solicitudes

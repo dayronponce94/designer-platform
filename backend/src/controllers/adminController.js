@@ -658,39 +658,40 @@ const getQuoteById = asyncHandler(async (req, res) => {
 // @desc    Crear cotización para diseñador a partir de una cotización de cliente aceptada
 // @route   POST /api/admin/projects/:projectId/designer-quote
 const createDesignerQuote = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
+    const { quoteId } = req.params; // Ahora recibimos quoteId
     const { designerId, amount, description, deadline, adminNotes } = req.body;
 
-    // Verificar proyecto
-    const project = await Project.findById(projectId);
-    if (!project) {
-        return res.status(404).json(ApiResponse.notFound('Proyecto no encontrado').toJSON());
-    }
-
-    // Buscar cotización de cliente aceptada para este proyecto
-    const clientQuote = await Quote.findOne({ project: projectId, status: 'accepted' });
+    // 1. Buscar la cotización del cliente
+    const clientQuote = await Quote.findById(quoteId).populate('request');
     if (!clientQuote) {
-        return res.status(400).json(ApiResponse.error('No hay una cotización de cliente aceptada para este proyecto', 400).toJSON());
+        return res.status(404).json(ApiResponse.notFound('Cotización de cliente no encontrada').toJSON());
     }
 
-    // Verificar diseñador activo
+    // 2. Verificar que esté aceptada
+    if (clientQuote.status !== 'accepted') {
+        return res.status(400).json(ApiResponse.error('La cotización del cliente debe estar aceptada para asignar un diseñador', 400).toJSON());
+    }
+
+    // 3. Verificar diseñador
     const designer = await User.findOne({ _id: designerId, role: 'designer', isActive: true });
     if (!designer) {
         return res.status(400).json(ApiResponse.error('Diseñador no válido o inactivo', 400).toJSON());
     }
 
+    // 4. Crear la DesignerQuote
     const designerQuote = await DesignerQuote.create({
         clientQuote: clientQuote._id,
         designer: designerId,
         amount,
-        description: description || `Trabajo para el proyecto: ${project.title}`,
+        // Usamos el título de la solicitud asociada
+        description: description || `Trabajo para: ${clientQuote.request.title}`,
         deadline,
         adminNotes,
         status: 'pending'
     });
 
     res.status(201).json(
-        ApiResponse.success('Cotización para diseñador creada', { designerQuote }, 201).toJSON()
+        ApiResponse.success('Cotización enviada al diseñador', { designerQuote }, 201).toJSON()
     );
 });
 
@@ -707,7 +708,7 @@ const getAllDesignerQuotes = asyncHandler(async (req, res) => {
     const quotes = await DesignerQuote.find(query)
         .populate({
             path: 'clientQuote',
-            populate: { path: 'project', select: 'title status' }
+            populate: { path: 'request', select: 'title status' }
         })
         .populate('designer', 'name email')
         .sort({ createdAt: -1 })

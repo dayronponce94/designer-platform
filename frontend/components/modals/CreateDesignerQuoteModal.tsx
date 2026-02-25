@@ -49,7 +49,7 @@ export default function CreateDesignerQuoteModal({ quote, onClose, onSuccess }: 
         setLoading(true);
         setError('');
         try {
-            await adminAPI.createDesignerQuote(quote.project._id, {
+            await adminAPI.createDesignerQuote(quote._id, {
                 designerId: selectedDesigner,
                 amount,
                 deadline: new Date(deadline).toISOString(),
@@ -97,7 +97,7 @@ export default function CreateDesignerQuoteModal({ quote, onClose, onSuccess }: 
                         </label>
                         <input
                             type="text"
-                            value={quote.project.title}
+                            value={quote.request.title}
                             disabled
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
                         />

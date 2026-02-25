@@ -69,7 +69,7 @@ router.route('/quotes/:id')
     .get(getQuoteById);
 
 // Crear cotización de diseñador
-router.route('/projects/:projectId/designer-quote')
+router.route('/quotes/:quoteId/designer-quote')
     .post(createDesignerQuote);
 
 // Cotizaciones de diseñadores

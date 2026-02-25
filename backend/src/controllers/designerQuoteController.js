@@ -4,44 +4,10 @@ const Quote = require('../models/Quote');
 const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 
-// @desc    Obtener cotizaciones asignadas al diseñador autenticado
-// @route   GET /api/designer/quotes
-const getMyDesignerQuotes = asyncHandler(async (req, res) => {
-    const quotes = await DesignerQuote.find({ designer: req.user.id })
-        .populate({
-            path: 'clientQuote',
-            populate: { path: 'project', select: 'title client' }
-        })
-        .sort({ createdAt: -1 });
-
-    res.status(200).json(
-        ApiResponse.success('Cotizaciones obtenidas', { quotes }).toJSON()
-    );
-});
-
-// @desc    Obtener detalle de una cotización de diseñador
-// @route   GET /api/designer/quotes/:id
-const getDesignerQuoteById = asyncHandler(async (req, res) => {
-    const quote = await DesignerQuote.findOne({
-        _id: req.params.id,
-        designer: req.user.id
-    }).populate({
-        path: 'clientQuote',
-        populate: { path: 'project', select: 'title description client' }
-    });
-
-    if (!quote) {
-        return res.status(404).json(ApiResponse.notFound('Cotización no encontrada').toJSON());
-    }
-
-    res.status(200).json(
-        ApiResponse.success('Cotización obtenida', { quote }).toJSON()
-    );
-});
-
-// @desc    Aceptar cotización de diseñador (crea proyecto tipo 'task')
+// @desc    Aceptar cotización de diseñador (Crea el Proyecto Único)
 // @route   POST /api/designer/quotes/:id/accept
 const acceptDesignerQuote = asyncHandler(async (req, res) => {
+    // 1. Buscar la cotización del diseñador
     const quote = await DesignerQuote.findOne({
         _id: req.params.id,
         designer: req.user.id
@@ -55,40 +21,83 @@ const acceptDesignerQuote = asyncHandler(async (req, res) => {
         return res.status(400).json(ApiResponse.error('Esta cotización ya no está pendiente', 400).toJSON());
     }
 
-    // Obtener cotización de cliente asociada
-    const clientQuote = await Quote.findById(quote.clientQuote).populate('project');
-    if (!clientQuote) {
-        return res.status(404).json(ApiResponse.notFound('Cotización de cliente asociada no encontrada').toJSON());
+    // 2. Obtener cotización de cliente y su Solicitud (Request) original
+    // Poblamos 'request' porque de ahí sacaremos los datos iniciales
+    const clientQuote = await Quote.findById(quote.clientQuote).populate('request');
+
+    if (!clientQuote || !clientQuote.request) {
+        return res.status(404).json(ApiResponse.notFound('La solicitud original no fue encontrada').toJSON());
     }
 
-    // Crear proyecto tipo 'task'
-    const taskProject = await Project.create({
-        title: `[Tarea] ${clientQuote.project.title}`,
-        description: quote.description,
-        client: clientQuote.project.client,
+    // 3. CREAR EL PROYECTO ÚNICO
+    // Aquí es donde unificamos la Solicitud del cliente con la Cotización del diseñador
+    const project = await Project.create({
+        title: clientQuote.request.title, // Nombre original que puso el cliente
+        description: clientQuote.request.description, // Descripción original
+        client: clientQuote.request.client,
         designer: req.user.id,
-        serviceType: clientQuote.project.serviceType,
-        status: 'approved',
-        budget: quote.amount,
-        deadline: quote.deadline,
-        type: 'task',
-        designerQuote: quote._id
+        serviceType: clientQuote.request.serviceType,
+        status: 'approved', // El proyecto inicia aprobado tras la aceptación del diseñador
+        budget: clientQuote.amount, // El presupuesto final (lo que paga el cliente)
+        deadline: quote.deadline, // La fecha límite acordada con el diseñador
+        designerQuote: quote._id,
+        attachments: clientQuote.request.attachments || [] // Heredamos los archivos de la solicitud
     });
 
-    // Actualizar cotización
+    // 4. Actualizar la cotización del diseñador
     quote.status = 'accepted';
     quote.acceptedAt = new Date();
     quote.designerNotes = req.body.designerNotes || '';
-    quote.project = taskProject._id;
+    quote.project = project._id; // Referencia al nuevo proyecto
     await quote.save();
 
+    // 5. Opcional: Podrías actualizar el estado de la Request a "in-progress" 
+    // si quieres trackear que la solicitud ya es un proyecto vivo.
+    clientQuote.request.status = 'approved';
+    await clientQuote.request.save();
+
     res.status(200).json(
-        ApiResponse.success('Cotización aceptada. Proyecto creado.', { quote, project: taskProject }).toJSON()
+        ApiResponse.success('Cotización aceptada. El proyecto ha sido creado oficialmente.', {
+            quote,
+            project
+        }).toJSON()
     );
 });
 
-// @desc    Rechazar cotización de diseñador
-// @route   POST /api/designer/quotes/:id/reject
+// Los métodos getMyDesignerQuotes y getDesignerQuoteById también necesitan 
+// limpiar el populate de '.project' si antes esperaban la estructura vieja.
+
+const getMyDesignerQuotes = asyncHandler(async (req, res) => {
+    const quotes = await DesignerQuote.find({ designer: req.user.id })
+        .populate({
+            path: 'clientQuote',
+            populate: { path: 'request', select: 'title client' } // Cambiado de project a request
+        })
+        .sort({ createdAt: -1 });
+
+    res.status(200).json(
+        ApiResponse.success('Cotizaciones obtenidas', { quotes }).toJSON()
+    );
+});
+
+const getDesignerQuoteById = asyncHandler(async (req, res) => {
+    const quote = await DesignerQuote.findOne({
+        _id: req.params.id,
+        designer: req.user.id
+    }).populate({
+        path: 'clientQuote',
+        populate: { path: 'request', select: 'title description client' } // Cambiado de project a request
+    });
+
+    if (!quote) {
+        return res.status(404).json(ApiResponse.notFound('Cotización no encontrada').toJSON());
+    }
+
+    res.status(200).json(
+        ApiResponse.success('Cotización obtenida', { quote }).toJSON()
+    );
+});
+
 const rejectDesignerQuote = asyncHandler(async (req, res) => {
     const quote = await DesignerQuote.findOne({
         _id: req.params.id,

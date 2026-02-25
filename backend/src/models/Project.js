@@ -20,7 +20,8 @@ const projectSchema = new mongoose.Schema(
         },
         designer: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'User'
+            ref: 'User',
+            required: true // Ahora es requerido porque el proyecto nace con un diseñador asignado
         },
         serviceType: {
             type: String,
@@ -29,8 +30,9 @@ const projectSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['requested', 'quoted', 'approved', 'in-progress', 'review', 'completed', 'cancelled'],
-            default: 'requested'
+            // 'approved' es el estado inicial cuando el diseñador acepta la cotización
+            enum: ['approved', 'in-progress', 'review', 'completed', 'cancelled'],
+            default: 'approved'
         },
         attachments: [
             {
@@ -46,19 +48,17 @@ const projectSchema = new mongoose.Schema(
         ],
         budget: {
             type: Number,
-            default: 0
+            required: true // El presupuesto ya está definido por la cotización aceptada
         },
         deadline: {
-            type: Date
+            type: Date,
+            required: true // El plazo ya está definido por la cotización del diseñador
         },
-        type: {
-            type: String,
-            enum: ['request', 'task'],
-            default: 'request'
-        },
+        // Referencia a la cotización que originó este proyecto
         designerQuote: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: 'DesignerQuote'
+            ref: 'DesignerQuote',
+            required: true
         },
         messages: [
             {
@@ -85,10 +85,8 @@ const projectSchema = new mongoose.Schema(
     },
 );
 
-// Índices para mejorar las consultas
 projectSchema.index({ client: 1, createdAt: -1 });
 projectSchema.index({ designer: 1, status: 1 });
 
 const Project = mongoose.model('Project', projectSchema);
-
 module.exports = Project;

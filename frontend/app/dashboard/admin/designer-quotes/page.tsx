@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 interface DesignerQuote {
     _id: string;
-    clientQuote: { project: { title: string } };
+    clientQuote: { request: { title: string } };
     designer: { name: string; email: string };
     amount: number;
     deadline: string;
@@ -75,7 +75,7 @@ export default function AdminDesignerQuotesPage() {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {quotes.map((q) => (
                                 <tr key={q._id}>
-                                    <td className="px-6 py-4 text-sm text-gray-900">{q.clientQuote?.project?.title || 'N/A'}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-900">{q.clientQuote?.request?.title || 'N/A'}</td>
                                     <td className="px-6 py-4 text-sm text-gray-900">{q.designer?.name}</td>
                                     <td className="px-6 py-4 text-sm text-gray-900">${q.amount.toLocaleString()}</td>
                                     <td className="px-6 py-4">{getStatusBadge(q.status)}</td>
