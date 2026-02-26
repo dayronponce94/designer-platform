@@ -38,12 +38,17 @@ export default function DesignerQuoteDetailPage() {
 
     const handleAccept = async () => {
         setActionLoading(true);
+        setError('');
         try {
+            // designerQuoteAPI ya usa axios y ahora recibirá un 200 OK
             await designerQuoteAPI.acceptQuote(quoteId, notes);
-            setShowAcceptModal(false);
-            fetchQuote();
+
+            setShowAcceptModal(false); // Cerramos el modal
+            setNotes('');
+            await fetchQuote(); // Refrescamos los datos para ver el mensaje de "Aceptado"
         } catch (err: any) {
-            setError(err.message);
+            // Si hay un error real (ej. red), lo mostramos
+            setError(err.response?.data?.message || err.message);
         } finally {
             setActionLoading(false);
         }
@@ -73,7 +78,7 @@ export default function DesignerQuoteDetailPage() {
 
             <div className="bg-white rounded-xl shadow overflow-hidden">
                 <div className="p-6 border-b border-gray-200">
-                    <h1 className="text-2xl font-bold text-gray-900">Cotización para {quote.clientQuote?.project?.title}</h1>
+                    <h1 className="text-2xl font-bold text-gray-900">Cotización para {quote.clientQuote?.request?.title}</h1>
                     <p className="text-gray-500 mt-1">ID: {quote._id}</p>
                 </div>
 

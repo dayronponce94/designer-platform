@@ -3,14 +3,18 @@ const Project = require('../models/Project');
 const Quote = require('../models/Quote');
 const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
+const Request = require('../models/Request');
 
 // @desc    Aceptar cotización de diseñador (Crea el Proyecto Único)
 // @route   POST /api/designer/quotes/:id/accept
 const acceptDesignerQuote = asyncHandler(async (req, res) => {
-    // 1. Buscar la cotización del diseñador
+    // 1. Buscar la cotización con el populate necesario desde el inicio
     const quote = await DesignerQuote.findOne({
         _id: req.params.id,
         designer: req.user.id
+    }).populate({
+        path: 'clientQuote',
+        populate: { path: 'request' }
     });
 
     if (!quote) {
@@ -21,43 +25,43 @@ const acceptDesignerQuote = asyncHandler(async (req, res) => {
         return res.status(400).json(ApiResponse.error('Esta cotización ya no está pendiente', 400).toJSON());
     }
 
-    // 2. Obtener cotización de cliente y su Solicitud (Request) original
-    // Poblamos 'request' porque de ahí sacaremos los datos iniciales
-    const clientQuote = await Quote.findById(quote.clientQuote).populate('request');
-
+    const clientQuote = quote.clientQuote;
     if (!clientQuote || !clientQuote.request) {
-        return res.status(404).json(ApiResponse.notFound('La solicitud original no fue encontrada').toJSON());
+        return res.status(404).json(ApiResponse.notFound('Solicitud original no encontrada').toJSON());
     }
 
-    // 3. CREAR EL PROYECTO ÚNICO
-    // Aquí es donde unificamos la Solicitud del cliente con la Cotización del diseñador
+    // 2. CREAR EL PROYECTO
     const project = await Project.create({
-        title: clientQuote.request.title, // Nombre original que puso el cliente
-        description: clientQuote.request.description, // Descripción original
+        title: clientQuote.request.title,
+        description: clientQuote.request.description,
         client: clientQuote.request.client,
         designer: req.user.id,
         serviceType: clientQuote.request.serviceType,
-        status: 'approved', // El proyecto inicia aprobado tras la aceptación del diseñador
-        budget: clientQuote.amount, // El presupuesto final (lo que paga el cliente)
-        deadline: quote.deadline, // La fecha límite acordada con el diseñador
+        status: 'approved',
+        budget: clientQuote.amount,
+        deadline: quote.deadline,
         designerQuote: quote._id,
-        attachments: clientQuote.request.attachments || [] // Heredamos los archivos de la solicitud
+        attachments: clientQuote.request.attachments || []
     });
 
-    // 4. Actualizar la cotización del diseñador
+    // 3. ACTUALIZAR LA COTIZACIÓN DEL DISEÑADOR
     quote.status = 'accepted';
     quote.acceptedAt = new Date();
     quote.designerNotes = req.body.designerNotes || '';
-    quote.project = project._id; // Referencia al nuevo proyecto
+    quote.project = project._id;
     await quote.save();
 
-    // 5. Opcional: Podrías actualizar el estado de la Request a "in-progress" 
-    // si quieres trackear que la solicitud ya es un proyecto vivo.
-    clientQuote.request.status = 'approved';
-    await clientQuote.request.save();
+    // 4. FINALIZAR EL FLUJO DE LA SOLICITUD
+    try {
+        await Request.findByIdAndUpdate(clientQuote.request._id, {
+            status: 'quoted'
+        });
+    } catch (error) {
+        console.error('Error al actualizar la solicitud:', error);
+    }
 
     res.status(200).json(
-        ApiResponse.success('Cotización aceptada. El proyecto ha sido creado oficialmente.', {
+        ApiResponse.success('Cotización aceptada con éxito. El proyecto ha sido iniciado.', {
             quote,
             project
         }).toJSON()
@@ -71,7 +75,7 @@ const getMyDesignerQuotes = asyncHandler(async (req, res) => {
     const quotes = await DesignerQuote.find({ designer: req.user.id })
         .populate({
             path: 'clientQuote',
-            populate: { path: 'request', select: 'title client' } // Cambiado de project a request
+            populate: { path: 'request', select: 'title client' }
         })
         .sort({ createdAt: -1 });
 
@@ -86,7 +90,7 @@ const getDesignerQuoteById = asyncHandler(async (req, res) => {
         designer: req.user.id
     }).populate({
         path: 'clientQuote',
-        populate: { path: 'request', select: 'title description client' } // Cambiado de project a request
+        populate: { path: 'request', select: 'title description client' }
     });
 
     if (!quote) {
