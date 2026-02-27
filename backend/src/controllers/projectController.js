@@ -170,7 +170,7 @@ const createProject = asyncHandler(async (req, res) => {
 // @route   PUT /api/projects/:id
 // @access  Private
 const updateProject = asyncHandler(async (req, res) => {
-    // Usar multer para procesar archivos (misma configuración que createProject)
+    // Usar multer para procesar archivos
     upload(req, res, async function (err) {
         if (err) {
             return res.status(400).json(
@@ -187,6 +187,9 @@ const updateProject = asyncHandler(async (req, res) => {
                 );
             }
 
+            // 1. IMPORTANTE: Guardamos el estado actual antes de cambiarlo
+            const oldStatus = project.status;
+
             // Verificar permisos
             const { role, id: userId } = req.user;
             const isClient = role === 'client' && project.client.toString() === userId.toString();
@@ -201,9 +204,9 @@ const updateProject = asyncHandler(async (req, res) => {
 
             // Campos que se pueden actualizar
             const updatableFields = {};
-            const { title, description, serviceType, budget, deadline, references } = req.body;
+            const { title, description, serviceType, budget, deadline, references, status, designer } = req.body;
 
-            // Clientes pueden actualizar título, descripción, tipo de servicio, referencias
+            // Clientes pueden actualizar info básica
             if (isClient || isAdmin) {
                 if (title) updatableFields.title = title;
                 if (description) updatableFields.description = description;
@@ -213,12 +216,12 @@ const updateProject = asyncHandler(async (req, res) => {
 
             // Diseñadores pueden actualizar estado
             if (isDesigner || isAdmin) {
-                if (req.body.status) updatableFields.status = req.body.status;
+                if (status) updatableFields.status = status;
             }
 
             // Admin puede asignar diseñador y presupuesto
             if (isAdmin) {
-                if (req.body.designer) updatableFields.designer = req.body.designer;
+                if (designer) updatableFields.designer = designer;
                 if (budget) updatableFields.budget = parseFloat(budget);
                 if (deadline) updatableFields.deadline = deadline;
             }
@@ -227,8 +230,9 @@ const updateProject = asyncHandler(async (req, res) => {
             const newAttachments = [];
             if (req.files && req.files.length > 0) {
                 req.files.forEach(file => {
+                    const env = require('../config/env');
                     newAttachments.push({
-                        url: `/uploads/projects/${file.filename}`,
+                        url: `${env.SERVER_URL || ''}/uploads/projects/${file.filename}`,
                         filename: file.originalname,
                         filetype: file.mimetype,
                         size: file.size,
@@ -237,65 +241,55 @@ const updateProject = asyncHandler(async (req, res) => {
                 });
             }
 
-            // Procesar archivos a eliminar (de req.body)
-            let attachmentsToRemove = [];
-            if (req.body.removeAttachments) {
-                attachmentsToRemove = Array.isArray(req.body.removeAttachments)
-                    ? req.body.removeAttachments
-                    : [req.body.removeAttachments];
+            // Mezclar archivos si hay nuevos o si hay que quitar
+            if (newAttachments.length > 0) {
+                updatableFields.attachments = [...project.attachments, ...newAttachments];
             }
 
-            // Actualizar archivos del proyecto
-            if (newAttachments.length > 0 || attachmentsToRemove.length > 0) {
-                // Filtrar archivos existentes (eliminar los marcados)
-                const existingAttachments = project.attachments.filter(
-                    att => !attachmentsToRemove.includes(att.url)
-                );
-
-                // Agregar nuevos archivos
-                updatableFields.attachments = [...existingAttachments, ...newAttachments];
-            }
-
-            // Aplicar actualizaciones
+            // 2. APLICAR ACTUALIZACIÓN
             project = await Project.findByIdAndUpdate(
                 req.params.id,
                 { ...updatableFields, updatedAt: Date.now() },
                 { new: true, runValidators: true }
             )
                 .populate('client', 'name email company phone')
-                .populate('designer', 'name email specialty bio skills portfolio');
+                .populate('designer', 'name email specialty bio skills');
 
-            // Notificar cambio de estado al cliente
-            if (req.body.status && req.body.status !== oldStatus) {
-                await NotificationHelper.createProjectStatusNotification(
-                    project.client,
-                    project._id,
-                    project.title,
-                    oldStatus,
-                    project.status
-                );
-            }
+            // 3. SISTEMA DE NOTIFICACIONES SEGURO (Try/Catch interno)
+            try {
+                const NotificationHelper = require('../utils/notifications');
 
-            // Notificar si se asigna un diseñador
-            if (req.body.designer && !project.designer?.equals(req.body.designer)) {
-                const projectWithDetails = await Project.findById(req.params.id).populate('client', 'name');
+                // Notificar cambio de estado
+                if (status && status !== oldStatus) {
+                    await NotificationHelper.createProjectStatusNotification(
+                        project.client._id || project.client,
+                        project._id,
+                        project.title,
+                        oldStatus,
+                        project.status
+                    );
+                }
 
-                await NotificationHelper.createProjectAssignedNotification(
-                    req.body.designer,
-                    project._id,
-                    project.title,
-                    projectWithDetails.client.name
-                );
+                // Notificar si se asigna diseñador
+                if (designer && designer !== (project.designer?._id?.toString())) {
+                    await NotificationHelper.createProjectAssignedNotification(
+                        designer,
+                        project._id,
+                        project.title,
+                        project.client.name
+                    );
+                }
+            } catch (notifErr) {
+                // Si falla la notificación, solo logueamos el error, pero el cliente recibe su 200 OK
+                console.error('Error silencioso en notificaciones:', notifErr.message);
             }
 
             res.status(200).json(
-                ApiResponse.success('Proyecto actualizado', {
-                    project
-                }).toJSON()
+                ApiResponse.success('Proyecto actualizado', { project }).toJSON()
             );
 
         } catch (error) {
-            console.error('Error al actualizar proyecto:', error);
+            console.error('Error crítico al actualizar proyecto:', error);
             res.status(500).json(
                 ApiResponse.error('Error interno del servidor', 500).toJSON()
             );
