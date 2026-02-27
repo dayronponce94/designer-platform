@@ -57,42 +57,36 @@ export default function DesignerProjectsPage() {
     const fetchProjects = async () => {
         try {
             setLoading(true);
-
+            // 1. Llamada a la API
             const response = await projectAPI.getProjects();
 
-            // Asegurar que la respuesta sea un array
-            const allProjects = Array.isArray(response.data?.data)
-                ? response.data.data
-                : [];
+            // 2. Acceso correcto a la data según tu ApiResponse del backend
+            // Estructura: response (Axios) -> data (Backend wrapper) -> data (Payload) -> projects (Array)
+            const projectsArray = response.data?.data?.projects;
 
-            // Filtrar proyectos asignados al diseñador actual
-            const designerProjects = allProjects.filter(
-                (project: any) => project.designer && project.designer._id === user?._id
-            );
+            if (!Array.isArray(projectsArray)) {
+                console.error("La API no devolvió un array en 'projects':", response.data);
+                setProjects([]);
+                return;
+            }
 
-            // Aplicar filtro adicional
-            let filteredProjects = designerProjects;
+            // 3. Ya no necesitas filtrar por user._id porque el Backend 
+            // ya te devuelve SOLO los proyectos de ese diseñador.
+            let filteredProjects = projectsArray;
+
+            // 4. Filtro por estado de la UI
             if (filter === 'active') {
-                filteredProjects = designerProjects.filter((p: any) =>
+                filteredProjects = projectsArray.filter((p: any) =>
                     ['approved', 'in-progress', 'review'].includes(p.status)
                 );
             } else if (filter === 'completed') {
-                filteredProjects = designerProjects.filter(
-                    (p: any) => p.status === 'completed'
-                );
-            } else if (filter === 'all') {
-                filteredProjects = designerProjects;
+                filteredProjects = projectsArray.filter((p: any) => p.status === 'completed');
             }
-
-            // Ordenar por fecha de creación (más recientes primero)
-            filteredProjects.sort(
-                (a: any, b: any) =>
-                    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-            );
 
             setProjects(filteredProjects);
             setError(null);
         } catch (err: any) {
+            console.error("Error en fetchProjects:", err);
             setError(err.response?.data?.message || 'Error al cargar proyectos');
         } finally {
             setLoading(false);
