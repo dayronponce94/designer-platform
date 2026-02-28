@@ -34,10 +34,6 @@ export default function AdminProjectsPage() {
     });
     const [pagination, setPagination] = useState<any>({});
 
-    // Estados para el modal de cotización
-    const [quoteModalOpen, setQuoteModalOpen] = useState(false);
-    const [selectedProject, setSelectedProject] = useState<{ id: string; title: string } | null>(null);
-
     const params = useSearchParams();
     const clientId = params.get('clientId');
 
@@ -73,15 +69,6 @@ export default function AdminProjectsPage() {
         }
     };
 
-    const handleAssignDesigner = async (projectId: string, designerId: string) => {
-        try {
-            await assignDesigner(projectId, designerId);
-            loadProjects();
-        } catch (error) {
-            console.error('Error assigning designer:', error);
-        }
-    };
-
     const handleUpdateStatus = async (projectId: string, status: string) => {
         try {
             await updateProjectStatus(projectId, status);
@@ -91,34 +78,6 @@ export default function AdminProjectsPage() {
         }
     };
 
-    // Función para abrir el modal de cotización
-    const handleOpenQuoteModal = (projectId: string, projectTitle: string) => {
-        setSelectedProject({ id: projectId, title: projectTitle });
-        setQuoteModalOpen(true);
-    };
-
-    // Función para enviar la cotización
-    const handleCreateQuote = async (quoteData: any) => {
-        if (!selectedProject) return;
-
-        const token = localStorage.getItem('token');
-        const res = await fetch(`/api/admin/projects/${selectedProject.id}/quote`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(quoteData),
-        });
-
-        const data = await res.json();
-        if (!data.success) {
-            throw new Error(data.message || 'Error al crear cotización');
-        }
-
-        // Opcional: mostrar notificación de éxito
-        alert('Cotización creada exitosamente');
-    };
 
     const formatDate = (dateString: string) => {
         return format(new Date(dateString), 'dd/MM/yyyy', { locale: es });
@@ -126,10 +85,6 @@ export default function AdminProjectsPage() {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'requested':
-                return 'bg-gray-100 text-gray-800';
-            case 'quoted':
-                return 'bg-blue-100 text-blue-800';
             case 'approved':
                 return 'bg-green-100 text-green-800';
             case 'in-progress':
@@ -147,10 +102,6 @@ export default function AdminProjectsPage() {
 
     const getStatusLabel = (status: string) => {
         switch (status) {
-            case 'requested':
-                return 'Solicitado';
-            case 'quoted':
-                return 'Cotizado';
             case 'approved':
                 return 'Aprobado';
             case 'in-progress':
@@ -226,8 +177,6 @@ export default function AdminProjectsPage() {
                             }
                         >
                             <option value="">Todos los estados</option>
-                            <option value="requested">Solicitado</option>
-                            <option value="quoted">Cotizado</option>
                             <option value="approved">Aprobado</option>
                             <option value="in-progress">En progreso</option>
                             <option value="review">En revisión</option>
@@ -284,9 +233,6 @@ export default function AdminProjectsPage() {
                                         Diseñador
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Presupuesto / Cliente
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Fecha
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -325,29 +271,9 @@ export default function AdminProjectsPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            {project.designer ? (
-                                                <div className="text-sm text-gray-900">
-                                                    {project.designer.name}
-                                                </div>
-                                            ) : (
-                                                <select
-                                                    className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    value=""
-                                                    onChange={(e) =>
-                                                        handleAssignDesigner(project._id, e.target.value)
-                                                    }
-                                                >
-                                                    <option value="">Asignar diseñador...</option>
-                                                    {designers.map((designer) => (
-                                                        <option key={designer._id} value={designer._id}>
-                                                            {designer.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-900">
-                                            ${project.budget?.toLocaleString() || '0'}
+                                            <div className="text-sm text-gray-900">
+                                                {project.designer ? project.designer.name : 'Sin diseñador asignado'}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-500">
                                             {formatDate(project.createdAt)}
@@ -362,30 +288,6 @@ export default function AdminProjectsPage() {
                                                     <FiEye className="w-4 h-4" />
                                                 </Link>
 
-                                                {/* Botón para crear cotización (solo visible si el proyecto está en estado 'requested' o incluso 'quoted' para permitir otra cotización) */}
-                                                {(project.status === 'requested' ||
-                                                    project.status === 'quoted') && (
-                                                        <button
-                                                            className="text-purple-600 hover:text-purple-900"
-                                                            onClick={() =>
-                                                                handleOpenQuoteModal(project._id, project.title)
-                                                            }
-                                                            title="Crear cotización"
-                                                        >
-                                                            <FiFileText className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-
-                                                <button
-                                                    className="text-green-600 hover:text-green-900"
-                                                    onClick={() =>
-                                                        handleUpdateStatus(project._id, 'approved')
-                                                    }
-                                                    disabled={project.status !== 'requested'}
-                                                    title="Aprobar"
-                                                >
-                                                    <FiCheck className="w-4 h-4" />
-                                                </button>
                                                 <button
                                                     className="text-red-600 hover:text-red-900"
                                                     onClick={() =>
@@ -433,18 +335,6 @@ export default function AdminProjectsPage() {
                     </div>
                 </div>
             )}
-
-            {/* Modal de creación de cotización
-            <CreateQuoteModal
-                isOpen={quoteModalOpen}
-                onClose={() => {
-                    setQuoteModalOpen(false);
-                    setSelectedProject(null);
-                }}
-                onSubmit={handleCreateQuote}
-                projectId={selectedProject?.id || ''}
-                projectTitle={selectedProject?.title || ''}
-            /> */}
         </div>
     );
 }
