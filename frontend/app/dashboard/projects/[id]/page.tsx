@@ -11,7 +11,7 @@ import {
     FiFile, FiMessageSquare, FiEdit, FiDownload,
     FiTrash2, FiMail, FiPhone, FiGlobe, FiEye,
     FiPaperclip, FiExternalLink, FiTag,
-    FiFileText
+    FiFileText, FiUpload
 } from 'react-icons/fi';
 
 interface Project {
@@ -40,6 +40,7 @@ interface Project {
         bio: string;
         portfolio: string;
     };
+    // Estos son los archivos generales (brief del cliente)
     attachments: Array<{
         url: string;
         filename: string;
@@ -47,6 +48,27 @@ interface Project {
         size: number;
         uploadedAt: string;
     }>;
+
+    clientView: {
+        description: string;
+        budget: number;
+        deadline: string;
+        attachments: Array<{
+            url: string;
+            filename: string;
+            filetype: string;
+            size: number;
+            uploadedAt: string;
+        }>;
+    };
+
+    // Agregamos la vista específica para el diseñador
+    designerView: {
+        description: string;
+        earnings: number;
+        internalDeadline: string;
+        attachments: Array<any>; // Archivos que el diseñador suba después
+    };
 }
 
 export default function ProjectDetailPage() {
@@ -100,31 +122,31 @@ export default function ProjectDetailPage() {
                 color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
                 icon: <FiClock className="w-4 h-4" />,
                 label: 'Solicitado',
-                desc: 'Tu proyecto está en revisión por nuestro equipo.'
+                desc: 'El proyecto está en revisión por el equipo administrativo.'
             },
             'quoted': {
                 color: 'bg-blue-100 text-blue-800 border-blue-200',
                 icon: <FiDollarSign className="w-4 h-4" />,
                 label: 'Cotizado',
-                desc: 'Hemos enviado una cotización. Revisa y aprueba para continuar.'
+                desc: 'Se ha enviado una cotización al cliente.'
             },
             'approved': {
                 color: 'bg-green-100 text-green-800 border-green-200',
                 icon: <FiCheckCircle className="w-4 h-4" />,
                 label: 'Aprobado',
-                desc: 'Proyecto aprobado. Pronto te asignaremos un diseñador.'
+                desc: 'Proyecto aprobado. Listo para comenzar el trabajo de diseño.'
             },
             'in-progress': {
                 color: 'bg-purple-100 text-purple-800 border-purple-200',
                 icon: <FiBriefcase className="w-4 h-4" />,
                 label: 'En Progreso',
-                desc: 'Tu proyecto está siendo trabajado por un diseñador.'
+                desc: 'El diseñador está trabajando actualmente en los entregables.'
             },
             'review': {
                 color: 'bg-orange-100 text-orange-800 border-orange-200',
                 icon: <FiEye className="w-4 h-4" />,
                 label: 'En Revisión',
-                desc: 'El diseñador ha subido entregables para tu revisión.'
+                desc: 'El proyecto está siendo revisado por el cliente o el equipo administrativo.'
             },
             'completed': {
                 color: 'bg-green-100 text-green-800 border-green-200',
@@ -206,7 +228,7 @@ export default function ProjectDetailPage() {
                 throw new Error('Error al eliminar proyecto');
             }
 
-            router.push('/dashboard/projects');
+            router.push(user?.role === 'admin' ? '/dashboard/admin/projects' : '/dashboard/projects');
         } catch (err: any) {
             setError(err.message || 'Error al eliminar proyecto');
         } finally {
@@ -214,6 +236,8 @@ export default function ProjectDetailPage() {
             setDeleteModalOpen(false);
         }
     };
+
+    if (isLoading) return <div className="p-8 text-center">Cargando detalles del proyecto...</div>;
 
     if (!project) {
         return (
@@ -233,6 +257,30 @@ export default function ProjectDetailPage() {
 
     const statusConfig = getStatusConfig(project.status);
 
+    const isDesigner = user?.role === 'designer';
+
+    // 1. Archivos: Queremos ver los que subió el cliente (clientView) 
+    // y, si existen, los que subió el diseñador (designerView)
+    const clientFiles = project.clientView?.attachments || [];
+    const designerFiles = project.designerView?.attachments || [];
+    const allAttachments = [...clientFiles, ...designerFiles];
+
+    // 2. Descripción: Si es diseñador, mostramos su "Propuesta Estética" (designerView)
+    // Si no hay, o es admin/cliente, mostramos la del cliente.
+    const displayDescription = (isDesigner && project.designerView?.description)
+        ? project.designerView.description
+        : project.clientView?.description;
+
+    // Extraemos la fecha correcta dependiendo de si es diseñador o no
+    const rawDeadline = isDesigner
+        ? project.designerView?.internalDeadline
+        : project.clientView?.deadline;
+
+    // Función para limpiar el formato de MongoDB si es necesario
+    const displayDeadline = typeof rawDeadline === 'object' && rawDeadline !== null && '$date' in rawDeadline
+        ? (rawDeadline as any).$date
+        : rawDeadline;
+
     return (
         <div>
             {/* Header */}
@@ -241,16 +289,18 @@ export default function ProjectDetailPage() {
                     onClick={() => {
                         if (user?.role === 'admin') {
                             router.push('/dashboard/admin/projects');
+                        } else if (user?.role === 'designer') {
+                            router.push('/dashboard/designer/projects');
                         } else {
+                            // Para clientes o cualquier otro rol base
                             router.push('/dashboard/projects');
                         }
                     }}
                     className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
                 >
                     <FiArrowLeft className="mr-2" />
-                    Volver a Mis Proyectos
+                    Volver a Proyectos
                 </button>
-
 
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                     <div>
@@ -269,7 +319,8 @@ export default function ProjectDetailPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        {user?.role === 'client' && project.status === 'requested' && (
+                        {/* Botón Editar: Solo Admin o Cliente si está solicitado */}
+                        {((user?.role === 'client' && project.status === 'requested') || user?.role === 'admin') && (
                             <button
                                 onClick={() => router.push(`/dashboard/projects/${projectId}/edit`)}
                                 className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
@@ -287,7 +338,8 @@ export default function ProjectDetailPage() {
                             Imprimir
                         </button>
 
-                        {user?.role === 'client' && (
+                        {/* Botón Eliminar: Solo Admin o Cliente si está solicitado */}
+                        {((user?.role === 'client' && project.status === 'requested') || user?.role === 'admin') && (
                             <button
                                 onClick={handleDeleteClick}
                                 className="flex items-center px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition"
@@ -325,7 +377,7 @@ export default function ProjectDetailPage() {
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                         }`}
                                 >
-                                    Archivos ({project.attachments.length})
+                                    Archivos ({allAttachments.length})
                                 </button>
                                 <button
                                     onClick={() => setActiveTab('timeline')}
@@ -350,12 +402,12 @@ export default function ProjectDetailPage() {
                                         </h3>
                                         <div className="prose max-w-none">
                                             <div className="whitespace-pre-line text-gray-700 bg-gray-50 p-6 rounded-lg">
-                                                {project.description}
+                                                {displayDescription}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {project.references && (
+                                    {(user?.role === 'designer' || user?.role === 'admin') && project.references && (
                                         <div>
                                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                                 <FiGlobe className="mr-2" />
@@ -374,15 +426,25 @@ export default function ProjectDetailPage() {
                             {/* Contenido: Archivos */}
                             {activeTab === 'files' && (
                                 <div>
-                                    {project.attachments.length === 0 ? (
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="text-lg font-semibold text-gray-900">Documentación del Proyecto</h3>
+                                        {/* Solo el admin o diseñador pueden subir archivos si el flujo lo requiere 
+                                        {(user?.role === 'admin' || user?.role === 'designer') && (
+                                            <button className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700">
+                                                <FiUpload className="mr-1" /> Subir Archivo
+                                            </button>
+                                        )}*/}
+                                    </div>
+
+                                    {allAttachments.length === 0 ? (
                                         <div className="text-center py-12">
                                             <FiFile className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                                             <h3 className="text-lg font-semibold text-gray-900 mb-2">No hay archivos adjuntos</h3>
-                                            <p className="text-gray-600">No se han subido archivos de referencia para este proyecto.</p>
+                                            <p className="text-gray-600">No se han subido archivos para este proyecto.</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
-                                            {project.attachments.map((file, index) => (
+                                            {allAttachments.map((file, index) => (
                                                 <div
                                                     key={index}
                                                     className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
@@ -398,7 +460,7 @@ export default function ProjectDetailPage() {
                                                                 <span className="mx-2">•</span>
                                                                 <span>{file.filetype}</span>
                                                                 <span className="mx-2">•</span>
-                                                                <span>Subido: {formatDateTime(file.uploadedAt)}</span>
+                                                                <span>{formatDateTime(file.uploadedAt)}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -430,59 +492,44 @@ export default function ProjectDetailPage() {
 
                             {/* Contenido: Cronograma */}
                             {activeTab === 'timeline' && (
-                                <div>
-                                    <div className="space-y-6">
-                                        <div className="relative pl-8 pb-8">
-                                            <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                                <div className="space-y-6">
+                                    <div className="relative pl-8 pb-8">
+                                        <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200"></div>
 
-                                            <div className="relative mb-6">
-                                                <div className="absolute -left-6.5 top-0 w-4 h-4 bg-blue-600 rounded-full border-4 border-white"></div>
-                                                <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <h4 className="font-semibold text-gray-900">Solicitud de Proyecto</h4>
-                                                        <span className="text-sm text-gray-500">{formatDateTime(project.createdAt)}</span>
-                                                    </div>
-                                                    <p className="text-gray-600">Creaste la solicitud del proyecto "{project.title}"</p>
+                                        <div className="relative mb-6">
+                                            <div className="absolute -left-[1.35rem] top-0 w-4 h-4 bg-blue-600 rounded-full border-4 border-white"></div>
+                                            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="font-semibold text-gray-900">Solicitud de Proyecto</h4>
+                                                    <span className="text-sm text-gray-500">{formatDateTime(project.createdAt)}</span>
                                                 </div>
+                                                <p className="text-gray-600">El cliente creó la solicitud del proyecto "{project.title}"</p>
                                             </div>
-
-                                            <div className="relative mb-6">
-                                                <div className="absolute -left-6.5 top-0 w-4 h-4 bg-green-600 rounded-full border-4 border-white"></div>
-                                                <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <h4 className="font-semibold text-gray-900">Revisión por nuestro equipo</h4>
-                                                        <span className="text-sm text-gray-500">Próximamente</span>
-                                                    </div>
-                                                    <p className="text-gray-600">Nuestro equipo revisará tu proyecto y te contactará.</p>
-                                                </div>
-                                            </div>
-
-                                            {project.designer && (
-                                                <div className="relative">
-                                                    <div className="absolute -left-6.5 top-0 w-4 h-4 bg-purple-600 rounded-full border-4 border-white"></div>
-                                                    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <h4 className="font-semibold text-gray-900">Asignación de Diseñador</h4>
-                                                            <span className="text-sm text-gray-500">Pendiente</span>
-                                                        </div>
-                                                        <p className="text-gray-600">Te asignaremos un diseñador especializado en {getServiceTypeLabel(project.serviceType)}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {project.deadline && (
-                                                <div className="relative mt-8">
-                                                    <div className="absolute -left-6.5 top-0 w-4 h-4 bg-orange-600 rounded-full border-4 border-white"></div>
-                                                    <div className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <h4 className="font-semibold text-gray-900">Fecha Límite</h4>
-                                                            <span className="text-sm text-orange-600 font-medium">{formatDate(project.deadline)}</span>
-                                                        </div>
-                                                        <p className="text-gray-600">Fecha estimada de entrega del proyecto</p>
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
+
+                                        <div className="relative mb-6">
+                                            <div className={`absolute -left-[1.35rem] top-0 w-4 h-4 rounded-full border-4 border-white ${['quoted', 'approved', 'in-progress', 'review', 'completed'].includes(project.status) ? 'bg-green-600' : 'bg-gray-300'}`}></div>
+                                            <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="font-semibold text-gray-900">Revisión y Cotización</h4>
+                                                    <span className="text-sm text-gray-500">{project.status === 'requested' ? 'Pendiente' : 'Completado'}</span>
+                                                </div>
+                                                <p className="text-gray-600">Revisión administrativa y emisión de presupuesto.</p>
+                                            </div>
+                                        </div>
+
+                                        {project.designer && (
+                                            <div className="relative">
+                                                <div className="absolute -left-[1.35rem] top-0 w-4 h-4 bg-purple-600 rounded-full border-4 border-white"></div>
+                                                <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <h4 className="font-semibold text-gray-900">Asignación de Diseñador</h4>
+                                                        <span className="text-sm text-gray-500">Asignado</span>
+                                                    </div>
+                                                    <p className="text-gray-600">Diseñador asignado: {project.designer.name}</p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -508,38 +555,52 @@ export default function ProjectDetailPage() {
                                 </p>
                             </div>
 
-                            {project.budget && project.budget > 0 ? (
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">Presupuesto Máximo</p>
-                                    <p className="font-medium flex items-center">
-                                        <FiDollarSign className="mr-2 text-gray-400" />
-                                        {`${project.budget.toLocaleString()}`}
-                                    </p>
-                                </div>
-                            ) : (
+                            {/* Presupuesto: Solo visible para Admin o Cliente */}
+                            {(user?.role === 'admin' || user?.role === 'client') && (
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Presupuesto</p>
                                     <p className="font-medium flex items-center">
                                         <FiDollarSign className="mr-2 text-gray-400" />
-                                        Presupuesto por definir
+                                        {project.budget && project.budget > 0
+                                            ? `$${project.budget.toLocaleString()}`
+                                            : 'Por definir'}
                                     </p>
                                 </div>
                             )}
 
-                            {project.deadline && (
+                            {/* Si es diseñador, mostramos sus ganancias netas en lugar del presupuesto total */}
+                            {isDesigner ? (
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Fecha Límite</p>
+                                    <p className="text-sm text-gray-500 mb-1">Ganancias Netas</p>
+                                    <p className="font-medium flex items-center">
+                                        <FiDollarSign className="mr-2" />
+                                        {project.designerView?.earnings ? `${project.designerView.earnings.toLocaleString()}` : 'No asignado'}
+                                    </p>
+                                </div>
+                            ) : (
+                                (user?.role === 'admin' || user?.role === 'client') && (
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Presupuesto</p>
+                                        <p className="font-medium flex items-center">
+                                            <FiDollarSign className="mr-2 text-gray-400" />
+                                            {project.budget ? `$${project.budget.toLocaleString()}` : 'Por definir'}
+                                        </p>
+                                    </div>
+                                )
+                            )}
+
+                            {displayDeadline && (
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">
+                                        {isDesigner ? 'Fecha de Entrega' : 'Fecha Límite'}
+                                    </p>
                                     <p className="font-medium flex items-center">
                                         <FiCalendar className="mr-2 text-gray-400" />
-                                        {formatDate(project.deadline)}
+                                        {/* Usamos displayDeadline que ya tiene el valor correcto */}
+                                        {formatDate(displayDeadline)}
                                     </p>
                                 </div>
                             )}
-
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Creado el</p>
-                                <p className="font-medium">{formatDateTime(project.createdAt)}</p>
-                            </div>
 
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Última actualización</p>
@@ -548,42 +609,42 @@ export default function ProjectDetailPage() {
                         </div>
                     </div>
 
-                    {/* Información del cliente */}
-                    <div className="bg-white rounded-xl shadow p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <FiUser className="mr-2" />
-                            Información del Cliente
-                        </h3>
+                    {/* Información del cliente: Solo visible para Admin o Diseñador Asignado */}
+                    {(user?.role === 'admin' || user?.role === 'designer') && (
+                        <div className="bg-white rounded-xl shadow p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <FiUser className="mr-2" />
+                                Información del Cliente
+                            </h3>
 
-                        <div className="space-y-3">
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold mr-3">
-                                    {project.client.name.charAt(0)}
+                            <div className="space-y-3">
+                                <div className="flex items-center">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold mr-3">
+                                        {project.client?.name?.charAt(0) || 'C'}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">{project.client.name}</p>
+                                        <p className="text-sm text-gray-500">{project.client.email}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-medium text-gray-900">{project.client.name}</p>
-                                    <p className="text-sm text-gray-500">{project.client.email}</p>
-                                </div>
+                                {project.client.company && (
+                                    <div className="flex items-center text-gray-600 text-sm">
+                                        <FiBriefcase className="mr-2 text-gray-400" />
+                                        <span>{project.client.company}</span>
+                                    </div>
+                                )}
+                                {project.client.phone && (
+                                    <div className="flex items-center text-gray-600 text-sm">
+                                        <FiPhone className="mr-2 text-gray-400" />
+                                        <span>{project.client.phone}</span>
+                                    </div>
+                                )}
                             </div>
-
-                            {project.client.company && (
-                                <div className="flex items-center text-gray-600">
-                                    <FiBriefcase className="mr-2 text-gray-400" />
-                                    <span>{project.client.company}</span>
-                                </div>
-                            )}
-
-                            {project.client.phone && (
-                                <div className="flex items-center text-gray-600">
-                                    <FiPhone className="mr-2 text-gray-400" />
-                                    <span>{project.client.phone}</span>
-                                </div>
-                            )}
                         </div>
-                    </div>
+                    )}
 
-                    {/* Diseñador asignado */}
-                    {project.designer && (
+                    {/* Diseñador asignado: Visible para Admin y Cliente, pero oculto para el propio Diseñador */}
+                    {user?.role !== 'designer' && project.designer && (
                         <div className="bg-white rounded-xl shadow p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                 <FiUser className="mr-2" />
@@ -593,7 +654,7 @@ export default function ProjectDetailPage() {
                             <div className="space-y-4">
                                 <div className="flex items-center">
                                     <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold mr-3">
-                                        {project.designer.name.charAt(0)}
+                                        {project.designer.name?.charAt(0) || 'D'}
                                     </div>
                                     <div>
                                         <p className="font-medium text-gray-900">{project.designer.name}</p>
@@ -603,37 +664,31 @@ export default function ProjectDetailPage() {
 
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Especialidad</p>
-                                    <p className="font-medium capitalize">
-                                        {project.designer.specialty.replace('-', ' ')}
+                                    <p className="font-medium capitalize text-sm">
+                                        {project.designer.specialty
+                                            ? getServiceTypeLabel(project.designer.specialty)
+                                            : 'Sin especialidad'}
                                     </p>
                                 </div>
-
-                                {project.designer.bio && (
-                                    <div>
-                                        <p className="text-sm text-gray-500 mb-1">Biografía</p>
-                                        <p className="text-sm text-gray-700 line-clamp-3">{project.designer.bio}</p>
-                                    </div>
-                                )}
 
                                 {project.designer.portfolio && (
                                     <a
                                         href={project.designer.portfolio}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center text-blue-600 hover:text-blue-700"
+                                        className="flex items-center text-sm text-blue-600 hover:text-blue-700"
                                     >
                                         <FiExternalLink className="mr-2" />
-                                        Ver portafolio del diseñador
+                                        Ver portafolio
                                     </a>
                                 )}
                             </div>
                         </div>
                     )}
 
-                    {/* Acciones rápidas */}
+                    {/* Acciones Rápidas */}
                     <div className="bg-white rounded-xl shadow p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones</h3>
-
                         <div className="space-y-3">
                             <button
                                 onClick={() => setActiveTab('files')}
@@ -643,33 +698,35 @@ export default function ProjectDetailPage() {
                                 Ver Archivos
                             </button>
 
-                            <button
-                                onClick={() => {
-                                    // Aquí se implementaría la función de contacto
-                                    alert('Función de contacto por implementar');
-                                }}
-                                className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                            >
-                                <FiMessageSquare className="mr-2" />
-                                Contactar Soporte
-                            </button>
-
-                            {project.status === 'quoted' && (
-                                <button
-                                    onClick={() => {
-                                        // Aquí se implementaría la aprobación de cotización
-                                        alert('Función de aprobación de cotización por implementar');
-                                    }}
-                                    className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                                >
-                                    <FiCheckCircle className="mr-2" />
-                                    Aprobar Cotización
+                            {/* Acción Cliente: Aprobar Cotización */}
+                            {user?.role === 'client' && project.status === 'quoted' && (
+                                <button className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                    <FiCheckCircle className="mr-2" /> Aprobar Cotización
                                 </button>
                             )}
+
+                            {/* Acción Diseñador: Subir Entrega */}
+                            {user?.role === 'designer' && project.status === 'in-progress' && (
+                                <button className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                                    <FiUpload className="mr-2" /> Subir Entregable
+                                </button>
+                            )}
+
+                            {/* Acción Admin: Gestionar Proyecto */}
+                            {user?.role === 'admin' && (
+                                <button className="w-full flex items-center justify-center px-4 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
+                                    Cambiar Estado
+                                </button>
+                            )}
+
+                            <button className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                <FiMessageSquare className="mr-2" /> Contactar Soporte
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+
             <ConfirmModal
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}

@@ -5,10 +5,10 @@ const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const Request = require('../models/Request');
 
-// @desc    Aceptar cotización de diseñador (Crea el Proyecto Único)
+// @desc    Aceptar cotización de diseñador (Crea el Proyecto Único con Snapshots)
 // @route   POST /api/designer/quotes/:id/accept
 const acceptDesignerQuote = asyncHandler(async (req, res) => {
-    // 1. Buscar la cotización con el populate necesario desde el inicio
+    // 1. Buscar la cotización con el populate profundo
     const quote = await DesignerQuote.findOne({
         _id: req.params.id,
         designer: req.user.id
@@ -26,22 +26,41 @@ const acceptDesignerQuote = asyncHandler(async (req, res) => {
     }
 
     const clientQuote = quote.clientQuote;
-    if (!clientQuote || !clientQuote.request) {
-        return res.status(404).json(ApiResponse.notFound('Solicitud original no encontrada').toJSON());
+    const requestOriginal = clientQuote?.request;
+
+    if (!clientQuote || !requestOriginal) {
+        return res.status(404).json(ApiResponse.notFound('Datos de la solicitud o cotización de cliente no encontrados').toJSON());
     }
 
-    // 2. CREAR EL PROYECTO
+    // 2. CREAR EL PROYECTO (Mapeo al nuevo esquema de Snapshots)
     const project = await Project.create({
-        title: clientQuote.request.title,
-        description: clientQuote.request.description,
-        client: clientQuote.request.client,
-        designer: req.user.id,
-        serviceType: clientQuote.request.serviceType,
+        title: requestOriginal.title,
+        serviceType: requestOriginal.serviceType,
         status: 'approved',
-        budget: clientQuote.amount,
-        deadline: quote.deadline,
+        client: requestOriginal.client,
+        designer: req.user.id,
         designerQuote: quote._id,
-        attachments: clientQuote.request.attachments || []
+        references: requestOriginal.references || '',
+
+        // --- Snapshot para el Cliente ---
+        clientView: {
+            description: requestOriginal.description,
+            budget: clientQuote.amount, // Lo que paga el cliente (PVP)
+            deadline: clientQuote.deadline || quote.deadline, // Fecha de entrega final
+            attachments: requestOriginal.attachments || [] // Archivos heredados de la request
+        },
+
+        // --- Snapshot para el Diseñador ---
+        designerView: {
+            description: quote.description || 'Sin notas adicionales', // Notas de la cotización del diseñador
+            earnings: quote.amount, // Lo que el diseñador cobra realmente
+            internalDeadline: quote.deadline, // Su fecha límite (con colchón)
+            attachments: quote.attachments || [] // Si el diseñador adjuntó algo en su quote
+        },
+
+        // Inicializar vacío para el futuro
+        deliverables: [],
+        messages: []
     });
 
     // 3. ACTUALIZAR LA COTIZACIÓN DEL DISEÑADOR
@@ -51,9 +70,10 @@ const acceptDesignerQuote = asyncHandler(async (req, res) => {
     quote.project = project._id;
     await quote.save();
 
-    // 4. FINALIZAR EL FLUJO DE LA SOLICITUD
+    // 4. ACTUALIZAR ESTADO DE LA SOLICITUD ORIGINAL (Corregido)
     try {
-        await Request.findByIdAndUpdate(clientQuote.request._id, {
+        await Request.findByIdAndUpdate(requestOriginal._id, {
+            // 'quoted' es el estado terminal lógico para una solicitud procesada
             status: 'quoted'
         });
     } catch (error) {

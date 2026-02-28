@@ -76,8 +76,6 @@ export default function ProjectsPage() {
 
     const getStatusBadge = (status: string) => {
         const statusConfig: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
-            'requested': { color: 'bg-yellow-100 text-yellow-800', icon: <FiClock />, text: 'Solicitado' },
-            'quoted': { color: 'bg-blue-100 text-blue-800', icon: <FiAlertCircle />, text: 'Cotizado' },
             'approved': { color: 'bg-green-100 text-green-800', icon: <FiCheckCircle />, text: 'Aprobado' },
             'in-progress': { color: 'bg-purple-100 text-purple-800', icon: <FiBriefcase />, text: 'En Progreso' },
             'review': { color: 'bg-orange-100 text-orange-800', icon: <FiEye />, text: 'En Revisión' },
@@ -116,37 +114,6 @@ export default function ProjectsPage() {
         });
     };
 
-    const handleDeleteClick = (projectId: string) => {
-        setProjectToDelete(projectId);
-        setDeleteModalOpen(true);
-    };
-
-    const handleDeleteConfirm = async () => {
-        if (!projectToDelete) return;
-
-        setDeleteLoading(true);
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`/api/projects/${projectToDelete}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) throw new Error('Error al eliminar proyecto');
-
-            // Actualizar lista
-            setProjects(prev => prev.filter(p => p._id !== projectToDelete));
-            setDeleteModalOpen(false);
-            setProjectToDelete(null);
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setDeleteLoading(false);
-        }
-    };
-
     if (isLoading) {
         return (
             <div className="flex justify-center items-center min-h-100">
@@ -164,13 +131,6 @@ export default function ProjectsPage() {
                         Gestiona y sigue el progreso de todos tus proyectos de diseño
                     </p>
                 </div>
-                <Link
-                    href="/dashboard/projects/new"
-                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                    <FiPlus className="mr-2" />
-                    Nuevo Proyecto
-                </Link>
             </div>
 
             {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
@@ -182,13 +142,6 @@ export default function ProjectsPage() {
                     <p className="text-gray-600 mb-6 max-w-md mx-auto">
                         Comienza solicitando tu primer proyecto de diseño. Nuestro equipo estará encantado de ayudarte a convertir tus ideas en realidad.
                     </p>
-                    <Link
-                        href="/dashboard/projects/new"
-                        className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    >
-                        <FiPlus className="mr-2" />
-                        Solicitar Primer Proyecto
-                    </Link>
                 </div>
             ) : (
                 <>
@@ -215,7 +168,7 @@ export default function ProjectsPage() {
                                             <FiPackage className="mr-2" />
                                             <span>
                                                 {project.budget && project.budget > 0
-                                                    ? `Presupuesto: $${project.budget.toLocaleString()}`
+                                                    ? `Costo: $${project.budget.toLocaleString()}`
                                                     : 'Presupuesto por definir'}
                                             </span>
                                         </div>
@@ -255,15 +208,6 @@ export default function ProjectsPage() {
                                                     <FiEdit />
                                                 </Link>
                                             )}
-                                            {user?.role === 'client' && (
-                                                <button
-                                                    onClick={() => handleDeleteClick(project._id)}
-                                                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                                                    title="Eliminar proyecto"
-                                                >
-                                                    <FiTrash2 />
-                                                </button>
-                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -298,20 +242,6 @@ export default function ProjectsPage() {
                     </div>
                 </>
             )}
-            {/* Modal de confirmación para eliminar */}
-            <ConfirmModal
-                isOpen={deleteModalOpen}
-                onClose={() => {
-                    setDeleteModalOpen(false);
-                    setProjectToDelete(null);
-                }}
-                onConfirm={handleDeleteConfirm}
-                title="¿Eliminar proyecto?"
-                message="Esta acción no se puede deshacer. El proyecto y todos sus datos asociados serán eliminados permanentemente."
-                confirmText={deleteLoading ? "Eliminando..." : "Eliminar Proyecto"}
-                cancelText="Cancelar"
-                type="danger"
-            />
         </div>
     );
 }

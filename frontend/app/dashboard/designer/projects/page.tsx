@@ -17,6 +17,16 @@ interface Project {
         name: string;
         email: string;
     };
+    clientView: {
+        description: string;
+        budget: number;
+        deadline: any;
+    };
+    designerView: {
+        description: string;
+        earnings: number;
+        internalDeadline: any;
+    };
     serviceType: string;
     status: 'requested' | 'quoted' | 'approved' | 'in-progress' | 'review' | 'completed' | 'cancelled';
     attachments: Array<{
@@ -93,11 +103,15 @@ export default function DesignerProjectsPage() {
         }
     };
 
-    const formatDate = (dateString?: string) => {
-        if (!dateString) return 'Sin fecha definida';
+    const formatDate = (dateInput: any) => {
+        if (!dateInput) return 'Sin fecha definida';
+
+        // Si recibimos el objeto completo de MongoDB { $date: ... }
+        const dateValue = dateInput?.$date ? dateInput.$date : dateInput;
+
         try {
-            const date = new Date(dateString);
-            return format(date, "dd 'de' MMMM, yyyy", { locale: es });
+            const date = new Date(dateValue);
+            return format(date, "dd 'de' MMM", { locale: es }); // Formato corto para miniaturas
         } catch (error) {
             return 'Fecha inválida';
         }
@@ -331,29 +345,18 @@ export default function DesignerProjectsPage() {
                                                             <StatusIcon className="w-3 h-3 mr-1" />
                                                             {statusConfig.label}
                                                         </span>
-                                                        {project.budget > 0 && (
-                                                            <span className="text-sm font-medium text-gray-900">
-                                                                ${project.budget.toLocaleString()}
+                                                        {/* Ganancias para el diseñador */}
+                                                        {project.designerView?.earnings > 0 && (
+                                                            <span className="text-sm font-semibold text-green-600 bg-green-50 px-2 py-1 rounded">
+                                                                ${project.designerView.earnings.toLocaleString()}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </div>
-
-                                                {project.deadline && (
-                                                    <div className="text-right">
-                                                        <div className="flex items-center text-gray-500 text-sm">
-                                                            <FiCalendar className="mr-1" />
-                                                            {formatDate(project.deadline)}
-                                                        </div>
-                                                        <div className="text-xs text-gray-400 mt-1">
-                                                            Fecha límite
-                                                        </div>
-                                                    </div>
-                                                )}
                                             </div>
 
-                                            <p className="text-gray-600 mb-4 line-clamp-2">
-                                                {project.description}
+                                            <p className="text-gray-600 mb-4 line-clamp-2 text-sm italic">
+                                                {project.designerView?.description || project.clientView?.description}
                                             </p>
 
                                             <div className="flex items-center justify-between">
@@ -365,13 +368,13 @@ export default function DesignerProjectsPage() {
                                                             <span className="text-gray-400 ml-2">({project.client.email})</span>
                                                         )}
                                                     </div>
-
+                                                    {/* 
                                                     {project.deliverables && project.deliverables.length > 0 && (
                                                         <div className="flex items-center text-gray-500 text-sm mt-1">
                                                             <FiUpload className="mr-1" />
                                                             <span>{project.deliverables.length} entregable(s) subido(s)</span>
                                                         </div>
-                                                    )}
+                                                    )} */}
                                                 </div>
 
                                                 <div className="flex items-center space-x-2">
@@ -394,20 +397,34 @@ export default function DesignerProjectsPage() {
                                             </div>
                                         </div>
 
-                                        {/* Acciones del proyecto */}
-                                        <div className="lg:w-48 space-y-3">
-                                            {/* Cambiar estado */}
-                                            {['approved', 'in-progress', 'review'].includes(project.status) && (
-                                                <button
-                                                    onClick={() => handleStatusChange(project._id, nextStatus)}
-                                                    className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                                >
-                                                    <FiCheckCircle className="mr-2" />
-                                                    {nextStatusLabel}
-                                                </button>
+                                        {/* Acciones del proyecto  y Fecha */}
+                                        <div className="lg:w-48 flex flex-col justify-between">
+                                            {/* Contenedor de Fecha: Ahora vive aquí arriba del botón */}
+                                            {project.designerView?.internalDeadline && (
+                                                <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 mb-3 text-center">
+                                                    <div className="flex items-center justify-center text-gray-700 text-sm font-semibold">
+                                                        <FiCalendar className="mr-1 text-orange-500" />
+                                                        {formatDate(project.designerView.internalDeadline?.$date || project.designerView.internalDeadline)}
+                                                    </div>
+                                                    <div className="text-[10px] uppercase tracking-wider text-orange-600 font-bold mt-1">
+                                                        Fecha Entrega
+                                                    </div>
+                                                </div>
                                             )}
 
-                                            {/* Subir entregable */}
+                                            {/* Cambiar estado */}
+                                            <div className="space-y-3">
+                                                {['approved', 'in-progress', 'review'].includes(project.status) && (
+                                                    <button
+                                                        onClick={() => handleStatusChange(project._id, nextStatus)}
+                                                        className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                                    >
+                                                        <FiCheckCircle className="mr-2" />
+                                                        {nextStatusLabel}
+                                                    </button>
+                                                )}
+
+                                                {/* Subir entregable 
                                             {['in-progress', 'review'].includes(project.status) && (
                                                 <button
                                                     onClick={() => {
@@ -421,7 +438,7 @@ export default function DesignerProjectsPage() {
                                                 </button>
                                             )}
 
-                                            {/* Ver entregables */}
+                                            {/* Ver entregables 
                                             {project.deliverables && project.deliverables.length > 0 && (
                                                 <button
                                                     onClick={() => {
@@ -433,7 +450,8 @@ export default function DesignerProjectsPage() {
                                                     <FiEye className="mr-2" />
                                                     Ver Entregables ({project.deliverables.length})
                                                 </button>
-                                            )}
+                                            )}*/}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -474,7 +492,7 @@ export default function DesignerProjectsPage() {
                                     <h4 className="font-medium text-gray-900">En Progreso</h4>
                                 </div>
                                 <p className="text-sm text-gray-600">
-                                    Desarrolla el diseño y sube entregables parciales para feedback
+                                    Desarrolla el diseño y muestra imágenes parciales para feedback
                                 </p>
                             </div>
 
