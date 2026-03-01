@@ -298,7 +298,7 @@ export const adminAPI = {
 };
 
 export const designerQuoteAPI = {
-    getMyQuotes: () => apiClient.get('/designer/quotes'),
+    getMyQuotes: (params?: any) => apiClient.get('/designer/quotes', { params }),
     getQuoteById: (id: string) => apiClient.get(`/designer/quotes/${id}`),
     acceptQuote: (id: string, notes?: string) => apiClient.post(`/designer/quotes/${id}/accept`, { designerNotes: notes }),
     rejectQuote: (id: string, notes?: string) => apiClient.post(`/designer/quotes/${id}/reject`, { designerNotes: notes }),

@@ -5,7 +5,19 @@ import { useParams, useRouter } from 'next/navigation';
 import { designerQuoteAPI } from '@/app/lib/api/endpoints';
 import Alert from '@/components/ui/Alert';
 import ConfirmModal from '@/components/modals/ConfirmModal';
-import { FiArrowLeft, FiDollarSign, FiCalendar, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import {
+    FiArrowLeft,
+    FiDollarSign,
+    FiCalendar,
+    FiClock,
+    FiCheckCircle,
+    FiXCircle,
+    FiFileText,
+    FiUser,
+    FiBriefcase,
+    FiMessageSquare,
+    FiTag
+} from 'react-icons/fi';
 
 export default function DesignerQuoteDetailPage() {
     const params = useParams();
@@ -19,6 +31,7 @@ export default function DesignerQuoteDetailPage() {
     const [showAcceptModal, setShowAcceptModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [notes, setNotes] = useState('');
+    const [activeTab, setActiveTab] = useState<'overview' | 'details'>('overview');
 
     useEffect(() => {
         fetchQuote();
@@ -40,14 +53,11 @@ export default function DesignerQuoteDetailPage() {
         setActionLoading(true);
         setError('');
         try {
-            // designerQuoteAPI ya usa axios y ahora recibirá un 200 OK
             await designerQuoteAPI.acceptQuote(quoteId, notes);
-
-            setShowAcceptModal(false); // Cerramos el modal
+            setShowAcceptModal(false);
             setNotes('');
-            await fetchQuote(); // Refrescamos los datos para ver el mensaje de "Aceptado"
+            await fetchQuote();
         } catch (err: any) {
-            // Si hay un error real (ej. red), lo mostramos
             setError(err.response?.data?.message || err.message);
         } finally {
             setActionLoading(false);
@@ -67,72 +77,321 @@ export default function DesignerQuoteDetailPage() {
         }
     };
 
-    if (loading) return <div className="flex justify-center items-center min-h-64"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
-    if (!quote) return <div>No encontrada</div>;
+    const getStatusConfig = (status: string) => {
+        const configs: Record<string, { color: string; icon: React.ReactNode; label: string; desc: string }> = {
+            pending: {
+                color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                icon: <FiClock className="w-4 h-4" />,
+                label: 'Pendiente',
+                desc: 'Esta cotización está pendiente de tu respuesta.'
+            },
+            accepted: {
+                color: 'bg-green-100 text-green-800 border-green-200',
+                icon: <FiCheckCircle className="w-4 h-4" />,
+                label: 'Aceptada',
+                desc: 'Aceptaste esta cotización. Se ha creado un proyecto en tu área.'
+            },
+            rejected: {
+                color: 'bg-red-100 text-red-800 border-red-200',
+                icon: <FiXCircle className="w-4 h-4" />,
+                label: 'Rechazada',
+                desc: 'Rechazaste esta cotización.'
+            }
+        };
+        return configs[status] || configs.pending;
+    };
+
+    const formatDate = (dateStr: string) => {
+        return new Date(dateStr).toLocaleDateString('es-ES', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
+    const formatDateTime = (dateStr: string) => {
+        return new Date(dateStr).toLocaleDateString('es-ES', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-64">
+                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    if (!quote) {
+        return (
+            <div className="text-center py-12">
+                <FiFileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-gray-900 mb-2">Cotización no encontrada</h3>
+                <button
+                    onClick={() => router.push('/dashboard/designer/quotes')}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                    Volver a Mis Cotizaciones
+                </button>
+            </div>
+        );
+    }
+
+    const statusConfig = getStatusConfig(quote.status);
 
     return (
         <div>
-            <button onClick={() => router.back()} className="flex items-center text-gray-600 hover:text-gray-900 mb-6">
-                <FiArrowLeft className="mr-2" /> Volver
-            </button>
+            {/* Header */}
+            <div className="mb-8">
+                <button
+                    onClick={() => router.push('/dashboard/designer/quotes')}
+                    className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+                >
+                    <FiArrowLeft className="mr-2" />
+                    Volver a Mis Cotizaciones
+                </button>
 
-            <div className="bg-white rounded-xl shadow overflow-hidden">
-                <div className="p-6 border-b border-gray-200">
-                    <h1 className="text-2xl font-bold text-gray-900">Cotización para {quote.clientQuote?.request?.title}</h1>
-                    <p className="text-gray-500 mt-1">ID: {quote._id}</p>
-                </div>
-
-                <div className="p-6 space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <p className="text-sm text-gray-500">Monto</p>
-                            <p className="text-xl font-semibold flex items-center"><FiDollarSign className="mr-1" />${quote.amount.toLocaleString()}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Fecha límite</p>
-                            <p className="flex items-center"><FiCalendar className="mr-2" />{new Date(quote.deadline).toLocaleDateString()}</p>
-                        </div>
-                    </div>
-
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                     <div>
-                        <p className="text-sm text-gray-500 mb-2">Descripción</p>
-                        <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-line">{quote.description}</div>
+                        <h1 className="text-3xl font-bold text-gray-900">
+                            {quote.clientQuote?.request?.title || 'Cotización'}
+                        </h1>
+                        <div className="flex items-center flex-wrap gap-2 mt-2">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${statusConfig.color}`}>
+                                {statusConfig.icon}
+                                <span className="ml-1">{statusConfig.label}</span>
+                            </span>
+                            <span className="text-gray-600">•</span>
+                            <span className="text-gray-600">Recibida: {formatDate(quote.createdAt)}</span>
+                        </div>
+                        <p className="text-gray-600 mt-2">{statusConfig.desc}</p>
                     </div>
-
-                    {quote.adminNotes && (
-                        <div>
-                            <p className="text-sm text-gray-500 mb-2">Notas del administrador</p>
-                            <div className="bg-blue-50 p-4 rounded-lg">{quote.adminNotes}</div>
-                        </div>
-                    )}
-
-                    {quote.status === 'pending' && (
-                        <div className="flex space-x-4">
-                            <button onClick={() => setShowAcceptModal(true)} className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 flex items-center justify-center">
-                                <FiCheckCircle className="mr-2" /> Aceptar
-                            </button>
-                            <button onClick={() => setShowRejectModal(true)} className="flex-1 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 flex items-center justify-center">
-                                <FiXCircle className="mr-2" /> Rechazar
-                            </button>
-                        </div>
-                    )}
-
-                    {quote.status === 'accepted' && (
-                        <div className="bg-green-50 p-4 rounded-lg text-green-700 flex items-center">
-                            <FiCheckCircle className="mr-2" /> Aceptaste esta cotización. Se ha creado un proyecto en tu área.
-                        </div>
-                    )}
-                    {quote.status === 'rejected' && (
-                        <div className="bg-red-50 p-4 rounded-lg text-red-700 flex items-center">
-                            <FiXCircle className="mr-2" /> Rechazaste esta cotización.
-                        </div>
-                    )}
                 </div>
             </div>
 
+            {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Columna principal */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* Pestañas */}
+                    <div className="bg-white rounded-xl shadow">
+                        <div className="border-b border-gray-200">
+                            <nav className="flex space-x-8 px-6">
+                                <button
+                                    onClick={() => setActiveTab('overview')}
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'overview'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
+                                >
+                                    Resumen
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('details')}
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'details'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
+                                >
+                                    Detalles del Proyecto
+                                </button>
+                            </nav>
+                        </div>
+
+                        <div className="p-6">
+                            {/* Resumen */}
+                            {activeTab === 'overview' && (
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                            <FiFileText className="mr-2" />
+                                            Descripción
+                                        </h3>
+                                        <div className="whitespace-pre-line text-gray-700 bg-gray-50 p-6 rounded-lg">
+                                            {quote.description}
+                                        </div>
+                                    </div>
+
+                                    {quote.adminNotes && (
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                                <FiMessageSquare className="mr-2" />
+                                                Notas del administrador
+                                            </h3>
+                                            <div className="bg-blue-50 p-6 rounded-lg text-blue-700">
+                                                {quote.adminNotes}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Detalles del proyecto */}
+                            {activeTab === 'details' && (
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-sm text-gray-500 mb-1">Monto</p>
+                                            <p className="text-xl font-semibold flex items-center">
+                                                <FiDollarSign className="mr-1" />
+                                                {quote.amount.toLocaleString()}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-gray-500 mb-1">Fecha límite</p>
+                                            <p className="flex items-center">
+                                                <FiCalendar className="mr-2 text-gray-400" />
+                                                {quote.deadline ? formatDate(quote.deadline) : 'No definida'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Cliente</p>
+                                        <p className="font-medium">
+                                            {quote.clientQuote?.request?.client?.name || '—'}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            {quote.clientQuote?.request?.client?.email}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Tipo de servicio</p>
+                                        <p className="font-medium capitalize">
+                                            {quote.clientQuote?.request?.serviceType || 'No especificado'}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Creada el</p>
+                                        <p className="text-sm">{formatDateTime(quote.createdAt)}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sidebar */}
+                <div className="space-y-6">
+                    {/* Información de la cotización */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <FiTag className="mr-2" />
+                            Detalles de la Cotización
+                        </h3>
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-sm text-gray-500 mb-1">Monto</p>
+                                <p className="font-medium flex items-center">
+                                    <FiDollarSign className="mr-2 text-gray-400" />
+                                    {quote.amount.toLocaleString()}
+                                </p>
+                            </div>
+                            {quote.deadline && (
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Fecha límite</p>
+                                    <p className="font-medium flex items-center">
+                                        <FiCalendar className="mr-2 text-gray-400" />
+                                        {formatDate(quote.deadline)}
+                                    </p>
+                                </div>
+                            )}
+                            <div>
+                                <p className="text-sm text-gray-500 mb-1">Creada el</p>
+                                <p className="text-sm">{formatDateTime(quote.createdAt)}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Cliente */}
+                    {quote.clientQuote?.request?.client && (
+                        <div className="bg-white rounded-xl shadow p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <FiUser className="mr-2" />
+                                Cliente
+                            </h3>
+                            <div className="space-y-3">
+                                <div className="flex items-center">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold mr-3">
+                                        {quote.clientQuote.request.client.name?.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">
+                                            {quote.clientQuote.request.client.name}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            {quote.clientQuote.request.client.email}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Acciones */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones</h3>
+                        <div className="space-y-3">
+                            {quote.status === 'pending' && (
+                                <>
+                                    <button
+                                        onClick={() => setShowAcceptModal(true)}
+                                        className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                                    >
+                                        <FiCheckCircle className="mr-2" />
+                                        Aceptar Cotización
+                                    </button>
+                                    <button
+                                        onClick={() => setShowRejectModal(true)}
+                                        className="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                                    >
+                                        <FiXCircle className="mr-2" />
+                                        Rechazar Cotización
+                                    </button>
+                                </>
+                            )}
+
+                            {quote.status === 'accepted' && (
+                                <div className="bg-green-50 p-4 rounded-lg text-green-700 flex items-center">
+                                    <FiCheckCircle className="mr-2 shrink-0" />
+                                    <span>Ya aceptaste esta cotización.</span>
+                                </div>
+                            )}
+
+                            {quote.status === 'rejected' && (
+                                <div className="bg-red-50 p-4 rounded-lg text-red-700 flex items-center">
+                                    <FiXCircle className="mr-2 shrink-0" />
+                                    <span>Rechazaste esta cotización.</span>
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => router.push(`/dashboard/designer/projects?quote=${quote._id}`)}
+                                className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                            >
+                                <FiBriefcase className="mr-2" />
+                                Ver Proyectos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Modales */}
             <ConfirmModal
                 isOpen={showAcceptModal}
-                onClose={() => setShowAcceptModal(false)}
+                onClose={() => {
+                    setShowAcceptModal(false);
+                    setNotes('');
+                }}
                 onConfirm={handleAccept}
                 title="Aceptar cotización"
                 message={
@@ -142,7 +401,7 @@ export default function DesignerQuoteDetailPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="Notas (opcional)"
-                            className="w-full px-3 py-2 border rounded-lg"
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             rows={3}
                         />
                     </div>
@@ -154,7 +413,10 @@ export default function DesignerQuoteDetailPage() {
 
             <ConfirmModal
                 isOpen={showRejectModal}
-                onClose={() => setShowRejectModal(false)}
+                onClose={() => {
+                    setShowRejectModal(false);
+                    setNotes('');
+                }}
                 onConfirm={handleReject}
                 title="Rechazar cotización"
                 message={
@@ -164,7 +426,7 @@ export default function DesignerQuoteDetailPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="Motivo (opcional)"
-                            className="w-full px-3 py-2 border rounded-lg"
+                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             rows={3}
                         />
                     </div>

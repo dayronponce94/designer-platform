@@ -88,29 +88,69 @@ const acceptDesignerQuote = asyncHandler(async (req, res) => {
     );
 });
 
-// Los métodos getMyDesignerQuotes y getDesignerQuoteById también necesitan 
-// limpiar el populate de '.project' si antes esperaban la estructura vieja.
-
+// @desc    Obtener todas las cotizaciones del diseñador autenticado (con filtros y paginación)
+// @route   GET /api/designer/quotes
+// @access  Private (Designer)
 const getMyDesignerQuotes = asyncHandler(async (req, res) => {
-    const quotes = await DesignerQuote.find({ designer: req.user.id })
+    // 1. Capturar filtros de la URL (query params)
+    const { status, search, page = 1, limit = 10 } = req.query;
+
+    // 2. Construir el objeto de consulta base
+    const query = { designer: req.user.id };
+
+    // 3. Aplicar filtro de estado si existe
+    if (status && status !== '') {
+        query.status = status;
+    }
+
+    // Nota: El filtrado por "search" (título del proyecto) en campos populados 
+    // con Mongoose requiere agregaciones complejas. Por ahora, hagamos que funcione el de status.
+
+    const skip = (page - 1) * limit;
+
+    const quotes = await DesignerQuote.find(query)
         .populate({
             path: 'clientQuote',
-            populate: { path: 'request', select: 'title client' }
+            populate: {
+                path: 'request',
+                select: 'title client',
+                // ESTO ES LO QUE FALTABA: Entrar al modelo Client para traer el Name
+                populate: { path: 'client', select: 'name email' }
+            }
         })
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .limit(Number(limit))
+        .skip(skip);
+
+    // Contar total para paginación
+    const total = await DesignerQuote.countDocuments(query);
 
     res.status(200).json(
-        ApiResponse.success('Cotizaciones obtenidas', { quotes }).toJSON()
+        ApiResponse.success('Cotizaciones obtenidas', {
+            quotes,
+            pagination: {
+                total,
+                page: Number(page),
+                pages: Math.ceil(total / limit)
+            }
+        }).toJSON()
     );
 });
 
+// @desc    Obtener detalle de una cotización específica del diseñador
+// @route   GET /api/designer/quotes/:id
+// @access  Private (Designer)
 const getDesignerQuoteById = asyncHandler(async (req, res) => {
     const quote = await DesignerQuote.findOne({
         _id: req.params.id,
         designer: req.user.id
     }).populate({
         path: 'clientQuote',
-        populate: { path: 'request', select: 'title description client' }
+        populate: {
+            path: 'request',
+            select: 'title description client',
+            populate: { path: 'client', select: 'name email' } // <--- Agregado
+        }
     });
 
     if (!quote) {
@@ -122,6 +162,9 @@ const getDesignerQuoteById = asyncHandler(async (req, res) => {
     );
 });
 
+// @desc    Rechazar una cotización de diseñador (Cambia estado a 'rejected')
+// @route   POST /api/designer/quotes/:id/reject
+// @access  Private (Designer)
 const rejectDesignerQuote = asyncHandler(async (req, res) => {
     const quote = await DesignerQuote.findOne({
         _id: req.params.id,
