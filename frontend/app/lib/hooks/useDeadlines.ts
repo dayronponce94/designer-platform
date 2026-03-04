@@ -33,9 +33,11 @@ export function useDeadlines(filters?: { timeframe?: string; status?: string }) 
             const response = await projectAPI.getDesignerDeadlines(params);
 
             // Procesar proyectos para agregar metadatos de plazos
-            const rawProjects: Project[] = response.data.data.projects || [];
+            const rawProjects: any[] = response.data.data.projects || [];
             const processedProjects: DeadlineProject[] = rawProjects.map(project => {
-                const deadlineDate = project.deadline ? new Date(project.deadline) : null;
+                // 1. Extraemos la fecha correcta (Prioridad al internalDeadline del diseñador)
+                const deadlineStr = project.designerView?.internalDeadline || project.deadline;
+                const deadlineDate = deadlineStr ? new Date(deadlineStr) : null;
                 const now = new Date();
 
                 let daysUntilDeadline: number | undefined;
@@ -44,17 +46,24 @@ export function useDeadlines(filters?: { timeframe?: string; status?: string }) 
 
                 if (deadlineDate) {
                     const diffTime = deadlineDate.getTime() - now.getTime();
+                    // Calculamos días restantes
                     daysUntilDeadline = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
+                    // Un proyecto está vencido si los días son < 0 y no está completado
                     isOverdue = daysUntilDeadline < 0 && project.status !== 'completed';
+                    // Es urgente si queda entre 0 y 2 días
                     isUrgent = daysUntilDeadline >= 0 && daysUntilDeadline <= 2 && project.status !== 'completed';
                 }
 
                 return {
                     ...project,
+                    // Inyectamos la fecha normalizada para que la vista no tenga que buscar en designerView
+                    deadline: deadlineStr,
                     daysUntilDeadline,
                     isOverdue,
-                    isUrgent
+                    isUrgent,
+                    // Normalizamos el presupuesto (ganancias para el diseñador)
+                    budget: project.designerView?.earnings || 0
                 };
             });
 

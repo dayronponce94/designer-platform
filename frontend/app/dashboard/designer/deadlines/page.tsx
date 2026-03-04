@@ -7,6 +7,34 @@ import { format, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
 
+export interface LocalProject {
+    _id: string;
+    title: string;
+    serviceType: string;
+    status: string;
+    description?: string;
+    client?: {
+        _id: string;
+        name: string;
+        company?: string;
+    };
+    clientView?: {
+        description?: string;
+        clientName?: string;
+    };
+    designerView?: {
+        description?: string;
+        earnings?: number;
+        internalDeadline?: string;
+    };
+    deadline?: string;
+    budget: number;
+    // Campos del hook
+    isOverdue?: boolean;
+    isUrgent?: boolean;
+    daysUntilDeadline?: number;
+}
+
 export default function DesignerDeadlinesPage() {
     const [timeframeFilter, setTimeframeFilter] = useState<string>('all');
     const [statusFilter, setStatusFilter] = useState<string>('active');
@@ -39,10 +67,12 @@ export default function DesignerDeadlinesPage() {
     };
 
     const getDaysText = (project: any) => {
+        // Usamos 'deadline' que ya viene procesado por el hook (es el internalDeadline)
         if (!project.deadline || project.status === 'completed') return '';
 
         const deadline = new Date(project.deadline);
         const now = new Date();
+        // differenceInDays es perfecto aquí
         const days = differenceInDays(deadline, now);
 
         if (days < 0) {
@@ -230,34 +260,36 @@ export default function DesignerDeadlinesPage() {
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-100">
-                        {projects.map((project) => {
-                            const StatusIcon = getStatusIcon(project);
-                            const statusColor = getStatusColor(project);
-                            const daysText = getDaysText(project);
+                        {projects.map((project: any) => {
+                            const p = project as LocalProject;
+                            const StatusIcon = getStatusIcon(p);
+                            const statusColor = getStatusColor(p);
+                            const daysText = getDaysText(p);
 
                             return (
-                                <div key={project._id} className="p-6 hover:bg-gray-50 transition-colors">
+                                <div key={p._id} className="p-6 hover:bg-gray-50 transition-colors">
                                     <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                                         {/* Información del proyecto */}
                                         <div className="flex-1">
                                             <div className="flex flex-col md:flex-row md:items-start justify-between mb-4">
                                                 <div className="mb-3 md:mb-0">
                                                     <h3 className="text-lg font-bold text-gray-900 mb-1">
-                                                        {project.title}
+                                                        {p.title}
                                                     </h3>
                                                     <div className="flex flex-wrap items-center gap-2 mb-2">
                                                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusColor}`}>
                                                             <StatusIcon className="w-3 h-3 mr-1" />
-                                                            {project.status === 'completed' ? 'Completado' :
-                                                                project.isOverdue ? 'Vencido' :
-                                                                    project.isUrgent ? 'Urgente' : 'Próximo'}
+                                                            {p.status === 'completed' ? 'Completado' :
+                                                                p.isOverdue ? 'Vencido' :
+                                                                    p.isUrgent ? 'Urgente' : 'Próximo'}
                                                         </span>
                                                         <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                                                            {getServiceTypeLabel(project.serviceType)}
+                                                            {getServiceTypeLabel(p.serviceType)}
                                                         </span>
-                                                        {project.budget > 0 && (
-                                                            <span className="text-sm font-medium text-gray-900 bg-blue-50 px-3 py-1 rounded-full">
-                                                                ${project.budget.toLocaleString()}
+                                                        {/* Cambiamos a verde para representar 'Earnings' del diseñador */}
+                                                        {p.budget > 0 && (
+                                                            <span className="text-sm font-medium text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+                                                                ${p.budget.toLocaleString()}
                                                             </span>
                                                         )}
                                                     </div>
@@ -266,15 +298,15 @@ export default function DesignerDeadlinesPage() {
                                                 {/* Fecha de entrega */}
                                                 <div className="text-right">
                                                     <div className="flex flex-col md:items-end">
-                                                        <div className="text-sm text-gray-500 mb-1">Fecha límite</div>
-                                                        <div className={`text-lg font-bold ${project.isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
-                                                            {formatDate(project.deadline)}
+                                                        <div className="text-sm text-gray-500 mb-1 font-medium">Fecha límite</div>
+                                                        <div className={`text-lg font-bold ${p.isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
+                                                            {formatDate(p.deadline)}
                                                         </div>
                                                         <div className="text-sm text-gray-500">
-                                                            {formatTime(project.deadline)}
+                                                            {formatTime(p.deadline)}
                                                         </div>
                                                         {daysText && (
-                                                            <div className={`text-sm font-medium mt-1 ${project.isOverdue ? 'text-red-600' : project.isUrgent ? 'text-yellow-600' : 'text-gray-600'}`}>
+                                                            <div className={`text-sm font-medium mt-1 ${p.isOverdue ? 'text-red-600' : p.isUrgent ? 'text-yellow-600' : 'text-blue-600'}`}>
                                                                 {daysText}
                                                             </div>
                                                         )}
@@ -282,20 +314,23 @@ export default function DesignerDeadlinesPage() {
                                                 </div>
                                             </div>
 
-                                            <p className="text-gray-600 mb-4 line-clamp-2">
-                                                {project.description}
+                                            {/* Descripción: Buscamos en la vista del diseñador, si no, la general */}
+                                            <p className="text-gray-600 mb-4 line-clamp-2 text-sm">
+                                                {p.designerView?.description || p.description || 'Sin descripción de propuesta técnica.'}
                                             </p>
 
-                                            <div className="flex flex-col md:flex-row md:items-center justify-between">
+                                            <div className="flex flex-col md:flex-row md:items-center justify-between border-t border-gray-50 pt-4">
                                                 <div className="mb-3 md:mb-0">
-                                                    <div className="flex items-center text-gray-500">
+                                                    <div className="flex items-center text-gray-500 text-sm">
+                                                        <FiBriefcase className="mr-2" />
                                                         <span>Cliente: </span>
-                                                        <span className="font-medium ml-1">
-                                                            {typeof project.client === 'object' ? project.client.name : 'Cliente'}
+                                                        <span className="font-semibold ml-1 text-gray-900">
+                                                            {/* Verificamos si el cliente está populado o si viene dentro de clientView */}
+                                                            {p.client?.name || p.clientView?.clientName || 'Cliente no asignado'}
                                                         </span>
-                                                        {typeof project.client === 'object' && project.client.company && (
-                                                            <span className="text-gray-400 ml-2">
-                                                                ({project.client.company})
+                                                        {p.client?.company && (
+                                                            <span className="text-gray-400 ml-2 italic">
+                                                                — {p.client.company}
                                                             </span>
                                                         )}
                                                     </div>
@@ -303,8 +338,8 @@ export default function DesignerDeadlinesPage() {
 
                                                 <div className="flex items-center space-x-3">
                                                     <Link
-                                                        href={`/dashboard/projects/${project._id}`}
-                                                        className="flex items-center text-blue-600 hover:text-blue-700 font-medium"
+                                                        href={`/dashboard/projects/${p._id}`}
+                                                        className="flex items-center text-blue-600 hover:text-blue-700 font-bold text-sm transition-all hover:translate-x-1"
                                                     >
                                                         Ver detalles del proyecto
                                                         <FiChevronRight className="ml-1" />

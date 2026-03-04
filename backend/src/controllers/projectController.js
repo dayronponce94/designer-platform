@@ -332,17 +332,24 @@ const getDesignerDeadlines = asyncHandler(async (req, res) => {
         designer: req.user.id,
         status: { $nin: ['completed', 'cancelled'] }
     })
-        .select('title status designerView serviceType client')
+        // 1. Quitamos el .select() restrictivo para traer los campos de las vistas
         .populate('client', 'name company')
         .sort({ 'designerView.internalDeadline': 1 });
 
-    // Ajustamos la respuesta para que el frontend no tenga que buscar en sub-objetos
+    // 2. Ajustamos el mapeo para incluir TODO lo que tu interfaz de React espera
     const formatted = projects.map(p => ({
         _id: p._id,
         title: p.title,
         status: p.status,
-        deadline: p.designerView.internalDeadline,
-        clientName: p.client?.name
+        serviceType: p.serviceType,
+        // Datos de la vista de diseñador
+        designerView: p.designerView,
+        // Datos del cliente
+        client: p.client,
+        // Mantenemos estas aliadas para compatibilidad con tu Hook
+        deadline: p.designerView?.internalDeadline,
+        budget: p.designerView?.earnings || 0,
+        description: p.designerView?.description
     }));
 
     res.status(200).json(ApiResponse.success('Plazos obtenidos', { projects: formatted }).toJSON());
