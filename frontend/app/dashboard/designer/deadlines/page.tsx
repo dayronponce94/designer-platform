@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDeadlines } from '@/app/lib/hooks/useDeadlines';
 import { FiCalendar, FiClock, FiAlertCircle, FiCheckCircle, FiBriefcase, FiFilter, FiChevronRight } from 'react-icons/fi';
 import { format, differenceInDays } from 'date-fns';
@@ -36,15 +36,62 @@ export interface LocalProject {
 }
 
 export default function DesignerDeadlinesPage() {
-    const [timeframeFilter, setTimeframeFilter] = useState<string>('all');
-    const [statusFilter, setStatusFilter] = useState<string>('active');
+    // 1. Primero los estados de los selectores
+    const [timeframeFilter, setTimeframeFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const projectsPerPage = 5;
 
+    // 2. Definimos el objeto 'filters' que necesita el Hook
     const filters = useMemo(() => ({
         timeframe: timeframeFilter !== 'all' ? timeframeFilter : undefined,
         status: statusFilter !== 'all' ? statusFilter : undefined
     }), [timeframeFilter, statusFilter]);
 
+
     const { projects, stats, loading, error, refetch } = useDeadlines(filters);
+
+    // 4. Finalmente, procesamos los proyectos que el Hook nos devolvió
+    const filteredProjects = useMemo(() => {
+        // Si projects aún no llega, devolvemos array vacío
+        if (!projects) return [];
+
+        return projects.filter((project: any) => {
+            const p = project as LocalProject;
+
+            // Lógica de Filtro de Tiempo
+            let matchesTimeframe = true;
+            if (timeframeFilter === 'today') matchesTimeframe = p.daysUntilDeadline === 0;
+            else if (timeframeFilter === 'week') matchesTimeframe = !!(p.daysUntilDeadline !== undefined && p.daysUntilDeadline <= 7 && p.daysUntilDeadline >= 0);
+            else if (timeframeFilter === 'month') matchesTimeframe = !!(p.daysUntilDeadline !== undefined && p.daysUntilDeadline <= 30);
+            else if (timeframeFilter === 'overdue') matchesTimeframe = p.isOverdue === true;
+
+            // Lógica de Filtro de Estado
+            let matchesStatus = true;
+            if (statusFilter !== 'all') {
+                if (statusFilter === 'active') {
+                    // "Activos" suelen ser los que están aprobados pero no terminados aún
+                    matchesStatus = ['approved', 'in-progress', 'review'].includes(p.status);
+                } else {
+                    matchesStatus = p.status === statusFilter;
+                }
+            }
+
+            return matchesTimeframe && matchesStatus;
+        });
+    }, [projects, timeframeFilter, statusFilter]);
+
+    // 5. Paginación basada en el resultado filtrado
+    const indexOfLastProject = currentPage * projectsPerPage;
+    const indexOfFirstProject = indexOfLastProject - projectsPerPage;
+    const currentProjects = filteredProjects.slice(indexOfFirstProject, indexOfLastProject);
+    const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
+
+    // Resetear página cuando cambien los filtros
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [timeframeFilter, statusFilter]);
+
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return 'Sin fecha definida';
@@ -86,12 +133,12 @@ export default function DesignerDeadlinesPage() {
         }
     };
 
-    const getStatusColor = (project: any) => {
-        if (project.status === 'completed') return 'bg-green-100 text-green-800';
-        if (project.isOverdue) return 'bg-red-100 text-red-800';
-        if (project.isUrgent) return 'bg-yellow-100 text-yellow-800';
-        if (project.daysUntilDeadline && project.daysUntilDeadline <= 7) return 'bg-blue-100 text-blue-800';
-        return 'bg-gray-100 text-gray-800';
+    const getStatusStyles = (p: LocalProject): string => {
+        if (p.status === 'completed') return 'bg-green-50 text-green-700 border-green-200';
+        if (p.isOverdue) return 'bg-red-50 text-red-700 border-red-200';
+        if (p.isUrgent) return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+        if (p.daysUntilDeadline && p.daysUntilDeadline <= 7) return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-indigo-50 text-indigo-700 border-indigo-200';
     };
 
     const getStatusIcon = (project: any) => {
@@ -162,48 +209,6 @@ export default function DesignerDeadlinesPage() {
                 </div>
             </div>
 
-            {/* Estadísticas */}
-            {stats && (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                        <div className="flex items-center">
-                            <FiClock className="w-8 h-8 text-blue-600 mr-3" />
-                            <div>
-                                <div className="font-medium text-gray-900">Próximos</div>
-                                <div className="text-2xl font-bold text-gray-900">{stats.upcoming}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="p-4 bg-yellow-50 rounded-lg">
-                        <div className="flex items-center">
-                            <FiAlertCircle className="w-8 h-8 text-yellow-600 mr-3" />
-                            <div>
-                                <div className="font-medium text-gray-900">Urgentes</div>
-                                <div className="text-2xl font-bold text-gray-900">{stats.urgent}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="p-4 bg-green-50 rounded-lg">
-                        <div className="flex items-center">
-                            <FiCheckCircle className="w-8 h-8 text-green-600 mr-3" />
-                            <div>
-                                <div className="font-medium text-gray-900">Completados</div>
-                                <div className="text-2xl font-bold text-gray-900">{stats.completed}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                        <div className="flex items-center">
-                            <FiCalendar className="w-8 h-8 text-gray-600 mr-3" />
-                            <div>
-                                <div className="font-medium text-gray-900">Total</div>
-                                <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {/* Filtros */}
             <div className="bg-white rounded-xl shadow p-4">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -230,40 +235,55 @@ export default function DesignerDeadlinesPage() {
                             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             <option value="all">Todos los estados</option>
-                            <option value="active">Activos</option>
+                            <option value="active">Activos (Pendientes)</option>
+                            <option value="approved">Aprobados</option>
                             <option value="in-progress">En progreso</option>
                             <option value="review">En revisión</option>
                             <option value="completed">Completados</option>
+                            <option value="cancelled">Cancelados</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            {/* Lista de proyectos con plazos */}
+            {/* Lista de Proyectos o Estados Vacíos */}
             <div className="bg-white rounded-xl shadow overflow-hidden">
-                {projects.length === 0 ? (
-                    <div className="text-center py-12">
-                        <FiCalendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-xl font-medium text-gray-900 mb-2">
-                            No hay plazos próximos
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                            Aquí aparecerán las fechas de entrega de tus proyectos asignados.
-                        </p>
-                        <Link
-                            href="/dashboard/designer/projects"
-                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        >
-                            <FiBriefcase className="mr-2" />
-                            Ver proyectos asignados
-                        </Link>
+                {filteredProjects.length === 0 ? (
+                    <div className="bg-white rounded-xl shadow p-12 text-center">
+                        <FiBriefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+
+                        {/* Si hay proyectos totales pero el filtro está vacío */}
+                        {projects && projects.length > 0 ? (
+                            <>
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                    Sin resultados para este filtro
+                                </h3>
+                                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                                    No encontramos proyectos que coincidan con los criterios seleccionados. Prueba cambiando el período o el estado.
+                                </p>
+                                <button
+                                    onClick={() => { setStatusFilter('all'); setTimeframeFilter('all'); }}
+                                    className="text-blue-600 font-bold hover:underline"
+                                >
+                                    Limpiar todos los filtros
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                    No tienes proyectos aún
+                                </h3>
+                                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                                    Actualmente no tienes plazos de entrega asignados. Cuando aceptes un proyecto, aparecerá aquí con su cronograma.
+                                </p>
+                            </>
+                        )}
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-100">
-                        {projects.map((project: any) => {
+                        {currentProjects.map((project: any) => {
                             const p = project as LocalProject;
                             const StatusIcon = getStatusIcon(p);
-                            const statusColor = getStatusColor(p);
                             const daysText = getDaysText(p);
 
                             return (
@@ -277,21 +297,26 @@ export default function DesignerDeadlinesPage() {
                                                         {p.title}
                                                     </h3>
                                                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusColor}`}>
-                                                            <StatusIcon className="w-3 h-3 mr-1" />
+                                                        {/* Nuevo Badge de Estado según Plazo */}
+                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold border ${getStatusStyles(p)}`}>
+                                                            <StatusIcon className="w-4 h-4 mr-2" />
                                                             {p.status === 'completed' ? 'Completado' :
                                                                 p.isOverdue ? 'Vencido' :
-                                                                    p.isUrgent ? 'Urgente' : 'Próximo'}
+                                                                    p.isUrgent ? 'Urgente' :
+                                                                        (p.daysUntilDeadline && p.daysUntilDeadline <= 7) ? 'Próximo' : 'En Tiempo'}
                                                         </span>
+
+                                                        {/* Estado real del proyecto (workflow) */}
+                                                        <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm">
+                                                            {p.status === 'in-progress' ? 'En Progreso' :
+                                                                p.status === 'review' ? 'En Revisión' :
+                                                                    p.status === 'approved' ? 'Aprobado' : p.status}
+                                                        </span>
+
+                                                        {/* Tipo de Servicio */}
                                                         <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                                                             {getServiceTypeLabel(p.serviceType)}
                                                         </span>
-                                                        {/* Cambiamos a verde para representar 'Earnings' del diseñador */}
-                                                        {p.budget > 0 && (
-                                                            <span className="text-sm font-medium text-green-700 bg-green-50 px-3 py-1 rounded-full border border-green-100">
-                                                                ${p.budget.toLocaleString()}
-                                                            </span>
-                                                        )}
                                                     </div>
                                                 </div>
 
@@ -355,53 +380,126 @@ export default function DesignerDeadlinesPage() {
                 )}
             </div>
 
+            {/* Paginación */}
+            {filteredProjects.length > projectsPerPage && (
+                <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-lg shadow">
+                    <div className="flex flex-1 justify-between sm:hidden">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                            Anterior
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                    <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm text-gray-700">
+                                Mostrando <span className="font-medium">{indexOfFirstProject + 1}</span> a{' '}
+                                <span className="font-medium">
+                                    {Math.min(indexOfLastProject, filteredProjects.length)}
+                                </span> de{' '}
+                                <span className="font-medium">{filteredProjects.length}</span> resultados
+                            </p>
+                        </div>
+                        <div>
+                            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                                    <button
+                                        key={number}
+                                        onClick={() => setCurrentPage(number)}
+                                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${currentPage === number
+                                            ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                                            : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                                            }`}
+                                    >
+                                        {number}
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Guía de colores y estados */}
             <div className="bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl shadow p-6">
                 <div className="flex items-start">
-                    <div className="p-3 bg-blue-100 text-blue-600 rounded-lg mr-4">
+                    {/* Ocultamos el icono en tablets para ganar espacio si es necesario, pero lo dejamos en desktop */}
+                    <div className="hidden xl:block p-3 bg-blue-100 text-blue-600 rounded-lg mr-4">
                         <FiCalendar className="w-6 h-6" />
                     </div>
+
                     <div className="flex-1">
-                        <h3 className="text-lg font-medium text-gray-900 mb-3">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">
                             Interpretación de plazos
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="bg-white p-4 rounded-lg">
-                                <div className="flex items-center mb-2">
-                                    <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                                    <h4 className="font-medium text-gray-900">Vencido</h4>
+
+                        {/* Ajuste clave: lg:grid-cols-5 para una sola fila en escritorio */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+
+                            {/* 1. Vencido */}
+                            <div className="bg-white p-3 rounded-lg border border-red-100 shadow-sm">
+                                <div className="flex items-center mb-1">
+                                    <div className="w-2.5 h-2.5 bg-red-500 rounded-full mr-2"></div>
+                                    <h4 className="font-bold text-sm text-gray-900">Vencido</h4>
                                 </div>
-                                <p className="text-sm text-gray-600">
-                                    La fecha límite ya pasó y el proyecto no está completado
+                                <p className="text-[11px] leading-tight text-gray-600">
+                                    La fecha límite ya pasó y el proyecto no está completado.
                                 </p>
                             </div>
-                            <div className="bg-white p-4 rounded-lg">
-                                <div className="flex items-center mb-2">
-                                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                                    <h4 className="font-medium text-gray-900">Urgente</h4>
+
+                            {/* 2. Urgente */}
+                            <div className="bg-white p-3 rounded-lg border border-yellow-100 shadow-sm">
+                                <div className="flex items-center mb-1">
+                                    <div className="w-2.5 h-2.5 bg-yellow-500 rounded-full mr-2"></div>
+                                    <h4 className="font-bold text-sm text-gray-900">Urgente</h4>
                                 </div>
-                                <p className="text-sm text-gray-600">
+                                <p className="text-[11px] leading-tight text-gray-600">
                                     Vence en los próximos 2 días. ¡Prioridad máxima!
                                 </p>
                             </div>
-                            <div className="bg-white p-4 rounded-lg">
-                                <div className="flex items-center mb-2">
-                                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                                    <h4 className="font-medium text-gray-900">Próximo</h4>
+
+                            {/* 3. Próximo */}
+                            <div className="bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
+                                <div className="flex items-center mb-1">
+                                    <div className="w-2.5 h-2.5 bg-blue-500 rounded-full mr-2"></div>
+                                    <h4 className="font-bold text-sm text-gray-900">Próximo</h4>
                                 </div>
-                                <p className="text-sm text-gray-600">
-                                    Vence en los próximos 7 días. Planifica tu trabajo
+                                <p className="text-[11px] leading-tight text-gray-600">
+                                    Vence en los próximos 7 días. Planifica tu entrega.
                                 </p>
                             </div>
-                            <div className="bg-white p-4 rounded-lg">
-                                <div className="flex items-center mb-2">
-                                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                                    <h4 className="font-medium text-gray-900">Completado</h4>
+
+                            {/* 4. En Cronograma (El nuevo estado Violeta) */}
+                            <div className="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                                <div className="flex items-center mb-1">
+                                    <div className="w-2.5 h-2.5 bg-indigo-500 rounded-full mr-2"></div>
+                                    <h4 className="font-bold text-sm text-gray-900">En Tiempo</h4>
                                 </div>
-                                <p className="text-sm text-gray-600">
-                                    Proyecto entregado y aprobado por el cliente
+                                <p className="text-[11px] leading-tight text-gray-600">
+                                    Plazo saludable. Sigue tu ritmo.
                                 </p>
                             </div>
+
+                            {/* 5. Completado */}
+                            <div className="bg-white p-3 rounded-lg border border-green-100 shadow-sm">
+                                <div className="flex items-center mb-1">
+                                    <div className="w-2.5 h-2.5 bg-green-500 rounded-full mr-2"></div>
+                                    <h4 className="font-bold text-sm text-gray-900">Completado</h4>
+                                </div>
+                                <p className="text-[11px] leading-tight text-gray-600">
+                                    Proyecto entregado y aprobado por el cliente.
+                                </p>
+                            </div>
+
                         </div>
                     </div>
                 </div>
