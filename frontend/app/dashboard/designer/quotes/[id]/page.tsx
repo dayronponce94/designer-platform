@@ -205,15 +205,6 @@ export default function DesignerQuoteDetailPage() {
                                 >
                                     Resumen
                                 </button>
-                                <button
-                                    onClick={() => setActiveTab('details')}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'details'
-                                        ? 'border-blue-500 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                        }`}
-                                >
-                                    Detalles del Proyecto
-                                </button>
                             </nav>
                         </div>
 
@@ -244,52 +235,6 @@ export default function DesignerQuoteDetailPage() {
                                     )}
                                 </div>
                             )}
-
-                            {/* Detalles del proyecto */}
-                            {activeTab === 'details' && (
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <p className="text-sm text-gray-500 mb-1">Monto</p>
-                                            <p className="text-xl font-semibold flex items-center">
-                                                <FiDollarSign className="mr-1" />
-                                                {quote.amount.toLocaleString()}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm text-gray-500 mb-1">Fecha límite</p>
-                                            <p className="flex items-center">
-                                                <FiCalendar className="mr-2 text-gray-400" />
-                                                {quote.deadline ? formatDate(quote.deadline) : 'No definida'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm text-gray-500 mb-1">Cliente</p>
-                                        <p className="font-medium">
-                                            {quote.clientQuote?.request?.client?.name || '—'}
-                                        </p>
-                                        <p className="text-sm text-gray-500">
-                                            {quote.clientQuote?.request?.client?.email}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm text-gray-500 mb-1">Tipo de servicio</p>
-                                        <p className="font-medium capitalize">
-                                            {quote.clientQuote?.request?.serviceType
-                                                ? getServiceTypeLabel(quote.clientQuote.request.serviceType)
-                                                : 'No especificado'}
-                                        </p>
-                                    </div>
-
-                                    <div>
-                                        <p className="text-sm text-gray-500 mb-1">Creada el</p>
-                                        <p className="text-sm">{formatDateTime(quote.createdAt)}</p>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -308,6 +253,14 @@ export default function DesignerQuoteDetailPage() {
                                 <p className="font-medium flex items-center">
                                     <FiDollarSign className="mr-2 text-gray-400" />
                                     {quote.amount.toLocaleString()}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500 mb-1">Tipo de servicio</p>
+                                <p className="font-medium capitalize">
+                                    {quote.clientQuote?.request?.serviceType
+                                        ? getServiceTypeLabel(quote.clientQuote.request.serviceType)
+                                        : 'No especificado'}
                                 </p>
                             </div>
                             {quote.deadline && (

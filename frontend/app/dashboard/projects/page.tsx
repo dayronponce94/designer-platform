@@ -228,15 +228,15 @@ export default function ProjectsPage() {
                             </p>
                         </div>
                         <div className="bg-white rounded-xl shadow p-4">
-                            <p className="text-sm text-gray-500">Completados</p>
+                            <p className="text-sm text-gray-500">En Revisión</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {projects.filter(p => p.status === 'completed').length}
+                                {projects.filter(p => p.status === 'requested' || p.status === 'review').length}
                             </p>
                         </div>
                         <div className="bg-white rounded-xl shadow p-4">
-                            <p className="text-sm text-gray-500">Por Aprobar</p>
+                            <p className="text-sm text-gray-500">Completados</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {projects.filter(p => p.status === 'requested' || p.status === 'review').length}
+                                {projects.filter(p => p.status === 'completed').length}
                             </p>
                         </div>
                     </div>
