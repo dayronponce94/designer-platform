@@ -148,8 +148,8 @@ const getDesignerQuoteById = asyncHandler(async (req, res) => {
         path: 'clientQuote',
         populate: {
             path: 'request',
-            select: 'title description client',
-            populate: { path: 'client', select: 'name email' } // <--- Agregado
+            select: 'title description client serviceType',
+            populate: { path: 'client', select: 'name email' }
         }
     });
 

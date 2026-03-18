@@ -7,7 +7,8 @@ const {
     updateProject,
     deleteProject,
     addMessage,
-    getDesignerDeadlines
+    getDesignerDeadlines,
+    uploadDeliverable
 } = require('../controllers/projectController');
 const { protect } = require('../middleware/auth');
 
@@ -28,5 +29,6 @@ router.route('/:id')
     .delete(deleteProject);
 
 router.post('/:id/messages', addMessage);
+router.post('/:id/deliverables', protect, uploadDeliverable);
 
 module.exports = router;

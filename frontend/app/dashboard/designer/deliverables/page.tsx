@@ -1,0 +1,340 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { projectAPI } from '@/app/lib/api/endpoints';
+import Alert from '@/components/ui/Alert';
+import {
+    FiUpload,
+    FiPackage,
+    FiEye,
+    FiClock,
+    FiCheckCircle,
+    FiX
+} from 'react-icons/fi';
+
+interface Project {
+    _id: string;
+    title: string;
+    serviceType: string;
+    status: 'approved' | 'in-progress' | 'review' | 'completed' | 'cancelled';
+    client: { name: string };
+    deliverables: Array<{ filename: string; url: string; version?: number }>;
+}
+
+export default function DesignerDeliverablesPage() {
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [uploadError, setUploadError] = useState('');
+    const [uploadSuccess, setUploadSuccess] = useState('');
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [version, setVersion] = useState('');
+    const [notes, setNotes] = useState('');
+
+    useEffect(() => {
+        fetchProjects();
+    }, []);
+
+    const fetchProjects = async () => {
+        try {
+            setLoading(true);
+            const response = await projectAPI.getProjects(); // Ya filtra por diseñador
+            const allProjects = response.data.data.projects || [];
+            // Mostrar solo proyectos activos (donde se puede subir entregable)
+            const active = allProjects.filter((p: Project) =>
+                ['approved', 'in-progress', 'review'].includes(p.status)
+            );
+            setProjects(active);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleOpenModal = (project: Project) => {
+        setSelectedProject(project);
+        setSelectedFile(null);
+        setVersion('');
+        setNotes('');
+        setUploadError('');
+        setUploadSuccess('');
+        setModalOpen(true);
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            // Validar extensión
+            const allowed = /\.(zip|rar|7z|tar\.gz|gz)$/i;
+            if (!allowed.test(file.name)) {
+                setUploadError('Solo se permiten archivos comprimidos (.zip, .rar, .7z, .tar.gz)');
+                setSelectedFile(null);
+                return;
+            }
+            setSelectedFile(file);
+            setUploadError('');
+        }
+    };
+
+    const handleUpload = async () => {
+        if (!selectedProject || !selectedFile) return;
+
+        setUploading(true);
+        setUploadError('');
+
+        const formData = new FormData();
+        formData.append('deliverable', selectedFile);
+        if (version) formData.append('version', version);
+        if (notes) formData.append('notes', notes);
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/api/projects/${selectedProject._id}/deliverables`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Error al subir entregable');
+
+            setUploadSuccess('Entregable subido correctamente');
+            setTimeout(() => {
+                setModalOpen(false);
+                fetchProjects(); // refrescar lista
+            }, 2000);
+        } catch (err: any) {
+            setUploadError(err.message);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const getStatusBadge = (status: string) => {
+        const config: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
+            approved: { color: 'bg-green-100 text-green-800', icon: <FiCheckCircle />, text: 'Aprobado' },
+            'in-progress': { color: 'bg-yellow-100 text-yellow-800', icon: <FiClock />, text: 'En progreso' },
+            review: { color: 'bg-purple-100 text-purple-800', icon: <FiEye />, text: 'En revisión' },
+        };
+        const c = config[status] || config['in-progress'];
+        return (
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${c.color}`}>
+                {c.icon}
+                <span className="ml-1">{c.text}</span>
+            </span>
+        );
+    };
+
+    const getServiceTypeLabel = (type: string) => {
+        const labels: Record<string, string> = {
+            'branding': 'Diseño de Marca',
+            'ux-ui': 'Diseño UX/UI',
+            'graphic': 'Diseño Gráfico',
+            'web': 'Diseño Web',
+            'motion': 'Animación Gráfica',
+            'illustration': 'Ilustración',
+            'other': 'Otro'
+        };
+        return labels[type] || type;
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-64">
+                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center space-x-3">
+                <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
+                    <FiUpload className="w-6 h-6" />
+                </div>
+                <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Subir Entregables</h1>
+                    <p className="text-gray-600 mt-1">
+                        Selecciona un proyecto y sube el archivo comprimido con los entregables finales.
+                    </p>
+                </div>
+            </div>
+
+            {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
+
+            {projects.length === 0 ? (
+                <div className="bg-white rounded-xl shadow p-12 text-center">
+                    <FiPackage className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-medium text-gray-900 mb-2">No hay proyectos activos</h3>
+                    <p className="text-gray-500 max-w-md mx-auto">
+                        No tienes proyectos en progreso o aprobados para subir entregables.
+                    </p>
+                </div>
+            ) : (
+                <div className="bg-white rounded-xl shadow overflow-hidden">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Proyecto
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Cliente
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Estado
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Entregables
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {projects.map((project) => (
+                                <tr key={project._id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4">
+                                        <div className="text-sm font-medium text-gray-900">{project.title.length > 30
+                                            ? project.title.substring(0, 30) + '...'
+                                            : project.title}</div>
+                                        <div className="text-sm text-gray-500">{getServiceTypeLabel(project.serviceType)}</div>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-900">
+                                        {project.client?.name}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {getStatusBadge(project.status)}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                        {project.deliverables?.length || 0} archivo(s)
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={() => handleOpenModal(project)}
+                                                className="text-purple-600 hover:text-purple-900 transition-colors"
+                                                title="Subir entregable"
+                                            >
+                                                <FiUpload className="w-4 h-4" />
+                                            </button>
+                                            <Link
+                                                href={`/dashboard/projects/${project._id}`}
+                                                className="text-green-600 hover:text-green-900 transition-colors"
+                                                title="Ver detalles del proyecto"
+                                            >
+                                                <FiEye className="w-4 h-4" />
+                                            </Link>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* Modal de subida */}
+            {modalOpen && selectedProject && (
+                <div className="fixed inset-0 bg-black/75 bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h2 className="text-xl font-bold text-gray-900">
+                                    Subir entregable: {selectedProject.title}
+                                </h2>
+                                <button
+                                    onClick={() => setModalOpen(false)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <FiX className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            {uploadError && <Alert type="error" message={uploadError} onClose={() => setUploadError('')} className="mb-4" />}
+                            {uploadSuccess && <Alert type="success" message={uploadSuccess} onClose={() => setUploadSuccess('')} className="mb-4" />}
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Archivo comprimido (.zip, .rar, .7z, .tar.gz) *
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept=".zip,.rar,.7z,.tar.gz,.gz"
+                                        onChange={handleFileChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Máximo 50 MB.
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Versión (opcional)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={version}
+                                        onChange={(e) => setVersion(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        placeholder="Ej: 1"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Notas (opcional)
+                                    </label>
+                                    <textarea
+                                        value={notes}
+                                        onChange={(e) => setNotes(e.target.value)}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        placeholder="Comentarios sobre esta entrega..."
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    onClick={() => setModalOpen(false)}
+                                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                                    disabled={uploading}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleUpload}
+                                    disabled={!selectedFile || uploading}
+                                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50 flex items-center"
+                                >
+                                    {uploading ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                            Subiendo...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FiUpload className="mr-2" />
+                                            Subir
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

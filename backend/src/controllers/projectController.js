@@ -355,6 +355,80 @@ const getDesignerDeadlines = asyncHandler(async (req, res) => {
     res.status(200).json(ApiResponse.success('Plazos obtenidos', { projects: formatted }).toJSON());
 });
 
+// @desc    Subir un entregable a un proyecto (diseñador)
+// @route   POST /api/projects/:id/deliverables
+// @access  Private (solo diseñador asignado)
+const uploadDeliverable = asyncHandler(async (req, res) => {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+        return res.status(404).json(ApiResponse.notFound('Proyecto no encontrado').toJSON());
+    }
+
+    // Verificar que el usuario sea el diseñador asignado
+    if (project.designer.toString() !== req.user.id) {
+        return res.status(403).json(ApiResponse.forbidden('No eres el diseñador asignado a este proyecto').toJSON());
+    }
+
+    // Configurar multer para un solo archivo
+    const uploadSingle = multer({
+        storage: multer.diskStorage({
+            destination: (req, file, cb) => {
+                const dir = 'uploads/deliverables';
+                if (!fs.existsSync(dir)) {
+                    fs.mkdirSync(dir, { recursive: true });
+                }
+                cb(null, dir);
+            },
+            filename: (req, file, cb) => {
+                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+                cb(null, 'deliverable-' + uniqueSuffix + path.extname(file.originalname));
+            }
+        }),
+        limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
+        fileFilter: (req, file, cb) => {
+            const allowedExtensions = /\.(zip|rar|7z|tar\.gz|gz)$/i;
+            if (!allowedExtensions.test(file.originalname)) {
+                return cb(new Error('Solo se permiten archivos comprimidos (.zip, .rar, .7z, .tar.gz)'), false);
+            }
+            cb(null, true);
+        }
+    }).single('deliverable');
+
+    uploadSingle(req, res, async (err) => {
+        if (err) {
+            return res.status(400).json(ApiResponse.error(err.message, 400).toJSON());
+        }
+        if (!req.file) {
+            return res.status(400).json(ApiResponse.error('Debe seleccionar un archivo', 400).toJSON());
+        }
+
+        const { version, notes } = req.body;
+        const env = require('../config/env');
+
+        const deliverable = {
+            url: `${env.SERVER_URL}/uploads/deliverables/${req.file.filename}`,
+            filename: req.file.originalname,
+            filetype: req.file.mimetype,
+            size: req.file.size,
+            uploadedAt: new Date(),
+            version: version ? parseInt(version) : (project.deliverables.length + 1)
+        };
+
+        project.deliverables.push(deliverable);
+
+        // Si el proyecto estaba en 'approved' o 'in-progress', pasar a 'review'
+        if (['approved', 'in-progress'].includes(project.status)) {
+            project.status = 'review';
+        }
+
+        await project.save();
+
+        res.status(201).json(
+            ApiResponse.success('Entregable subido correctamente', { deliverable }).toJSON()
+        );
+    });
+});
+
 module.exports = {
     getProjects,
     getProjectById,
@@ -362,5 +436,6 @@ module.exports = {
     updateProject,
     deleteProject,
     addMessage,
-    getDesignerDeadlines
+    getDesignerDeadlines,
+    uploadDeliverable
 };

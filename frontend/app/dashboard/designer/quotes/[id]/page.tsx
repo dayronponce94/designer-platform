@@ -119,6 +119,19 @@ export default function DesignerQuoteDetailPage() {
         });
     };
 
+    const getServiceTypeLabel = (type: string) => {
+        const labels: Record<string, string> = {
+            'branding': 'Diseño de Marca',
+            'ux-ui': 'Diseño UX/UI',
+            'graphic': 'Diseño Gráfico',
+            'web': 'Diseño Web',
+            'motion': 'Animación Gráfica',
+            'illustration': 'Ilustración',
+            'other': 'Otro'
+        };
+        return labels[type] || type;
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-64">
@@ -265,7 +278,9 @@ export default function DesignerQuoteDetailPage() {
                                     <div>
                                         <p className="text-sm text-gray-500 mb-1">Tipo de servicio</p>
                                         <p className="font-medium capitalize">
-                                            {quote.clientQuote?.request?.serviceType || 'No especificado'}
+                                            {quote.clientQuote?.request?.serviceType
+                                                ? getServiceTypeLabel(quote.clientQuote.request.serviceType)
+                                                : 'No especificado'}
                                         </p>
                                     </div>
 
