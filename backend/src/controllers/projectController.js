@@ -41,20 +41,44 @@ const upload = multer({
 // @access  Private
 const getProjects = asyncHandler(async (req, res) => {
     const { role, id: userId } = req.user;
+    // 1. Capturar query params
+    const { status, search, page = 1, limit = 10 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
     let query = {};
 
+    // 2. Filtro base por Rol
     if (role === 'client') {
-        query = { client: userId };
+        query.client = userId;
     } else if (role === 'designer') {
-        query = { designer: userId };
+        query.designer = userId;
     }
 
+    // 3. Filtro de Estado (Si el usuario selecciona uno)
+    if (status && status !== '') {
+        query.status = status;
+    } else if (role === 'designer') {
+        // Si es diseñador y no hay filtro, mostramos solo los activos por defecto
+        query.status = { $in: ['approved', 'in-progress', 'review'] };
+    }
+
+    // 4. Filtro de Búsqueda (Search)
+    if (search && search.trim() !== '') {
+        query.title = { $regex: search, $options: 'i' };
+    }
+
+    // 5. Ejecutar consulta con paginación
     const projects = await Project.find(query)
         .populate('client', 'name email company')
         .populate('designer', 'name email specialty')
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit));
 
-    // Mapeo simple para que el frontend reciba datos limpios según el rol
+    // 6. Contar total para la paginación del frontend
+    const total = await Project.countDocuments(query);
+
+    // Tu mapeo de datos limpios se mantiene igual
     const formattedProjects = projects.map(proj => {
         const p = proj.toObject();
         return {
@@ -67,7 +91,11 @@ const getProjects = asyncHandler(async (req, res) => {
     res.status(200).json(
         ApiResponse.success('Proyectos obtenidos', {
             projects: formattedProjects,
-            count: projects.length
+            pagination: {
+                total,
+                page: Number(page),
+                pages: Math.ceil(total / Number(limit))
+            }
         }).toJSON()
     );
 });

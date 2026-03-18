@@ -10,7 +10,8 @@ import {
     FiEye,
     FiClock,
     FiCheckCircle,
-    FiX
+    FiX,
+    FiSearch
 } from 'react-icons/fi';
 
 interface Project {
@@ -35,20 +36,29 @@ export default function DesignerDeliverablesPage() {
     const [version, setVersion] = useState('');
     const [notes, setNotes] = useState('');
 
+    const [filters, setFilters] = useState({
+        search: '',
+        status: '', // Puedes dejarlo vacío para "Todos los activos"
+        page: 1,
+        limit: 10
+    });
+    const [pagination, setPagination] = useState({ total: 0, pages: 1 });
+
+    // Modifica el useEffect para que reaccione a los filtros
     useEffect(() => {
         fetchProjects();
-    }, []);
+    }, [filters]);
+
 
     const fetchProjects = async () => {
         try {
             setLoading(true);
-            const response = await projectAPI.getProjects(); // Ya filtra por diseñador
-            const allProjects = response.data.data.projects || [];
-            // Mostrar solo proyectos activos (donde se puede subir entregable)
-            const active = allProjects.filter((p: Project) =>
-                ['approved', 'in-progress', 'review'].includes(p.status)
-            );
-            setProjects(active);
+            // Pasamos los filtros como query params
+            const response = await projectAPI.getProjects(filters);
+            const { projects, pagination: pagData } = response.data.data;
+
+            setProjects(projects || []);
+            setPagination(pagData || { total: 0, pages: 1 });
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -143,14 +153,6 @@ export default function DesignerDeliverablesPage() {
         return labels[type] || type;
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center min-h-64">
-                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -166,172 +168,251 @@ export default function DesignerDeliverablesPage() {
                 </div>
             </div>
 
+            {/* 2. Buscador: SIEMPRE VISIBLE (Aquí está el secreto del foco) */}
+            <div className="bg-white rounded-xl shadow p-4 mb-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 relative">
+                        <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por título de proyecto..."
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                            value={filters.search} // Volvemos a usar filters.search directamente
+                            onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
+                        />
+                    </div>
+                    <select
+                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        value={filters.status}
+                        onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
+                    >
+                        <option value="">Todos los activos</option>
+                        <option value="approved">Aprobados</option>
+                        <option value="in-progress">En progreso</option>
+                        <option value="review">En revisión</option>
+                    </select>
+                </div>
+            </div>
             {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
 
-            {projects.length === 0 ? (
-                <div className="bg-white rounded-xl shadow p-12 text-center">
-                    <FiPackage className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-medium text-gray-900 mb-2">No hay proyectos activos</h3>
-                    <p className="text-gray-500 max-w-md mx-auto">
-                        No tienes proyectos en progreso o aprobados para subir entregables.
-                    </p>
-                </div>
-            ) : (
-                <div className="bg-white rounded-xl shadow overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Proyecto
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Cliente
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Estado
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Entregables
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Acciones
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {projects.map((project) => (
-                                <tr key={project._id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm font-medium text-gray-900">{project.title.length > 30
-                                            ? project.title.substring(0, 30) + '...'
-                                            : project.title}</div>
-                                        <div className="text-sm text-gray-500">{getServiceTypeLabel(project.serviceType)}</div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-900">
-                                        {project.client?.name}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {getStatusBadge(project.status)}
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-500">
-                                        {project.deliverables?.length || 0} archivo(s)
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div className="flex space-x-2">
-                                            <button
-                                                onClick={() => handleOpenModal(project)}
-                                                className="text-purple-600 hover:text-purple-900 transition-colors"
-                                                title="Subir entregable"
-                                            >
-                                                <FiUpload className="w-4 h-4" />
-                                            </button>
-                                            <Link
-                                                href={`/dashboard/projects/${project._id}`}
-                                                className="text-green-600 hover:text-green-900 transition-colors"
-                                                title="Ver detalles del proyecto"
-                                            >
-                                                <FiEye className="w-4 h-4" />
-                                            </Link>
-                                        </div>
-                                    </td>
+            <div className="relative min-h-100">
+                {loading ? (
+                    // Spinner que NO desmonta el buscador, solo cubre el área de la tabla
+                    <div className="absolute inset-0 flex justify-center items-center bg-white/50 z-10 rounded-xl">
+                        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                ) : null}
+                {projects.length === 0 ? (
+                    <div className="bg-white rounded-xl shadow p-12 text-center">
+                        <FiPackage className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-medium text-gray-900 mb-2">No hay proyectos activos</h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                            No tienes proyectos en progreso o aprobados para subir entregables.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-xl shadow overflow-hidden">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Proyecto
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Cliente
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Estado
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Entregables
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Acciones
+                                    </th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {projects.map((project) => (
+                                    <tr key={project._id} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm font-medium text-gray-900">{project.title.length > 30
+                                                ? project.title.substring(0, 30) + '...'
+                                                : project.title}</div>
+                                            <div className="text-sm text-gray-500">{getServiceTypeLabel(project.serviceType)}</div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-900">
+                                            {project.client?.name}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {getStatusBadge(project.status)}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-500">
+                                            {project.deliverables?.length || 0} archivo(s)
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div className="flex space-x-2">
+                                                <button
+                                                    onClick={() => handleOpenModal(project)}
+                                                    className="text-purple-600 hover:text-purple-900 transition-colors"
+                                                    title="Subir entregable"
+                                                >
+                                                    <FiUpload className="w-4 h-4" />
+                                                </button>
+                                                <Link
+                                                    href={`/dashboard/projects/${project._id}`}
+                                                    className="text-green-600 hover:text-green-900 transition-colors"
+                                                    title="Ver detalles del proyecto"
+                                                >
+                                                    <FiEye className="w-4 h-4" />
+                                                </Link>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
 
-            {/* Modal de subida */}
-            {modalOpen && selectedProject && (
-                <div className="fixed inset-0 bg-black/75 bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-xl font-bold text-gray-900">
-                                    Subir entregable: {selectedProject.title}
-                                </h2>
-                                <button
-                                    onClick={() => setModalOpen(false)}
-                                    className="text-gray-400 hover:text-gray-600"
-                                >
-                                    <FiX className="w-6 h-6" />
-                                </button>
-                            </div>
-
-                            {uploadError && <Alert type="error" message={uploadError} onClose={() => setUploadError('')} className="mb-4" />}
-                            {uploadSuccess && <Alert type="success" message={uploadSuccess} onClose={() => setUploadSuccess('')} className="mb-4" />}
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Archivo comprimido (.zip, .rar, .7z, .tar.gz) *
-                                    </label>
-                                    <input
-                                        type="file"
-                                        accept=".zip,.rar,.7z,.tar.gz,.gz"
-                                        onChange={handleFileChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Máximo 50 MB.
-                                    </p>
+                {/* Modal de subida */}
+                {modalOpen && selectedProject && (
+                    <div className="fixed inset-0 bg-black/75 bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                            <div className="p-6">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-xl font-bold text-gray-900">
+                                        Subir entregable: {selectedProject.title}
+                                    </h2>
+                                    <button
+                                        onClick={() => setModalOpen(false)}
+                                        className="text-gray-400 hover:text-gray-600"
+                                    >
+                                        <FiX className="w-6 h-6" />
+                                    </button>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Versión (opcional)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={version}
-                                        onChange={(e) => setVersion(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                        placeholder="Ej: 1"
-                                    />
+                                {uploadError && <Alert type="error" message={uploadError} onClose={() => setUploadError('')} className="mb-4" />}
+                                {uploadSuccess && <Alert type="success" message={uploadSuccess} onClose={() => setUploadSuccess('')} className="mb-4" />}
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Archivo comprimido (.zip, .rar, .7z, .tar.gz) *
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept=".zip,.rar,.7z,.tar.gz,.gz"
+                                            onChange={handleFileChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            Máximo 50 MB.
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Versión (opcional)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={version}
+                                            onChange={(e) => setVersion(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            placeholder="Ej: 1"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Notas (opcional)
+                                        </label>
+                                        <textarea
+                                            value={notes}
+                                            onChange={(e) => setNotes(e.target.value)}
+                                            rows={3}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            placeholder="Comentarios sobre esta entrega..."
+                                        />
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Notas (opcional)
-                                    </label>
-                                    <textarea
-                                        value={notes}
-                                        onChange={(e) => setNotes(e.target.value)}
-                                        rows={3}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                        placeholder="Comentarios sobre esta entrega..."
-                                    />
+                                <div className="flex justify-end space-x-3 mt-6">
+                                    <button
+                                        onClick={() => setModalOpen(false)}
+                                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                                        disabled={uploading}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleUpload}
+                                        disabled={!selectedFile || uploading}
+                                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50 flex items-center"
+                                    >
+                                        {uploading ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                                                Subiendo...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <FiUpload className="mr-2" />
+                                                Subir
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
-                            </div>
-
-                            <div className="flex justify-end space-x-3 mt-6">
-                                <button
-                                    onClick={() => setModalOpen(false)}
-                                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                                    disabled={uploading}
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={handleUpload}
-                                    disabled={!selectedFile || uploading}
-                                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition disabled:opacity-50 flex items-center"
-                                >
-                                    {uploading ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                            Subiendo...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <FiUpload className="mr-2" />
-                                            Subir
-                                        </>
-                                    )}
-                                </button>
                             </div>
                         </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Paginación */}
+            {pagination.pages > 1 && (
+                <div className="flex justify-between items-center bg-white px-4 py-3 border-t border-gray-200 sm:px-6 mt-4 rounded-lg shadow">
+                    <div className="flex-1 flex justify-between sm:hidden">
+                        <button
+                            disabled={filters.page === 1}
+                            onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
+                            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                        >
+                            Anterior
+                        </button>
+                        <button
+                            disabled={filters.page === pagination.pages}
+                            onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
+                            className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm text-gray-700">
+                                Mostrando página <span className="font-medium">{filters.page}</span> de <span className="font-medium">{pagination.pages}</span>
+                            </p>
+                        </div>
+                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                            <button
+                                disabled={filters.page === 1}
+                                onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
+                                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                            >
+                                Anterior
+                            </button>
+                            {/* Puedes mapear los números de página aquí si quieres */}
+                            <button
+                                disabled={filters.page === pagination.pages}
+                                onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
+                                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                            >
+                                Siguiente
+                            </button>
+                        </nav>
                     </div>
                 </div>
             )}
