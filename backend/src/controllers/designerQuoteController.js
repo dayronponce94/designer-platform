@@ -4,6 +4,7 @@ const Quote = require('../models/Quote');
 const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const Request = require('../models/Request');
+const mongoose = require('mongoose');
 
 // @desc    Aceptar cotización de diseñador (Crea el Proyecto Único con Snapshots)
 // @route   POST /api/designer/quotes/:id/accept
@@ -92,38 +93,77 @@ const acceptDesignerQuote = asyncHandler(async (req, res) => {
 // @route   GET /api/designer/quotes
 // @access  Private (Designer)
 const getMyDesignerQuotes = asyncHandler(async (req, res) => {
-    // 1. Capturar filtros de la URL (query params)
     const { status, search, page = 1, limit = 10 } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
 
-    // 2. Construir el objeto de consulta base
-    const query = { designer: req.user.id };
+    // 1. Iniciamos el Pipeline sobre la colección DesignerQuote
+    let pipeline = [
+        // Filtramos por el ID del diseñador autenticado
+        { $match: { designer: new mongoose.Types.ObjectId(req.user.id) } }
+    ];
 
-    // 3. Aplicar filtro de estado si existe
+    // 2. Filtro por Estado
     if (status && status !== '') {
-        query.status = status;
+        pipeline.push({ $match: { status: status } });
     }
 
-    // Nota: El filtrado por "search" (título del proyecto) en campos populados 
-    // con Mongoose requiere agregaciones complejas. Por ahora, hagamos que funcione el de status.
+    // 3. UNIÓN CON 'quotes' (La cotización del cliente que originó esto)
+    // En el modelo DesignerQuote, el campo se llama 'clientQuote'
+    pipeline.push({
+        $lookup: {
+            from: 'quotes', // Nombre real de la colección según tu lista
+            localField: 'clientQuote',
+            foreignField: '_id',
+            as: 'clientQuote'
+        }
+    }, { $unwind: '$clientQuote' });
 
-    const skip = (page - 1) * limit;
+    // 4. UNIÓN CON 'requests' (Para obtener el título del proyecto)
+    pipeline.push({
+        $lookup: {
+            from: 'requests', // Nombre real de la colección
+            localField: 'clientQuote.request',
+            foreignField: '_id',
+            as: 'clientQuote.request'
+        }
+    }, { $unwind: '$clientQuote.request' });
 
-    const quotes = await DesignerQuote.find(query)
-        .populate({
-            path: 'clientQuote',
-            populate: {
-                path: 'request',
-                select: 'title client',
-                // ESTO ES LO QUE FALTABA: Entrar al modelo Client para traer el Name
-                populate: { path: 'client', select: 'name email' }
+    // 5. UNIÓN CON 'users' (Opcional: Para traer datos del cliente si los necesitas)
+    pipeline.push({
+        $lookup: {
+            from: 'users',
+            localField: 'clientQuote.request.client',
+            foreignField: '_id',
+            as: 'clientQuote.request.client'
+        }
+    }, { $unwind: { path: '$clientQuote.request.client', preserveNullAndEmptyArrays: true } });
+
+    // 6. FILTRO DE BÚSQUEDA
+    if (search && search.trim() !== '') {
+        const searchRegex = new RegExp(search, 'i');
+        pipeline.push({
+            $match: {
+                $or: [
+                    { 'clientQuote.request.title': searchRegex },
+                    { 'description': searchRegex } // Descripción de la cotización del diseñador
+                ]
             }
-        })
-        .sort({ createdAt: -1 })
-        .limit(Number(limit))
-        .skip(skip);
+        });
+    }
 
-    // Contar total para paginación
-    const total = await DesignerQuote.countDocuments(query);
+    // 7. Conteo para paginación
+    const countPipeline = [...pipeline, { $count: "total" }];
+    const countResult = await DesignerQuote.aggregate(countPipeline);
+    const total = countResult.length > 0 ? countResult[0].total : 0;
+
+    // 8. Orden y Paginación
+    pipeline.push(
+        { $sort: { createdAt: -1 } },
+        { $skip: skip },
+        { $limit: Number(limit) }
+    );
+
+    const quotes = await DesignerQuote.aggregate(pipeline);
 
     res.status(200).json(
         ApiResponse.success('Cotizaciones obtenidas', {
@@ -131,7 +171,7 @@ const getMyDesignerQuotes = asyncHandler(async (req, res) => {
             pagination: {
                 total,
                 page: Number(page),
-                pages: Math.ceil(total / limit)
+                pages: Math.ceil(total / Number(limit))
             }
         }).toJSON()
     );
