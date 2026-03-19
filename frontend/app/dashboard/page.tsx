@@ -11,40 +11,67 @@ import {
     FiAward,
     FiUsers,
     FiSettings,
-    FiImage,
-    FiHelpCircle,
-    FiGrid,
-    FiDownload,
-    FiUpload,
-    FiBell,
-    FiTool,
-    FiBookOpen
+    FiEye,
 } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+// ... tus imports actuales ...
+import { useEffect, useState } from 'react';
+import { projectAPI } from '@/app/lib/api/endpoints'; // Asegúrate de tener este endpoint
 
 export default function DashboardPage() {
-    const { user, isLoading } = useAuthContext();
-
-    // Datos de ejemplo (luego vendrán de la API)
-    const mockStats = {
-        // Para todos
+    const { user, isLoading: authLoading } = useAuthContext();
+    const [statsData, setStatsData] = useState({
         activeProjects: 0,
         completedProjects: 0,
-
-        // Solo para clientes
         requestsSent: 0,
-        nextStep: 'Enviar primera solicitud',
-
-        // Solo para diseñadores
+        nextStep: 'Cargando...',
         clientsServed: 0,
         projectsInReview: 0,
-    };
+    });
+    const [loadingStats, setLoadingStats] = useState(true);
 
-    if (isLoading) {
+    useEffect(() => {
+        const fetchDashboardStats = async () => {
+            try {
+                setLoadingStats(true);
+                // Si no lo tienes, puedes usar projectAPI.getProjects() y calcularlos
+                const response = await projectAPI.getProjects({ limit: 100 });
+                const projects = response.data.data.projects;
+
+                // Calculamos las estadísticas dinámicamente basándonos en los proyectos
+                const active = projects.filter((p: any) => p.status === 'in-progress' || p.status === 'approved').length;
+                const completed = projects.filter((p: any) => p.status === 'completed').length;
+                const inReview = projects.filter((p: any) => p.status === 'review').length;
+
+                // Clientes únicos (Solo relevante para diseñadores)
+                const uniqueClients = new Set(projects.map((p: any) => p.client?._id)).size;
+
+                setStatsData({
+                    activeProjects: active,
+                    completedProjects: completed,
+                    projectsInReview: inReview,
+                    clientsServed: uniqueClients,
+                    requestsSent: projects.length, // Asumiendo que cada proyecto es una solicitud enviada
+                    nextStep: active > 0 ? 'Revisar entregas' : 'Solicitar proyecto'
+                });
+            } catch (error) {
+                console.error("Error cargando stats:", error);
+            } finally {
+                setLoadingStats(false);
+            }
+        };
+
+        if (user) {
+            fetchDashboardStats();
+        }
+    }, [user]);
+
+
+    if (authLoading || loadingStats) {
         return (
-            <div className="flex justify-center items-center min-h-100">
-                <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="flex justify-center items-center min-h-screen">
+                <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }
@@ -69,145 +96,66 @@ export default function DashboardPage() {
     const clientStats = [
         {
             name: 'Proyectos Activos',
-            value: mockStats.activeProjects.toString(),
+            value: statsData.activeProjects.toString(),
             icon: FiBriefcase,
             color: 'blue',
             desc: 'En progreso'
         },
         {
             name: 'Completados',
-            value: mockStats.completedProjects.toString(),
+            value: statsData.completedProjects.toString(),
             icon: FiCheckCircle,
             color: 'green',
-            desc: 'Entregados satisfactoriamente'
+            desc: 'Entregados'
         },
         {
             name: 'Solicitudes',
-            value: mockStats.requestsSent.toString(),
+            value: statsData.requestsSent.toString(),
             icon: FiSend,
             color: 'purple',
-            desc: 'Cotizaciones enviadas'
+            desc: 'Cotizaciones'
         },
         {
             name: 'Próximo Paso',
-            value: mockStats.nextStep,
+            value: statsData.nextStep,
             icon: FiClock,
             color: 'orange',
-            desc: 'Siguiente acción'
+            desc: 'Acción sugerida'
         },
     ];
 
     const designerStats = [
         {
             name: 'Proyectos Asignados',
-            value: mockStats.activeProjects.toString(),
+            value: statsData.activeProjects.toString(),
             icon: FiBriefcase,
             color: 'blue',
-            desc: 'En tu cargo'
+            desc: 'Bajo tu cargo'
         },
         {
             name: 'Clientes Atendidos',
-            value: mockStats.clientsServed.toString(),
+            value: statsData.clientsServed.toString(),
             icon: FiUsers,
             color: 'green',
             desc: 'Clientes únicos'
         },
         {
             name: 'En Revisión',
-            value: mockStats.projectsInReview.toString(),
-            icon: FiStar,
+            value: statsData.projectsInReview.toString(),
+            icon: FiEye,
             color: 'yellow',
             desc: 'Esperando feedback'
         },
         {
             name: 'Completados',
-            value: mockStats.completedProjects.toString(),
+            value: statsData.completedProjects.toString(),
             icon: FiCheckCircle,
             color: 'purple',
-            desc: 'Entregados exitosamente'
+            desc: 'Finalizados'
         },
     ];
 
     const stats = user?.role === 'designer' ? designerStats : clientStats;
-
-    // 1. Definimos el tipo de color permitido
-    type Color = "blue" | "green" | "purple" | "orange";
-
-    // 2. Definimos la interfaz de acción rápida
-    interface QuickAction {
-        name: string;
-        icon: React.ElementType;
-        color: Color;
-        href: string;
-        desc: string;
-    }
-
-
-    // Acciones rápidas por rol
-    const clientActions: QuickAction[] = [
-        {
-            name: 'Explorar Portafolio',
-            icon: FiImage,
-            color: 'blue',
-            href: '/portfolio',
-            desc: 'Ver trabajos anteriores'
-        },
-        {
-            name: 'Contactar Soporte',
-            icon: FiHelpCircle,
-            color: 'green',
-            href: '/contact',
-            desc: 'Ayuda y preguntas'
-        },
-        {
-            name: 'Ver Servicios',
-            icon: FiGrid,
-            color: 'purple',
-            href: '/services',
-            desc: 'Descubre opciones'
-        },
-        {
-            name: 'Descargar Recursos',
-            icon: FiDownload,
-            color: 'orange',
-            href: '/dashboard/resources',
-            desc: 'Guías y plantillas'
-        },
-    ];
-
-    const designerActions: QuickAction[] = [
-        {
-            name: 'Subir Entregable',
-            icon: FiUpload,
-            color: 'blue',
-            href: '/dashboard/projects/deliver',
-            desc: 'Entregar trabajo'
-        },
-        {
-            name: 'Ver Notificaciones',
-            icon: FiBell,
-            color: 'purple',
-            href: '/dashboard/notifications',
-            desc: 'Actualizaciones'
-        },
-        {
-            name: 'Herramientas',
-            icon: FiTool,
-            color: 'green',
-            href: '/dashboard/tools',
-            desc: 'Recursos útiles'
-        },
-        {
-            name: 'Guías de Estilo',
-            icon: FiBookOpen,
-            color: 'orange',
-            href: '/dashboard/guides',
-            desc: 'Estándares de diseño'
-        },
-    ];
-
-
-    const quickActions = user?.role === 'designer' ? designerActions : clientActions;
 
     // Próximos pasos por rol
     const clientNextSteps = [
@@ -442,46 +390,6 @@ export default function DashboardPage() {
                             </div>
                         )}
                     </div>
-                </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white rounded-xl shadow p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Acciones Rápidas</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {quickActions.map((action) => {
-                        const Icon = action.icon;
-                        const colorClasses = {
-                            blue: 'hover:border-blue-500 group-hover:text-blue-600',
-                            green: 'hover:border-green-500 group-hover:text-green-600',
-                            purple: 'hover:border-purple-500 group-hover:text-purple-600',
-                            orange: 'hover:border-orange-500 group-hover:text-orange-600',
-                        };
-
-                        return (
-                            <a
-                                key={action.name}
-                                href={action.href}
-                                className={`group p-5 border border-gray-200 rounded-xl hover:shadow-md transition-all ${colorClasses[action.color]}`}
-                            >
-                                <div className="flex items-center">
-                                    <div className={`p-2 rounded-lg mr-3 group-hover:scale-110 transition-transform ${action.color === 'blue' ? 'bg-blue-100 text-blue-600' :
-                                        action.color === 'green' ? 'bg-green-100 text-green-600' :
-                                            action.color === 'purple' ? 'bg-purple-100 text-purple-600' :
-                                                'bg-orange-100 text-orange-600'
-                                        }`}>
-                                        <Icon className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-900 group-hover:text-blue-600">
-                                            {action.name}
-                                        </p>
-                                        <p className="text-sm text-gray-500 mt-1">{action.desc}</p>
-                                    </div>
-                                </div>
-                            </a>
-                        );
-                    })}
                 </div>
             </div>
 
