@@ -13,11 +13,9 @@ import {
     FiGrid,
     FiList,
     FiEye,
-    FiStar,
     FiSearch,
-    FiDownload,
-    FiShare2,
-    FiCalendar
+    FiCalendar,
+    FiFolder
 } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -103,7 +101,7 @@ export default function DesignerPortfolioPage() {
                 <div>
                     <div className="flex items-center space-x-3">
                         <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
-                            <FiImage className="w-6 h-6" />
+                            <FiFolder className="w-6 h-6" />
                         </div>
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mi Portafolio</h1>
@@ -149,7 +147,7 @@ export default function DesignerPortfolioPage() {
                                 placeholder="Buscar por título, descripción o tags..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             />
                         </div>
                     </div>
@@ -159,7 +157,7 @@ export default function DesignerPortfolioPage() {
                         <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         >
                             {categories.map(category => (
                                 <option key={category.value} value={category.value}>

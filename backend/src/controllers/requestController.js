@@ -41,27 +41,46 @@ const upload = multer({
 // @access  Private
 const getRequests = asyncHandler(async (req, res) => {
     const { role, id: userId } = req.user;
-    let query;
+    // 1. Extraemos 'search' de la query
+    const { page = 1, limit = 6, status, search } = req.query;
 
+    let query = {};
     if (role === 'client') {
-        query = { client: userId };
-    } else if (role === 'admin') {
-        query = {};
-    } else {
-        // Diseñadores no tienen acceso a solicitudes
-        return res.status(403).json(
-            ApiResponse.forbidden('No tienes permiso para ver solicitudes').toJSON()
-        );
+        query.client = userId;
+    } else if (role !== 'admin') {
+        return res.status(403).json(ApiResponse.forbidden('No tienes permiso').toJSON());
     }
 
-    const requests = await Request.find(query)
-        .populate('client', 'name email company phone')
-        .sort({ createdAt: -1 });
+    // 2. Filtro por estado
+    if (status && status !== 'all' && status !== '') {
+        query.status = status;
+    }
+
+    // 3. NUEVO: Filtro por búsqueda (Título del proyecto)
+    if (search) {
+        // 'i' hace que sea "case-insensitive" (no importa mayúsculas/minúsculas)
+        query.title = { $regex: search, $options: 'i' };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [requests, total] = await Promise.all([
+        Request.find(query)
+            .populate('client', 'name email company')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(Number(limit)),
+        Request.countDocuments(query)
+    ]);
 
     res.status(200).json(
         ApiResponse.success('Solicitudes obtenidas', {
             requests,
-            count: requests.length
+            pagination: {
+                total,
+                page: Number(page),
+                pages: Math.ceil(total / limit)
+            }
         }).toJSON()
     );
 });

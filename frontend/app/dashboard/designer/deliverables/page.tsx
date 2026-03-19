@@ -11,7 +11,8 @@ import {
     FiClock,
     FiCheckCircle,
     FiX,
-    FiSearch
+    FiSearch,
+    FiFilter
 } from 'react-icons/fi';
 
 interface Project {
@@ -181,16 +182,20 @@ export default function DesignerDeliverablesPage() {
                             onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
                         />
                     </div>
-                    <select
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-                        value={filters.status}
-                        onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
-                    >
-                        <option value="">Todos los activos</option>
-                        <option value="approved">Aprobados</option>
-                        <option value="in-progress">En progreso</option>
-                        <option value="review">En revisión</option>
-                    </select>
+
+                    <div className="flex items-center space-x-2">
+                        <FiFilter className="text-gray-600 w-5 h-5" />
+                        <select
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                            value={filters.status}
+                            onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
+                        >
+                            <option value="">Todos los activos</option>
+                            <option value="approved">Aprobados</option>
+                            <option value="in-progress">En progreso</option>
+                            <option value="review">En revisión</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}

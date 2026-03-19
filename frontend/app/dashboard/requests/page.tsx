@@ -17,7 +17,11 @@ import {
     FiPackage,
     FiDollarSign,
     FiUser,
-    FiFileText
+    FiFileText,
+    FiFilter,
+    FiChevronLeft,
+    FiChevronRight,
+    FiSearch
 } from 'react-icons/fi';
 import { Request } from '@/app/types/request';
 
@@ -38,28 +42,49 @@ const STATUS_CONFIG: Record<string, { color: string; icon: React.ReactNode; text
 };
 
 export default function RequestsPage() {
-    const { user } = useAuthContext();
+    const { user, isLoading: authLoading } = useAuthContext();
     const [requests, setRequests] = useState<Request[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+
+    // Modal states
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [requestToDelete, setRequestToDelete] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    const [filters, setFilters] = useState({
+        search: '',
+        status: '',
+        page: 1
+    });
+
     useEffect(() => {
-        fetchRequests();
-    }, []);
+        if (user) fetchRequests();
+    }, [user, currentPage, statusFilter, filters.search]);
 
     const fetchRequests = async () => {
         try {
             setIsLoading(true);
             const token = localStorage.getItem('token');
-            const response = await fetch('/api/requests', {
+
+            // CONSTRUCCIÓN DE LA URL: Añadimos el parámetro &search
+            const url = `/api/requests?page=${currentPage}&status=${statusFilter}&limit=6&search=${filters.search}`;
+
+            const response = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (!response.ok) throw new Error('Error al cargar solicitudes');
-            const data = await response.json();
-            setRequests(data.data.requests || []);
+
+            const resData = await response.json();
+
+            if (resData.success) {
+                setRequests(resData.data?.requests || []);
+                setTotalPages(resData.data?.pagination?.pages || 1);
+            } else {
+                throw new Error(resData.message || 'Error al cargar');
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -98,158 +123,205 @@ export default function RequestsPage() {
         });
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-100">
-                <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+
+    if (authLoading) return <div className="text-center p-20">Cargando...</div>;
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Mis Solicitudes</h1>
-                    <p className="text-gray-600 mt-2">
-                        Gestiona tus solicitudes de diseño. Una vez cotizadas, podrás aprobarlas para comenzar el proyecto.
-                    </p>
+        <div className="space-y-8">
+            {/* Cabecera */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                        <FiBriefcase className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mis Solicitudes</h1>
+                        <p className="text-gray-600 text-sm mt-1">Gestiona tus solicitudes de diseño. Una vez cotizadas, podrás aprobarlas para comenzar el proyecto.</p>
+                    </div>
                 </div>
                 <Link
                     href="/dashboard/requests/new"
-                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    className="flex items-center justify-center px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-sm hover:shadow-md"
                 >
                     <FiPlus className="mr-2" />
                     Nueva Solicitud
                 </Link>
             </div>
 
-            {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
+            {/* Filtros */}
+            <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 relative">
+                        <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por título de proyecto..."
+                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                            value={filters.search}
+                            onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
+                        />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <FiFilter className="text-gray-600 w-5 h-5" />
+                        <select
+                            className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white cursor-pointer"
+                            value={statusFilter}
+                            onChange={(e) => {
+                                setStatusFilter(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                        >
+                            <option value="all">Todos los estados</option>
+                            <option value="requested">Solicitados</option>
+                            <option value="quoted">Cotizados</option>
+                            <option value="cancelled">Cancelados</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
             {requests.length === 0 ? (
-                <div className="bg-white rounded-xl shadow p-12 text-center">
-                    <FiBriefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes solicitudes aún</h3>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                        Comienza solicitando tu primer proyecto de diseño. Nuestro equipo te enviará una cotización personalizada.
-                    </p>
-                    <Link
-                        href="/dashboard/requests/new"
-                        className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    >
-                        <FiPlus className="mr-2" />
-                        Crear Primera Solicitud
-                    </Link>
-                </div>
+                // Si NO hay resultados, revisamos POR QUÉ
+                (statusFilter !== 'all' || filters.search !== '') ? (
+                    // Caso A: El usuario aplicó un filtro o buscó algo y no hubo coincidencias
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+                        <FiBriefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">Sin resultados</h3>
+                        <p className="text-gray-500 mb-6">
+                            No hallamos solicitudes que coincidan con los criterios de búsqueda o el filtro actual.
+                        </p>
+                        <button
+                            onClick={() => { setFilters({ ...filters, search: '' }); setStatusFilter('all'); }}
+                            className="text-blue-600 font-medium hover:underline"
+                        >
+                            Limpiar filtros
+                        </button>
+                    </div>
+                ) : (
+                    // Caso B: La cuenta está totalmente vacía (sin filtros aplicados)
+                    <div className="bg-white rounded-xl shadow p-12 text-center">
+                        <FiBriefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes solicitudes aún</h3>
+                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                            Comienza solicitando tu primer proyecto de diseño.
+                        </p>
+                        <Link
+                            href="/dashboard/requests/new"
+                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        >
+                            <FiPlus className="mr-2" />
+                            Crear Primera Solicitud
+                        </Link>
+                    </div>
+                )
             ) : (
-                <>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {requests.map((req) => {
-                            const statusConf = STATUS_CONFIG[req.status] || STATUS_CONFIG['requested'];
-                            return (
-                                <div key={req._id} className="bg-white rounded-xl shadow hover:shadow-md transition-shadow">
-                                    <div className="p-6">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div>
-                                                <h3 className="text-lg font-semibold text-gray-900 wrap-break-word line-clamp-2">
-                                                    {req.title}
-                                                </h3>
-                                                <p className="text-sm text-gray-500 mt-1">
-                                                    {SERVICE_TYPE_LABELS[req.serviceType]}
-                                                </p>
-                                            </div>
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusConf.color}`}>
-                                                {statusConf.icon}
-                                                <span className="ml-1">{statusConf.text}</span>
+                // Caso 3: sí hay solicitudes
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {requests.map((req) => {
+                        const statusConf = STATUS_CONFIG[req.status] || STATUS_CONFIG['requested'];
+                        return (
+                            <div key={req._id} className="bg-white rounded-xl shadow hover:shadow-md transition-shadow">
+                                <div className="p-6">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900 wrap-break-word line-clamp-2">
+                                                {req.title}
+                                            </h3>
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                {SERVICE_TYPE_LABELS[req.serviceType]}
+                                            </p>
+                                        </div>
+                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusConf.color}`}>
+                                            {statusConf.icon}
+                                            <span className="ml-1">{statusConf.text}</span>
+                                        </span>
+                                    </div>
+
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                                        {req.description}
+                                    </p>
+
+                                    <div className="space-y-3 text-sm text-gray-500 mb-6">
+                                        <div className="flex items-center">
+                                            <FiDollarSign className="mr-2" />
+                                            <span>
+                                                {req.budget && req.budget > 0
+                                                    ? `Presupuesto: $${req.budget.toLocaleString()}`
+                                                    : 'Presupuesto por definir'}
                                             </span>
                                         </div>
-
-                                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                                            {req.description}
-                                        </p>
-
-                                        <div className="space-y-3 text-sm text-gray-500 mb-6">
-                                            <div className="flex items-center">
-                                                <FiPackage className="mr-2" />
-                                                <span>
-                                                    {req.budget && req.budget > 0
-                                                        ? `Presupuesto: $${req.budget.toLocaleString()}`
-                                                        : 'Presupuesto por definir'}
-                                                </span>
-                                            </div>
+                                        <div className="flex items-center">
+                                            <FiClock className="mr-2" />
+                                            <span>Creado: {formatDate(req.createdAt)}</span>
+                                        </div>
+                                        {req.deadline && (
                                             <div className="flex items-center">
                                                 <FiClock className="mr-2" />
-                                                <span>Creado: {formatDate(req.createdAt)}</span>
+                                                <span>Entrega deseada: {formatDate(req.deadline)}</span>
                                             </div>
-                                            {req.deadline && (
-                                                <div className="flex items-center">
-                                                    <FiClock className="mr-2" />
-                                                    <span>Entrega deseada: {formatDate(req.deadline)}</span>
-                                                </div>
-                                            )}
-                                        </div>
+                                        )}
+                                    </div>
 
-                                        <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                                            <Link
-                                                href={`/dashboard/requests/${req._id}`}
-                                                className="flex items-center text-blue-600 hover:text-blue-700"
-                                            >
-                                                <FiEye className="mr-1" />
-                                                Ver detalles
-                                            </Link>
-                                            <div className="flex space-x-2">
-                                                {req.status === 'requested' && (
-                                                    <Link
-                                                        href={`/dashboard/requests/${req._id}/edit`}
-                                                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                                        title="Editar solicitud"
-                                                    >
-                                                        <FiEdit />
-                                                    </Link>
-                                                )}
-                                                {req.status === 'requested' && (
-                                                    <button
-                                                        onClick={() => handleDeleteClick(req._id)}
-                                                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                                                        title="Eliminar solicitud"
-                                                    >
-                                                        <FiTrash2 />
-                                                    </button>
-                                                )}
-                                            </div>
+                                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                                        <Link
+                                            href={`/dashboard/requests/${req._id}`}
+                                            className="flex items-center text-blue-600 hover:text-blue-700"
+                                        >
+                                            <FiEye className="mr-1" />
+                                            Ver detalles
+                                        </Link>
+                                        <div className="flex space-x-2">
+                                            {req.status === 'requested' && (
+                                                <Link
+                                                    href={`/dashboard/requests/${req._id}/edit`}
+                                                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                    title="Editar solicitud"
+                                                >
+                                                    <FiEdit />
+                                                </Link>
+                                            )}
+                                            {req.status === 'requested' && (
+                                                <button
+                                                    onClick={() => handleDeleteClick(req._id)}
+                                                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                    title="Eliminar solicitud"
+                                                >
+                                                    <FiTrash2 />
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
-                    {/* Estadísticas rápidas */}
-                    <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="bg-white rounded-xl shadow p-4">
-                            <p className="text-sm text-gray-500">Total Solicitudes</p>
-                            <p className="text-2xl font-bold text-gray-900">{requests.length}</p>
-                        </div>
-                        <div className="bg-white rounded-xl shadow p-4">
-                            <p className="text-sm text-gray-500">Pendientes</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {requests.filter(r => r.status === 'requested').length}
-                            </p>
-                        </div>
-                        <div className="bg-white rounded-xl shadow p-4">
-                            <p className="text-sm text-gray-500">Cotizadas</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {requests.filter(r => r.status === 'quoted').length}
-                            </p>
-                        </div>
-                        <div className="bg-white rounded-xl shadow p-4">
-                            <p className="text-sm text-gray-500">Canceladas</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {requests.filter(r => r.status === 'cancelled').length}
-                            </p>
-                        </div>
-                    </div>
-                </>
+            {/* Paginación */}
+            {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-4 pt-4">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
+                    >
+                        <FiChevronLeft />
+                    </button>
+                    <span className="text-sm font-medium text-gray-700">
+                        Página {currentPage} de {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
+                    >
+                        <FiChevronRight />
+                    </button>
+                </div>
             )}
 
             <ConfirmModal
