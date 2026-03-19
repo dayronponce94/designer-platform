@@ -15,9 +15,8 @@ import {
 } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-// ... tus imports actuales ...
 import { useEffect, useState } from 'react';
-import { projectAPI } from '@/app/lib/api/endpoints'; // Asegúrate de tener este endpoint
+import { projectAPI } from '@/app/lib/api/endpoints';
 
 export default function DashboardPage() {
     const { user, isLoading: authLoading } = useAuthContext();
@@ -158,6 +157,8 @@ export default function DashboardPage() {
     const stats = user?.role === 'designer' ? designerStats : clientStats;
 
     // Próximos pasos por rol
+    // Dentro de tu componente DashboardPage, después de calcular statsData:
+
     const clientNextSteps = [
         {
             title: 'Completa tu perfil',
@@ -166,18 +167,13 @@ export default function DashboardPage() {
             action: '/dashboard/profile'
         },
         {
-            title: 'Explora servicios',
-            description: 'Descubre todas las opciones de diseño que ofrecemos',
-            completed: false,
-            action: '/services'
-        },
-        {
-            title: 'Solicita cotización',
+            title: 'Solicita tu primer proyecto',
             description: 'Obtén un presupuesto detallado para tu primer proyecto',
-            completed: false,
-            action: '/dashboard/quote'
+            completed: statsData.requestsSent > 0,
+            action: '/dashboard/requests'
         },
     ];
+
 
     const designerNextSteps = [
         {
