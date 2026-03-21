@@ -227,6 +227,60 @@ const projects = [
     },
     {
         id: 8,
+        category: 'branding',
+        title: 'Cisneros | Logotipo',
+        description: 'Este logotipo fue diseñado a medida para un cliente que lanza una academia deportiva para niños.' +
+            ' El concepto central era representar la libertad de forjar su propio futuro desde una edad muy temprana, fomentando' +
+            'el crecimiento a través del deporte.',
+        fullDescription: 'Este logotipo fue desarrollado para un cliente que lanza una academia deportiva para niños,' +
+            'con el objetivo de representar la libertad de forjar su propio futuro desde una edad temprana, fomentando el crecimiento' +
+            'a través del deporte. El diseño se centró en crear una identidad visual que transmita energía, dinamismo' +
+            'y optimismo, utilizando formas orgánicas y colores vibrantes para reflejar la vitalidad y el espíritu de' +
+            'superación que caracteriza a los niños en su desarrollo deportivo.' +
+            ' La metodología se basó en el uso de Adobe Illustrator, aplicando construcción geométrica y síntesis' +
+            ' visual para lograr un diseño atemporal y escalable. La arquitectura del logotipo se estructuró mediante' +
+            ' cuadrículas y proporciones áureas, garantizando equilibrio entre forma y función. La tipografía fue' +
+            ' seleccionada y personalizada para complementar el isotipo, generando armonía visual y reforzando el' +
+            ' mensaje de la marca.' +
+            ' Asimismo, se diseñaron variantes del logotipo —principal, secundario y monograma— que aseguran su ' +
+            ' versatilidad en distintos soportes, desde redes sociales hasta señalética corporativa. Finalmente, la' +
+            ' psicología del color se aplicó estratégicamente para provocar una respuesta emocional específica en el ' +
+            ' público objetivo, alineando la propuesta con el sector deportivo infantil.',
+        type: 'Logos',
+        image: '/projects/Cisneros-1.png',
+        images: [
+            '/projects/Cisneros-2.png',
+            '/projects/Cisneros-3.png',
+            '/projects/Cisneros-1.png',
+        ],
+        color: 'from-orange-500 to-red-500',
+        icon: <FiPenTool />,
+        technologies: ['Adobe Illustrator', 'Manual de Marca'],
+        client: 'Academía Deportiva Cisneros',
+        year: '2026'
+    },
+    {
+        id: 9,
+        category: 'branding',
+        title: 'Aurea | Logotipo',
+        description: 'El logotipo de Aurea fue diseñado específicamente para un salón de belleza de extensiones de pestañas de primer nivel. La visión del cliente era crear una identidad de marca versátil, donde el logotipo pudiera funcionar perfectamente como un isotipo independiente.',
+        fullDescription: 'El logotipo de Aurea fue desarrollado para un salón de belleza especializado en extensiones de pestañas, con el objetivo de crear una identidad de marca versátil y elegante. El diseño se centró en la creación de un isotipo que pudiera funcionar de manera independiente, reflejando la sofisticación y el lujo asociados con los servicios ofrecidos. La metodología se basó en el uso de Adobe Illustrator, aplicando construcción geométrica y síntesis visual para lograr un diseño atemporal y escalable. La arquitectura del logotipo se estructuró mediante cuadrículas y proporciones áureas, garantizando equilibrio entre forma y función. La tipografía fue seleccionada y personalizada para complementar el isotipo, generando armonía visual y reforzando el mensaje de la marca. Además, se diseñaron variantes del logotipo —principal, secundario y monograma— que aseguran su versatilidad en distintos soportes, desde redes sociales hasta señalética corporativa. Finalmente, la psicología del color se aplicó estratégicamente para provocar una respuesta emocional específica en el público objetivo, alineando la propuesta con el sector de belleza y cuidado personal.',
+        type: 'Logos',
+        image: '/projects/Aurea.png',
+        images: [
+            '/projects/Aurea-2.png',
+            '/projects/Aurea-3.png',
+            '/projects/Aurea-1.png',
+            '/projects/Aurea.png',
+        ],
+        color: 'from-orange-500 to-red-500',
+        icon: <FiPenTool />,
+        technologies: ['Adobe Illustrator', 'Manual de Marca'],
+        client: 'Aurea Salón de Belleza',
+        year: '2026'
+    },
+    {
+        id: 10,
         category: 'magazing',
         title: 'Caribe 360 | Diseño Editorial',
         description: 'La revista Caribe 360 fue creada con el objetivo de obtener una mejor visualización de ' +
@@ -260,7 +314,7 @@ const projects = [
         year: '2024'
     },
     {
-        id: 9,
+        id: 11,
         category: 'magazing',
         title: 'Galaxia Hung Yi | Maquetación',
         description: 'Hung Yi nació en Taiwán. Sus obras están inspiradas en la vida cotidiana de su ciudad' +
@@ -294,7 +348,7 @@ const projects = [
         year: '2024'
     },
     {
-        id: 10,
+        id: 12,
         category: 'illustration',
         title: 'Artistas | Retrato Minimalista y Estilizado',
         description: 'Estas ilustraciones se crean a partir de fotografías de artistas, cada uno de ellos' +
@@ -322,7 +376,7 @@ const projects = [
         year: '2024'
     },
     {
-        id: 11,
+        id: 13,
         category: 'illustration',
         title: 'Abuelito | Narrativa Familiar',
         description: 'La ilustración fue creada para recordar de una manera diferente a aquellas personas que' +
@@ -346,7 +400,7 @@ const projects = [
         year: '2024'
     },
     {
-        id: 12,
+        id: 14,
         category: 'illustration',
         title: 'Escenarios | Concept Art',
         description: 'Estas ilustraciones son los escenarios para el futuro videojuego de la familia Cisneros.',
