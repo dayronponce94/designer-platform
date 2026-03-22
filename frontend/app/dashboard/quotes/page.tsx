@@ -12,6 +12,10 @@ import {
     FiDollarSign,
     FiCalendar,
     FiEye,
+    FiSearch,
+    FiFilter,
+    FiChevronLeft,
+    FiChevronRight,
 } from 'react-icons/fi';
 
 interface Quote {
@@ -37,20 +41,37 @@ export default function QuotesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const [filters, setFilters] = useState({
+        search: '',
+        status: 'all',
+        page: 1
+    });
+    const [totalPages, setTotalPages] = useState(1);
+
     useEffect(() => {
         fetchQuotes();
-    }, []);
+    }, [filters]);
 
     const fetchQuotes = async () => {
         try {
             setIsLoading(true);
             const token = localStorage.getItem('token');
-            const res = await fetch('/api/quotes', {
+            // Construcción de la URL con filtros
+            const queryParams = new URLSearchParams({
+                page: filters.page.toString(),
+                search: filters.search,
+                status: filters.status,
+                limit: '6'
+            });
+
+            const res = await fetch(`/api/quotes?${queryParams}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             const data = await res.json();
+
             if (data.success) {
                 setQuotes(data.data.quotes || []);
+                setTotalPages(data.data.pagination?.pages || 1);
             } else {
                 setError(data.message || 'Error al cargar cotizaciones');
             }
@@ -99,21 +120,49 @@ export default function QuotesPage() {
         return labels[type] || type;
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-64">
-                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
-
     return (
-        <div>
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Mis Cotizaciones</h1>
-                <p className="text-gray-600 mt-2">
-                    Revisa y gestiona las cotizaciones de tus proyectos
-                </p>
+        <div className="space-y-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                        <FiFileText className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mis Cotizaciones</h1>
+                        <p className="text-gray-600 text-sm mt-1">Revisa y gestiona las cotizaciones de tus proyectos.</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Bloque de Filtros */}
+            <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 relative">
+                        <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por título de proyecto..."
+                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            value={filters.search}
+                            onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
+                        />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <FiFilter className="text-gray-600 w-5 h-5" />
+                        <select
+                            className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white cursor-pointer"
+                            value={filters.status}
+                            onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
+                        >
+                            <option value="all">Todos los estados</option>
+                            <option value="pending">Pendientes</option>
+                            <option value="accepted">Aceptadas</option>
+                            <option value="rejected">Rechazadas</option>
+                            <option value="expired">Expiradas</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
@@ -143,7 +192,7 @@ export default function QuotesPage() {
                             <div className="space-y-2 text-sm">
                                 <div className="flex items-center text-gray-700">
                                     <FiDollarSign className="mr-2 text-gray-400" />
-                                    <span className="font-medium">${quote.amount.toLocaleString()}</span>
+                                    <span className="font-medium">{quote.amount.toLocaleString()}</span>
                                 </div>
                                 {quote.deadline && (
                                     <div className="flex items-center text-gray-600">
@@ -170,6 +219,27 @@ export default function QuotesPage() {
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Paginación */}
+            {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-4 mt-10">
+                    <button
+                        onClick={() => setFilters(f => ({ ...f, page: Math.max(f.page - 1, 1) }))}
+                        disabled={filters.page === 1}
+                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50"
+                    >
+                        <FiChevronLeft />
+                    </button>
+                    <span className="text-sm font-medium">Página {filters.page} de {totalPages}</span>
+                    <button
+                        onClick={() => setFilters(f => ({ ...f, page: Math.min(f.page + 1, totalPages) }))}
+                        disabled={filters.page === totalPages}
+                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50"
+                    >
+                        <FiChevronRight />
+                    </button>
                 </div>
             )}
         </div>

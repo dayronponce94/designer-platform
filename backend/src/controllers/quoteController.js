@@ -8,20 +8,43 @@ const mongoose = require('mongoose');
 // @route   GET /api/quotes
 // @access  Private (cliente)
 const getMyQuotes = asyncHandler(async (req, res) => {
-    // Verificar que el usuario sea cliente (opcional, pero podemos permitir también a admin ver todas)
     const userId = req.user.id;
+    const { page = 1, limit = 6, search = '', status = 'all' } = req.query;
+    const skip = (page - 1) * limit;
 
-    // Buscar proyectos del cliente
-    const requests = await Request.find({ client: userId }).select('_id');
+    // 1. Construir filtro de búsqueda para el Request (título)
+    let requestQuery = { client: userId };
+    if (search) {
+        requestQuery.title = { $regex: search, $options: 'i' };
+    }
+
+    const requests = await Request.find(requestQuery).select('_id');
     const requestsIds = requests.map(p => p._id);
 
-    const quotes = await Quote.find({ request: { $in: requestsIds } })
+    // 2. Construir filtro para la Cotización
+    let quoteQuery = { request: { $in: requestsIds } };
+    if (status !== 'all') {
+        quoteQuery.status = status;
+    }
+
+    // 3. Ejecutar consulta con paginación
+    const total = await Quote.countDocuments(quoteQuery);
+    const quotes = await Quote.find(quoteQuery)
         .populate('request', 'title description serviceType status')
         .populate('createdBy', 'name email')
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit));
 
     res.status(200).json(
-        ApiResponse.success('Cotizaciones obtenidas', { quotes }).toJSON()
+        ApiResponse.success('Cotizaciones obtenidas', {
+            quotes,
+            pagination: {
+                total,
+                page: Number(page),
+                pages: Math.ceil(total / limit)
+            }
+        }).toJSON()
     );
 });
 

@@ -267,7 +267,7 @@ export default function RequestDetailPage() {
                             </button>
                         )}
 
-                        {user?.role === 'client' && (
+                        {user?.role === 'client' && request.status === 'requested' && (
                             <button
                                 onClick={handleDeleteClick}
                                 className="flex items-center px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition"
@@ -528,9 +528,9 @@ export default function RequestDetailPage() {
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
                 onConfirm={handleDeleteConfirm}
-                title="¿Eliminar proyecto?"
-                message="Esta acción no se puede deshacer. El proyecto y todos sus datos asociados serán eliminados permanentemente."
-                confirmText={deleteLoading ? "Eliminando..." : "Eliminar Proyecto"}
+                title="¿Eliminar solicitud?"
+                message="Esta acción no se puede deshacer. La solicitud y todos sus datos asociados serán eliminados permanentemente."
+                confirmText={deleteLoading ? "Eliminando..." : "Eliminar Solicitud"}
                 cancelText="Cancelar"
                 type="danger"
             />

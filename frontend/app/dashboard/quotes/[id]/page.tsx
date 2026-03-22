@@ -220,7 +220,7 @@ export default function QuoteDetailPage() {
                                 <p className="text-sm text-gray-500 mb-1">Monto</p>
                                 <p className="text-2xl font-bold text-gray-900 flex items-center">
                                     <FiDollarSign className="mr-1 text-gray-400" />
-                                    ${quote.amount.toLocaleString()}
+                                    {quote.amount.toLocaleString()}
                                 </p>
                             </div>
                             <div>

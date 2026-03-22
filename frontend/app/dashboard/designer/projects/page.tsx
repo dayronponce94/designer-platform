@@ -368,13 +368,6 @@ export default function DesignerProjectsPage() {
                                                             <span className="text-gray-400 ml-2">({project.client.email})</span>
                                                         )}
                                                     </div>
-                                                    {/* 
-                                                    {project.deliverables && project.deliverables.length > 0 && (
-                                                        <div className="flex items-center text-gray-500 text-sm mt-1">
-                                                            <FiUpload className="mr-1" />
-                                                            <span>{project.deliverables.length} entregable(s) subido(s)</span>
-                                                        </div>
-                                                    )} */}
                                                 </div>
 
                                                 <div className="flex items-center space-x-2">
@@ -423,34 +416,6 @@ export default function DesignerProjectsPage() {
                                                         {nextStatusLabel}
                                                     </button>
                                                 )}
-
-                                                {/* Subir entregable 
-                                            {['in-progress', 'review'].includes(project.status) && (
-                                                <button
-                                                    onClick={() => {
-                                                        // Aquí iría la lógica para subir entregables
-                                                        console.log('Subir entregable para proyecto:', project._id);
-                                                    }}
-                                                    className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                                                >
-                                                    <FiUpload className="mr-2" />
-                                                    Subir Entregable
-                                                </button>
-                                            )}
-
-                                            {/* Ver entregables 
-                                            {project.deliverables && project.deliverables.length > 0 && (
-                                                <button
-                                                    onClick={() => {
-                                                        // Aquí iría la lógica para ver entregables
-                                                        console.log('Ver entregables del proyecto:', project._id);
-                                                    }}
-                                                    className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                                                >
-                                                    <FiEye className="mr-2" />
-                                                    Ver Entregables ({project.deliverables.length})
-                                                </button>
-                                            )}*/}
                                             </div>
                                         </div>
                                     </div>
