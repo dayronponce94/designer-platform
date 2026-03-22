@@ -4,22 +4,23 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 import Alert from '@/components/ui/Alert';
-import ConfirmModal from '@/components/modals/ConfirmModal';
 import {
     FiBriefcase,
-    FiPlus,
     FiClock,
     FiCheckCircle,
     FiAlertCircle,
     FiEdit,
     FiEye,
-    FiTrash2,
-    FiPackage,
-    FiDollarSign,
-    FiUser
+    FiUser,
+    FiSearch,
+    FiFilter,
+    FiChevronLeft,
+    FiChevronRight,
+    FiDollarSign
 } from 'react-icons/fi';
 
 interface Project {
+    clientView: any;
     _id: string;
     title: string;
     description: string;
@@ -45,28 +46,45 @@ export default function ProjectsPage() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
-    const [deleteLoading, setDeleteLoading] = useState(false);
 
+    const [filters, setFilters] = useState({
+        search: '',
+        status: 'all',
+        page: 1,
+        limit: 6 // Ajusta el límite según prefieras
+    });
+    const [totalPages, setTotalPages] = useState(1);
+
+    // 2. useEffect escucha cambios en el objeto filters
     useEffect(() => {
         fetchProjects();
-    }, []);
+    }, [filters]);
 
     const fetchProjects = async () => {
         try {
             setIsLoading(true);
             const token = localStorage.getItem('token');
-            const response = await fetch('/api/projects', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+
+            // Construimos la URL con los parámetros actuales
+            const queryParams = new URLSearchParams({
+                search: filters.search,
+                status: filters.status === 'all' ? '' : filters.status,
+                page: filters.page.toString(),
+                limit: filters.limit.toString()
+            });
+
+            const response = await fetch(`/api/projects?${queryParams}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (!response.ok) throw new Error('Error al cargar proyectos');
 
             const data = await response.json();
-            setProjects(data.data.projects || []);
+
+            if (data.success) {
+                setProjects(data.data.projects || []);
+                setTotalPages(data.data.pagination?.pages || 1);
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -114,22 +132,51 @@ export default function ProjectsPage() {
         });
     };
 
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center min-h-100">
-                <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
+
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Mis Proyectos</h1>
-                    <p className="text-gray-600 mt-2">
-                        Gestiona y sigue el progreso de todos tus proyectos de diseño
-                    </p>
+        <div className="space-y-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                        <FiBriefcase className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mis Proyectos</h1>
+                        <p className="text-gray-600 text-sm mt-1"> Gestiona y sigue el progreso de todos tus proyectos de diseño.</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Bloque de Filtros */}
+            <div className="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-100">
+                <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 relative">
+                        <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar por título de proyecto..."
+                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            value={filters.search}
+                            onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
+                        />
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                        <FiFilter className="text-gray-600 w-5 h-5" />
+                        <select
+                            className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white cursor-pointer"
+                            value={filters.status}
+                            onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
+                        >
+                            <option value="all">Todos los estados</option>
+                            <option value="approved">Aprobados</option>
+                            <option value="in-progress">En Progreso</option>
+                            <option value="review">En Revisión</option>
+                            <option value="completed">Completados</option>
+                            <option value="cancelled">Cancelados</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -160,15 +207,14 @@ export default function ProjectsPage() {
                                     </div>
 
                                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                                        {project.description}
+                                        {project.clientView?.description || 'Sin descripción'}
                                     </p>
-
                                     <div className="space-y-3 text-sm text-gray-500 mb-6">
                                         <div className="flex items-center">
-                                            <FiPackage className="mr-2" />
+                                            <FiDollarSign className="mr-2" />
                                             <span>
-                                                {project.budget && project.budget > 0
-                                                    ? `Costo: $${project.budget.toLocaleString()}`
+                                                {project.clientView?.budget && project.clientView.budget > 0
+                                                    ? `Costo: $${project.clientView.budget.toLocaleString()}`
                                                     : 'Presupuesto por definir'}
                                             </span>
                                         </div>
@@ -176,10 +222,10 @@ export default function ProjectsPage() {
                                             <FiClock className="mr-2" />
                                             <span>Creado: {formatDate(project.createdAt)}</span>
                                         </div>
-                                        {project.deadline && (
+                                        {project.clientView?.deadline && (
                                             <div className="flex items-center">
                                                 <FiClock className="mr-2" />
-                                                <span>Entrega: {formatDate(project.deadline)}</span>
+                                                <span>Entrega: {formatDate(project.clientView.deadline)}</span>
                                             </div>
                                         )}
                                         {project.designer && (
@@ -214,33 +260,30 @@ export default function ProjectsPage() {
                             </div>
                         ))}
                     </div>
-
-                    {/* Estadísticas rápidas */}
-                    <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="bg-white rounded-xl shadow p-4">
-                            <p className="text-sm text-gray-500">Total Proyectos</p>
-                            <p className="text-2xl font-bold text-gray-900">{projects.length}</p>
-                        </div>
-                        <div className="bg-white rounded-xl shadow p-4">
-                            <p className="text-sm text-gray-500">En Progreso</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {projects.filter(p => p.status === 'in-progress').length}
-                            </p>
-                        </div>
-                        <div className="bg-white rounded-xl shadow p-4">
-                            <p className="text-sm text-gray-500">En Revisión</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {projects.filter(p => p.status === 'requested' || p.status === 'review').length}
-                            </p>
-                        </div>
-                        <div className="bg-white rounded-xl shadow p-4">
-                            <p className="text-sm text-gray-500">Completados</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {projects.filter(p => p.status === 'completed').length}
-                            </p>
-                        </div>
-                    </div>
                 </>
+            )}
+
+            {/* Paginación */}
+            {totalPages > 1 && (
+                <div className="flex justify-center items-center space-x-4 pt-8">
+                    <button
+                        onClick={() => setFilters(f => ({ ...f, page: Math.max(f.page - 1, 1) }))}
+                        disabled={filters.page === 1}
+                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
+                    >
+                        <FiChevronLeft />
+                    </button>
+                    <span className="text-sm font-medium text-gray-700">
+                        Página {filters.page} de {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setFilters(f => ({ ...f, page: Math.min(f.page + 1, totalPages) }))}
+                        disabled={filters.page === totalPages}
+                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
+                    >
+                        <FiChevronRight />
+                    </button>
+                </div>
             )}
         </div>
     );

@@ -20,7 +20,8 @@ import {
     FiList,
     FiUserCheck,
     FiPieChart,
-    FiUserPlus
+    FiUserPlus,
+    FiClipboard
 } from 'react-icons/fi';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 
@@ -32,7 +33,7 @@ export default function Sidebar() {
     // Navegación para CLIENTES
     const clientNavigation = [
         { name: 'Inicio', href: '/dashboard', icon: FiHome },
-        { name: 'Mis Solicitudes', href: '/dashboard/requests', icon: FiBriefcase },
+        { name: 'Mis Solicitudes', href: '/dashboard/requests', icon: FiClipboard },
         { name: 'Cotizaciones', href: '/dashboard/quotes', icon: FiFileText },
         { name: 'Mis Proyectos', href: '/dashboard/projects', icon: FiBriefcase },
         { name: 'Notificaciones', href: '/dashboard/notifications', icon: FiBell },

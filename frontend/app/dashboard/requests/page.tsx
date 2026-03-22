@@ -9,19 +9,17 @@ import {
     FiBriefcase,
     FiPlus,
     FiClock,
-    FiCheckCircle,
     FiAlertCircle,
     FiEdit,
     FiEye,
     FiTrash2,
-    FiPackage,
     FiDollarSign,
-    FiUser,
     FiFileText,
     FiFilter,
     FiChevronLeft,
     FiChevronRight,
-    FiSearch
+    FiSearch,
+    FiClipboard
 } from 'react-icons/fi';
 import { Request } from '@/app/types/request';
 
@@ -132,7 +130,7 @@ export default function RequestsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center space-x-3">
                     <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                        <FiBriefcase className="w-6 h-6" />
+                        <FiClipboard className="w-6 h-6" />
                     </div>
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mis Solicitudes</h1>

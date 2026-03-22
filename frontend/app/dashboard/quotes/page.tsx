@@ -192,7 +192,7 @@ export default function QuotesPage() {
                             <div className="space-y-2 text-sm">
                                 <div className="flex items-center text-gray-700">
                                     <FiDollarSign className="mr-2 text-gray-400" />
-                                    <span className="font-medium">{quote.amount.toLocaleString()}</span>
+                                    <span>Precio: {quote.amount.toLocaleString()}</span>
                                 </div>
                                 {quote.deadline && (
                                     <div className="flex items-center text-gray-600">
