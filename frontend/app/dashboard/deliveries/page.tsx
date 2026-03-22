@@ -115,35 +115,39 @@ export default function DeliveriesPage() {
     );
 
     // Proyectos con fecha de entrega
-    const projectsWithDeadline = activeProjects.filter(project => project.deadline);
+    const projectsWithDeadline = activeProjects.filter(project =>
+        project.designerView?.internalDeadline?.$date || project.designerView?.internalDeadline
+    );
 
     // Ordenar por fecha de entrega (más cercana primero)
     const sortedProjects = [...projectsWithDeadline].sort((a, b) => {
-        if (!a.deadline) return 1;
-        if (!b.deadline) return -1;
-        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+        const dateA = new Date(a.designerView?.internalDeadline?.$date || a.designerView?.internalDeadline || 0);
+        const dateB = new Date(b.designerView?.internalDeadline?.$date || b.designerView?.internalDeadline || 0);
+        return dateA.getTime() - dateB.getTime();
     });
 
     // Proyectos vencidos
     const overdueProjects = sortedProjects.filter(project => {
-        const daysLeft = getDaysLeft(project.deadline);
+        const daysLeft = getDaysLeft(project.designerView?.internalDeadline?.$date || project.designerView?.internalDeadline);
         return daysLeft !== null && daysLeft < 0;
     });
 
     // Próximas entregas (próximos 7 días)
     const upcomingProjects = sortedProjects.filter(project => {
-        const daysLeft = getDaysLeft(project.deadline);
+        const daysLeft = getDaysLeft(project.designerView?.internalDeadline?.$date || project.designerView?.internalDeadline);
         return daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
     });
 
     // Otros proyectos (más de 7 días)
     const otherProjects = sortedProjects.filter(project => {
-        const daysLeft = getDaysLeft(project.deadline);
+        const daysLeft = getDaysLeft(project.designerView?.internalDeadline?.$date || project.designerView?.internalDeadline);
         return daysLeft !== null && daysLeft > 7;
     });
 
     // Proyectos sin fecha de entrega
-    const projectsWithoutDeadline = activeProjects.filter(project => !project.deadline);
+    const projectsWithoutDeadline = activeProjects.filter(project =>
+        !project.designerView?.internalDeadline?.$date && !project.designerView?.internalDeadline
+    );
 
     const getFilteredProjects = () => {
         switch (filter) {
@@ -294,7 +298,10 @@ export default function DeliveriesPage() {
                 ) : (
                     <div className="divide-y divide-gray-100">
                         {getFilteredProjects().map((project) => {
-                            const daysLeft = getDaysLeft(project.deadline);
+                            // Extraer la fecha correctamente (considerando el formato de MongoDB $date)
+                            const currentDeadline = project.clientView?.deadline?.$date || project.clientView?.deadline;
+
+                            const daysLeft = getDaysLeft(currentDeadline);
                             const statusConfig = getStatusConfig(project.status);
                             const StatusIcon = statusConfig.icon;
                             const isOverdue = daysLeft !== null && daysLeft < 0;
@@ -330,7 +337,7 @@ export default function DeliveriesPage() {
                                                         </div>
 
                                                         <div className="text-right">
-                                                            {project.deadline && (
+                                                            {currentDeadline && (
                                                                 <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${isOverdue
                                                                     ? 'bg-red-100 text-red-800'
                                                                     : isToday
@@ -340,7 +347,7 @@ export default function DeliveriesPage() {
                                                                             : 'bg-green-100 text-green-800'
                                                                     }`}>
                                                                     {isOverdue && <FiAlertCircle className="mr-1 w-4 h-4" />}
-                                                                    {formatShortDate(project.deadline)}
+                                                                    {formatShortDate(currentDeadline)}
                                                                 </div>
                                                             )}
                                                         </div>
@@ -352,11 +359,11 @@ export default function DeliveriesPage() {
 
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center space-x-4">
-                                                            {project.deadline && (
+                                                            {currentDeadline && (
                                                                 <div className="flex items-center text-gray-500">
                                                                     <FiCalendar className="mr-2" />
                                                                     <span className="text-sm">
-                                                                        Fecha límite: {formatDate(project.deadline)}
+                                                                        Fecha límite: {formatDate(currentDeadline)}
                                                                     </span>
                                                                 </div>
                                                             )}
@@ -427,12 +434,6 @@ export default function DeliveriesPage() {
                                                 <FiClock className="mr-1" />
                                                 Sin fecha definida
                                             </span>
-                                            <Link
-                                                href={`/dashboard/projects/${project._id}/edit`}
-                                                className="text-sm text-blue-600 hover:text-blue-700"
-                                            >
-                                                Establecer fecha
-                                            </Link>
                                         </div>
                                     </div>
                                 );
@@ -450,7 +451,7 @@ export default function DeliveriesPage() {
                     </div>
                     <div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
-                            Mantén tus entregas al día
+                            No pierdas de vista los plazos de entrega
                         </h3>
                         <ul className="text-gray-600 space-y-2">
                             <li className="flex items-center">

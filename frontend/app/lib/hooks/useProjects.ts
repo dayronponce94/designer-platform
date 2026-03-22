@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { projectAPI } from '../api/endpoints';
 
 export interface Project {
+    clientView: any;
+    designerView: any;
     _id: string;
     title: string;
     description: string;
