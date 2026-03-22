@@ -122,8 +122,6 @@ export default function RequestsPage() {
     };
 
 
-    if (authLoading) return <div className="text-center p-20">Cargando...</div>;
-
     return (
         <div className="space-y-8">
             {/* Cabecera */}
@@ -181,145 +179,156 @@ export default function RequestsPage() {
 
             {error && <Alert type="error" message={error} onClose={() => setError('')} />}
 
-            {requests.length === 0 ? (
-                // Si NO hay resultados, revisamos POR QUÉ
-                (statusFilter !== 'all' || filters.search !== '') ? (
-                    // Caso A: El usuario aplicó un filtro o buscó algo y no hubo coincidencias
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
-                        <FiBriefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">Sin resultados</h3>
-                        <p className="text-gray-500 mb-6">
-                            No hallamos solicitudes que coincidan con los criterios de búsqueda o el filtro actual.
-                        </p>
-                        <button
-                            onClick={() => { setFilters({ ...filters, search: '' }); setStatusFilter('all'); }}
-                            className="text-blue-600 font-medium hover:underline"
-                        >
-                            Limpiar filtros
-                        </button>
+            {isLoading ? (
+                <div className="flex justify-center items-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div className="text-center">
+                        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-500">Cargando solicitudes...</p>
                     </div>
-                ) : (
-                    // Caso B: La cuenta está totalmente vacía (sin filtros aplicados)
-                    <div className="bg-white rounded-xl shadow p-12 text-center">
-                        <FiBriefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes solicitudes aún</h3>
-                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                            Comienza solicitando tu primer proyecto de diseño.
-                        </p>
-                        <Link
-                            href="/dashboard/requests/new"
-                            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                        >
-                            <FiPlus className="mr-2" />
-                            Crear Primera Solicitud
-                        </Link>
-                    </div>
-                )
+                </div>
             ) : (
-                // Caso 3: sí hay solicitudes
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {requests.map((req) => {
-                        const statusConf = STATUS_CONFIG[req.status] || STATUS_CONFIG['requested'];
-                        return (
-                            <div key={req._id} className="bg-white rounded-xl shadow hover:shadow-md transition-shadow">
-                                <div className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-gray-900 wrap-break-word line-clamp-2">
-                                                {req.title}
-                                            </h3>
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                {SERVICE_TYPE_LABELS[req.serviceType]}
-                                            </p>
-                                        </div>
-                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusConf.color}`}>
-                                            {statusConf.icon}
-                                            <span className="ml-1">{statusConf.text}</span>
-                                        </span>
-                                    </div>
-
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                                        {req.description}
-                                    </p>
-
-                                    <div className="space-y-3 text-sm text-gray-500 mb-6">
-                                        <div className="flex items-center">
-                                            <FiDollarSign className="mr-2" />
-                                            <span>
-                                                {req.budget && req.budget > 0
-                                                    ? `Presupuesto: $${req.budget.toLocaleString()}`
-                                                    : 'Presupuesto por definir'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <FiClock className="mr-2" />
-                                            <span>Creado: {formatDate(req.createdAt)}</span>
-                                        </div>
-                                        {req.deadline && (
-                                            <div className="flex items-center">
-                                                <FiClock className="mr-2" />
-                                                <span>Entrega deseada: {formatDate(req.deadline)}</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                                        <Link
-                                            href={`/dashboard/requests/${req._id}`}
-                                            className="flex items-center text-blue-600 hover:text-blue-700"
-                                        >
-                                            <FiEye className="mr-1" />
-                                            Ver detalles
-                                        </Link>
-                                        <div className="flex space-x-2">
-                                            {req.status === 'requested' && (
-                                                <Link
-                                                    href={`/dashboard/requests/${req._id}/edit`}
-                                                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                                    title="Editar solicitud"
-                                                >
-                                                    <FiEdit />
-                                                </Link>
-                                            )}
-                                            {req.status === 'requested' && (
-                                                <button
-                                                    onClick={() => handleDeleteClick(req._id)}
-                                                    className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                                                    title="Eliminar solicitud"
-                                                >
-                                                    <FiTrash2 />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                <>
+                    {requests.length === 0 ? (
+                        // Si NO hay resultados, revisamos POR QUÉ
+                        (statusFilter !== 'all' || filters.search !== '') ? (
+                            // Caso A: El usuario aplicó un filtro o buscó algo y no hubo coincidencias
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+                                <FiBriefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">Sin resultados</h3>
+                                <p className="text-gray-500 mb-6">
+                                    No hallamos solicitudes que coincidan con los criterios de búsqueda o el filtro actual.
+                                </p>
+                                <button
+                                    onClick={() => { setFilters({ ...filters, search: '' }); setStatusFilter('all'); }}
+                                    className="text-blue-600 font-medium hover:underline"
+                                >
+                                    Limpiar filtros
+                                </button>
                             </div>
-                        );
-                    })}
-                </div>
-            )}
+                        ) : (
+                            // Caso B: La cuenta está totalmente vacía (sin filtros aplicados)
+                            <div className="bg-white rounded-xl shadow p-12 text-center">
+                                <FiBriefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                                <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes solicitudes aún</h3>
+                                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                                    Comienza solicitando tu primer proyecto de diseño.
+                                </p>
+                                <Link
+                                    href="/dashboard/requests/new"
+                                    className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                >
+                                    <FiPlus className="mr-2" />
+                                    Crear Primera Solicitud
+                                </Link>
+                            </div>
+                        )
+                    ) : (
+                        // Caso 3: sí hay solicitudes
+                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {requests.map((req) => {
+                                const statusConf = STATUS_CONFIG[req.status] || STATUS_CONFIG['requested'];
+                                return (
+                                    <div key={req._id} className="bg-white rounded-xl shadow hover:shadow-md transition-shadow">
+                                        <div className="p-6">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div>
+                                                    <h3 className="text-lg font-semibold text-gray-900 wrap-break-word line-clamp-2">
+                                                        {req.title}
+                                                    </h3>
+                                                    <p className="text-sm text-gray-500 mt-1">
+                                                        {SERVICE_TYPE_LABELS[req.serviceType]}
+                                                    </p>
+                                                </div>
+                                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusConf.color}`}>
+                                                    {statusConf.icon}
+                                                    <span className="ml-1">{statusConf.text}</span>
+                                                </span>
+                                            </div>
 
-            {/* Paginación */}
-            {totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-4 pt-4">
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
-                    >
-                        <FiChevronLeft />
-                    </button>
-                    <span className="text-sm font-medium text-gray-700">
-                        Página {currentPage} de {totalPages}
-                    </span>
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
-                    >
-                        <FiChevronRight />
-                    </button>
-                </div>
+                                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                                                {req.description}
+                                            </p>
+
+                                            <div className="space-y-3 text-sm text-gray-500 mb-6">
+                                                <div className="flex items-center">
+                                                    <FiDollarSign className="mr-2" />
+                                                    <span>
+                                                        {req.budget && req.budget > 0
+                                                            ? `Presupuesto: $${req.budget.toLocaleString()}`
+                                                            : 'Presupuesto por definir'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <FiClock className="mr-2" />
+                                                    <span>Creado: {formatDate(req.createdAt)}</span>
+                                                </div>
+                                                {req.deadline && (
+                                                    <div className="flex items-center">
+                                                        <FiClock className="mr-2" />
+                                                        <span>Entrega deseada: {formatDate(req.deadline)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                                                <Link
+                                                    href={`/dashboard/requests/${req._id}`}
+                                                    className="flex items-center text-blue-600 hover:text-blue-700"
+                                                >
+                                                    <FiEye className="mr-1" />
+                                                    Ver detalles
+                                                </Link>
+                                                <div className="flex space-x-2">
+                                                    {req.status === 'requested' && (
+                                                        <Link
+                                                            href={`/dashboard/requests/${req._id}/edit`}
+                                                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                            title="Editar solicitud"
+                                                        >
+                                                            <FiEdit />
+                                                        </Link>
+                                                    )}
+                                                    {req.status === 'requested' && (
+                                                        <button
+                                                            onClick={() => handleDeleteClick(req._id)}
+                                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                            title="Eliminar solicitud"
+                                                        >
+                                                            <FiTrash2 />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Paginación */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center items-center space-x-4 pt-4">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
+                            >
+                                <FiChevronLeft />
+                            </button>
+                            <span className="text-sm font-medium text-gray-700">
+                                Página {currentPage} de {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
+                            >
+                                <FiChevronRight />
+                            </button>
+                        </div>
+                    )}
+                </>
             )}
 
             <ConfirmModal

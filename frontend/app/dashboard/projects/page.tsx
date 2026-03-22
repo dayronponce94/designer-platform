@@ -132,8 +132,6 @@ export default function ProjectsPage() {
         });
     };
 
-
-
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -182,109 +180,118 @@ export default function ProjectsPage() {
 
             {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
 
-            {projects.length === 0 ? (
-                <div className="bg-white rounded-xl shadow p-12 text-center">
-                    <FiBriefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes proyectos aún</h3>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                        Comienza solicitando tu primer proyecto de diseño. Nuestro equipo estará encantado de ayudarte a convertir tus ideas en realidad.
-                    </p>
+            {isLoading ? (
+                <div className="flex justify-center items-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div className="text-center">
+                        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-500">Cargando proyectos...</p>
+                    </div>
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {projects.map((project) => (
-                            <div key={project._id} className="bg-white rounded-xl shadow hover:shadow-md transition-shadow">
-                                <div className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-gray-900 wrap-break-word hyphens-auto line-clamp-2">{project.title}</h3>
-                                            <p className="text-sm text-gray-500 mt-1">
-                                                {getServiceTypeLabel(project.serviceType)}
-                                            </p>
+                    {projects.length === 0 ? (
+                        <div className="bg-white rounded-xl shadow p-12 text-center">
+                            <FiBriefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes proyectos aún</h3>
+                            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                                Comienza solicitando tu primer proyecto de diseño. Nuestro equipo estará encantado de ayudarte a convertir tus ideas en realidad.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {projects.map((project) => (
+                                <div key={project._id} className="bg-white rounded-xl shadow hover:shadow-md transition-shadow">
+                                    <div className="p-6">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 className="text-lg font-semibold text-gray-900 wrap-break-word hyphens-auto line-clamp-2">{project.title}</h3>
+                                                <p className="text-sm text-gray-500 mt-1">
+                                                    {getServiceTypeLabel(project.serviceType)}
+                                                </p>
+                                            </div>
+                                            {getStatusBadge(project.status)}
                                         </div>
-                                        {getStatusBadge(project.status)}
-                                    </div>
 
-                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                                        {project.clientView?.description || 'Sin descripción'}
-                                    </p>
-                                    <div className="space-y-3 text-sm text-gray-500 mb-6">
-                                        <div className="flex items-center">
-                                            <FiDollarSign className="mr-2" />
-                                            <span>
-                                                {project.clientView?.budget && project.clientView.budget > 0
-                                                    ? `Costo: $${project.clientView.budget.toLocaleString()}`
-                                                    : 'Presupuesto por definir'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <FiClock className="mr-2" />
-                                            <span>Creado: {formatDate(project.createdAt)}</span>
-                                        </div>
-                                        {project.clientView?.deadline && (
+                                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                                            {project.clientView?.description || 'Sin descripción'}
+                                        </p>
+                                        <div className="space-y-3 text-sm text-gray-500 mb-6">
+                                            <div className="flex items-center">
+                                                <FiDollarSign className="mr-2" />
+                                                <span>
+                                                    {project.clientView?.budget && project.clientView.budget > 0
+                                                        ? `Costo: $${project.clientView.budget.toLocaleString()}`
+                                                        : 'Presupuesto por definir'}
+                                                </span>
+                                            </div>
                                             <div className="flex items-center">
                                                 <FiClock className="mr-2" />
-                                                <span>Entrega: {formatDate(project.clientView.deadline)}</span>
+                                                <span>Creado: {formatDate(project.createdAt)}</span>
                                             </div>
-                                        )}
-                                        {project.designer && (
-                                            <div className="flex items-center">
-                                                <FiUser className="mr-2" />
-                                                <span>Diseñador: {project.designer.name}</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                                        <Link
-                                            href={`/dashboard/projects/${project._id}`}
-                                            className="flex items-center text-blue-600 hover:text-blue-700"
-                                        >
-                                            <FiEye className="mr-1" />
-                                            Ver detalles
-                                        </Link>
-                                        <div className="flex space-x-2">
-                                            {user?.role === 'client' && project.status === 'requested' && (
-                                                <Link
-                                                    href={`/dashboard/projects/${project._id}/edit`}
-                                                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                                    title="Editar proyecto"
-                                                >
-                                                    <FiEdit />
-                                                </Link>
+                                            {project.clientView?.deadline && (
+                                                <div className="flex items-center">
+                                                    <FiClock className="mr-2" />
+                                                    <span>Entrega: {formatDate(project.clientView.deadline)}</span>
+                                                </div>
                                             )}
+                                            {project.designer && (
+                                                <div className="flex items-center">
+                                                    <FiUser className="mr-2" />
+                                                    <span>Diseñador: {project.designer.name}</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                                            <Link
+                                                href={`/dashboard/projects/${project._id}`}
+                                                className="flex items-center text-blue-600 hover:text-blue-700"
+                                            >
+                                                <FiEye className="mr-1" />
+                                                Ver detalles
+                                            </Link>
+                                            <div className="flex space-x-2">
+                                                {user?.role === 'client' && project.status === 'requested' && (
+                                                    <Link
+                                                        href={`/dashboard/projects/${project._id}/edit`}
+                                                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                        title="Editar proyecto"
+                                                    >
+                                                        <FiEdit />
+                                                    </Link>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Paginación */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center items-center space-x-4 pt-8">
+                            <button
+                                onClick={() => setFilters(f => ({ ...f, page: Math.max(f.page - 1, 1) }))}
+                                disabled={filters.page === 1}
+                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
+                            >
+                                <FiChevronLeft />
+                            </button>
+                            <span className="text-sm font-medium text-gray-700">
+                                Página {filters.page} de {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setFilters(f => ({ ...f, page: Math.min(f.page + 1, totalPages) }))}
+                                disabled={filters.page === totalPages}
+                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
+                            >
+                                <FiChevronRight />
+                            </button>
+                        </div>
+                    )}
                 </>
             )}
-
-            {/* Paginación */}
-            {totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-4 pt-8">
-                    <button
-                        onClick={() => setFilters(f => ({ ...f, page: Math.max(f.page - 1, 1) }))}
-                        disabled={filters.page === 1}
-                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
-                    >
-                        <FiChevronLeft />
-                    </button>
-                    <span className="text-sm font-medium text-gray-700">
-                        Página {filters.page} de {totalPages}
-                    </span>
-                    <button
-                        onClick={() => setFilters(f => ({ ...f, page: Math.min(f.page + 1, totalPages) }))}
-                        disabled={filters.page === totalPages}
-                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
-                    >
-                        <FiChevronRight />
-                    </button>
-                </div>
-            )}
         </div>
-    );
-}
+    )
+};

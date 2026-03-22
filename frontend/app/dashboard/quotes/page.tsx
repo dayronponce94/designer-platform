@@ -167,81 +167,93 @@ export default function QuotesPage() {
 
             {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
 
-            {quotes.length === 0 ? (
-                <div className="bg-white rounded-xl shadow p-12 text-center">
-                    <FiFileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes cotizaciones</h3>
-                    <p className="text-gray-600">
-                        Cuando un administrador genere una cotización para alguno de tus proyectos, aparecerá aquí.
-                    </p>
+            {isLoading ? (
+                <div className="flex justify-center items-center py-20 bg-white rounded-xl shadow-sm border border-gray-100">
+                    <div className="text-center">
+                        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-500">Cargando cotizaciones...</p>
+                    </div>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {quotes.map((quote) => (
-                        <div key={quote._id} className="bg-white rounded-xl shadow hover:shadow-md transition p-6">
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 wrap-break-word hyphens-auto line-clamp-2">{quote.request.title}</h3>
-                                    <p className="text-sm text-gray-500 mt-1">{getServiceTypeLabel(quote.request.serviceType)} </p>
-                                </div>
-                                {getStatusBadge(quote.status)}
-                            </div>
-
-                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">{quote.description}</p>
-
-                            <div className="space-y-2 text-sm">
-                                <div className="flex items-center text-gray-700">
-                                    <FiDollarSign className="mr-2 text-gray-400" />
-                                    <span>Precio: {quote.amount.toLocaleString()}</span>
-                                </div>
-                                {quote.deadline && (
-                                    <div className="flex items-center text-gray-600">
-                                        <FiCalendar className="mr-2 text-gray-400" />
-                                        <span>Entrega: {formatDate(quote.deadline)}</span>
-                                    </div>
-                                )}
-                                {quote.validUntil && (
-                                    <div className="flex items-center text-gray-600">
-                                        <FiClock className="mr-2 text-gray-400" />
-                                        <span>Válido hasta: {formatDate(quote.validUntil)}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="mt-4 pt-4 border-t border-gray-100">
-                                <Link
-                                    href={`/dashboard/quotes/${quote._id}`}
-                                    className="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                                >
-                                    <FiEye className="mr-2" />
-                                    Ver detalles
-                                </Link>
-                            </div>
+                <>
+                    {quotes.length === 0 ? (
+                        <div className="bg-white rounded-xl shadow p-12 text-center">
+                            <FiFileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes cotizaciones</h3>
+                            <p className="text-gray-600">
+                                Cuando un administrador genere una cotización para alguno de tus proyectos, aparecerá aquí.
+                            </p>
                         </div>
-                    ))}
-                </div>
-            )}
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {quotes.map((quote) => (
+                                <div key={quote._id} className="bg-white rounded-xl shadow hover:shadow-md transition p-6">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900 wrap-break-word hyphens-auto line-clamp-2">{quote.request.title}</h3>
+                                            <p className="text-sm text-gray-500 mt-1">{getServiceTypeLabel(quote.request.serviceType)} </p>
+                                        </div>
+                                        {getStatusBadge(quote.status)}
+                                    </div>
 
-            {/* Paginación */}
-            {totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-4 mt-10">
-                    <button
-                        onClick={() => setFilters(f => ({ ...f, page: Math.max(f.page - 1, 1) }))}
-                        disabled={filters.page === 1}
-                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50"
-                    >
-                        <FiChevronLeft />
-                    </button>
-                    <span className="text-sm font-medium">Página {filters.page} de {totalPages}</span>
-                    <button
-                        onClick={() => setFilters(f => ({ ...f, page: Math.min(f.page + 1, totalPages) }))}
-                        disabled={filters.page === totalPages}
-                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50"
-                    >
-                        <FiChevronRight />
-                    </button>
-                </div>
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{quote.description}</p>
+
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex items-center text-gray-700">
+                                            <FiDollarSign className="mr-2 text-gray-400" />
+                                            <span>Precio: {quote.amount.toLocaleString()}</span>
+                                        </div>
+                                        {quote.deadline && (
+                                            <div className="flex items-center text-gray-600">
+                                                <FiCalendar className="mr-2 text-gray-400" />
+                                                <span>Entrega: {formatDate(quote.deadline)}</span>
+                                            </div>
+                                        )}
+                                        {quote.validUntil && (
+                                            <div className="flex items-center text-gray-600">
+                                                <FiClock className="mr-2 text-gray-400" />
+                                                <span>Válido hasta: {formatDate(quote.validUntil)}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="mt-4 pt-4 border-t border-gray-100">
+                                        <Link
+                                            href={`/dashboard/quotes/${quote._id}`}
+                                            className="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                        >
+                                            <FiEye className="mr-2" />
+                                            Ver detalles
+                                        </Link>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Paginación */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center items-center space-x-4 mt-10">
+                            <button
+                                onClick={() => setFilters(f => ({ ...f, page: Math.max(f.page - 1, 1) }))}
+                                disabled={filters.page === 1}
+                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50"
+                            >
+                                <FiChevronLeft />
+                            </button>
+                            <span className="text-sm font-medium">Página {filters.page} de {totalPages}</span>
+                            <button
+                                onClick={() => setFilters(f => ({ ...f, page: Math.min(f.page + 1, totalPages) }))}
+                                disabled={filters.page === totalPages}
+                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50"
+                            >
+                                <FiChevronRight />
+                            </button>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );
+
 }
