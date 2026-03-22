@@ -13,6 +13,7 @@ import {
     FiPaperclip, FiExternalLink, FiTag,
     FiFileText
 } from 'react-icons/fi';
+import Link from 'next/dist/client/link';
 
 interface Request {
     _id: string;
@@ -509,16 +510,12 @@ export default function RequestDetailPage() {
                                 Ver Archivos
                             </button>
 
-                            <button
-                                onClick={() => {
-                                    // Aquí se implementaría la función de contacto
-                                    alert('Función de contacto por implementar');
-                                }}
+                            <Link
+                                href="/contact"
                                 className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
                             >
-                                <FiMessageSquare className="mr-2" />
-                                Contactar Soporte
-                            </button>
+                                <FiMessageSquare className="mr-2" /> Contactar Soporte
+                            </Link>
 
                         </div>
                     </div>

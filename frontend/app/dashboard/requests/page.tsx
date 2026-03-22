@@ -198,12 +198,6 @@ export default function RequestsPage() {
                                 <p className="text-gray-500 mb-6">
                                     No hallamos solicitudes que coincidan con los criterios de búsqueda o el filtro actual.
                                 </p>
-                                <button
-                                    onClick={() => { setFilters({ ...filters, search: '' }); setStatusFilter('all'); }}
-                                    className="text-blue-600 font-medium hover:underline"
-                                >
-                                    Limpiar filtros
-                                </button>
                             </div>
                         ) : (
                             // Caso B: La cuenta está totalmente vacía (sin filtros aplicados)
@@ -254,7 +248,7 @@ export default function RequestsPage() {
                                                     <FiDollarSign className="mr-2" />
                                                     <span>
                                                         {req.budget && req.budget > 0
-                                                            ? `Presupuesto: $${req.budget.toLocaleString()}`
+                                                            ? `Presupuesto: ${req.budget.toLocaleString()}`
                                                             : 'Presupuesto por definir'}
                                                     </span>
                                                 </div>

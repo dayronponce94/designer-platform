@@ -188,13 +188,15 @@ export default function DesignerPortfolioPage() {
                             : 'Agrega tus mejores trabajos para atraer más clientes y mostrar tu experiencia.'
                         }
                     </p>
-                    <button
-                        onClick={() => router.push('/dashboard/designer/portfolio/upload')}
-                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                        <FiPlus className="inline mr-2" />
-                        Agregar primer trabajo
-                    </button>
+                    {(!searchTerm && selectedCategory === 'all') && (
+                        <button
+                            onClick={() => router.push('/dashboard/designer/portfolio/upload')}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        >
+                            <FiPlus className="inline mr-2" />
+                            Agregar primer trabajo
+                        </button>
+                    )}
                 </div>
             ) : viewMode === 'grid' ? (
                 // Vista Grid
