@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 import Alert from '@/components/ui/Alert';
-import ConfirmModal from '@/components/modals/ConfirmModal';
 import {
     FiArrowLeft, FiClock, FiCheckCircle, FiAlertCircle,
     FiBriefcase, FiDollarSign, FiUser, FiCalendar,
     FiFile, FiMessageSquare, FiEdit, FiDownload,
-    FiTrash2, FiMail, FiPhone, FiGlobe, FiEye,
+    FiPhone, FiGlobe, FiEye,
     FiPaperclip, FiExternalLink, FiTag,
     FiFileText, FiUpload
 } from 'react-icons/fi';
+import Link from 'next/dist/client/link';
 
 interface Project {
     _id: string;
@@ -80,8 +80,7 @@ export default function ProjectDetailPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState<'overview' | 'files' | 'timeline'>('overview');
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [deleteLoading, setDeleteLoading] = useState(false);
+
 
     const projectId = params.id as string;
 
@@ -209,34 +208,6 @@ export default function ProjectDetailPage() {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     };
 
-    const handleDeleteClick = () => {
-        setDeleteModalOpen(true);
-    };
-
-    const handleDeleteConfirm = async () => {
-        setDeleteLoading(true);
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`/api/projects/${projectId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Error al eliminar proyecto');
-            }
-
-            router.push(user?.role === 'admin' ? '/dashboard/admin/projects' : '/dashboard/projects');
-        } catch (err: any) {
-            setError(err.message || 'Error al eliminar proyecto');
-        } finally {
-            setDeleteLoading(false);
-            setDeleteModalOpen(false);
-        }
-    };
-
     if (isLoading) return <div className="p-8 text-center">Cargando detalles del proyecto...</div>;
 
     if (!project) {
@@ -337,17 +308,6 @@ export default function ProjectDetailPage() {
                             <FiFile className="mr-2" />
                             Imprimir
                         </button>
-
-                        {/* Botón Eliminar: Solo Admin o Cliente si está solicitado */}
-                        {((user?.role === 'client' && project.status === 'requested') || user?.role === 'admin') && (
-                            <button
-                                onClick={handleDeleteClick}
-                                className="flex items-center px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition"
-                            >
-                                <FiTrash2 className="mr-2" />
-                                Eliminar
-                            </button>
-                        )}
                     </div>
                 </div>
             </div>
@@ -558,35 +518,27 @@ export default function ProjectDetailPage() {
                             {/* Presupuesto: Solo visible para Admin o Cliente */}
                             {(user?.role === 'admin' || user?.role === 'client') && (
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Presupuesto</p>
+                                    <p className="text-sm text-gray-500 mb-1">Costo</p>
                                     <p className="font-medium flex items-center">
                                         <FiDollarSign className="mr-2 text-gray-400" />
-                                        {project.budget && project.budget > 0
-                                            ? `$${project.budget.toLocaleString()}`
-                                            : 'Por definir'}
+                                        {project.clientView?.budget && project.clientView.budget > 0
+                                            ? `${project.clientView.budget.toLocaleString()}`
+                                            : 'Costo por definir'}
                                     </p>
                                 </div>
                             )}
 
                             {/* Si es diseñador, mostramos sus ganancias netas en lugar del presupuesto total */}
-                            {isDesigner ? (
+                            {isDesigner && (
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Ganancias Netas</p>
                                     <p className="font-medium flex items-center">
                                         <FiDollarSign className="mr-2" />
-                                        {project.designerView?.earnings ? `${project.designerView.earnings.toLocaleString()}` : 'No asignado'}
+                                        {project.designerView?.earnings
+                                            ? `${project.designerView.earnings.toLocaleString()}`
+                                            : 'No asignado'}
                                     </p>
                                 </div>
-                            ) : (
-                                (user?.role === 'admin' || user?.role === 'client') && (
-                                    <div>
-                                        <p className="text-sm text-gray-500 mb-1">Presupuesto</p>
-                                        <p className="font-medium flex items-center">
-                                            <FiDollarSign className="mr-2 text-gray-400" />
-                                            {project.budget ? `$${project.budget.toLocaleString()}` : 'Por definir'}
-                                        </p>
-                                    </div>
-                                )
                             )}
 
                             {displayDeadline && (
@@ -596,7 +548,6 @@ export default function ProjectDetailPage() {
                                     </p>
                                     <p className="font-medium flex items-center">
                                         <FiCalendar className="mr-2 text-gray-400" />
-                                        {/* Usamos displayDeadline que ya tiene el valor correcto */}
                                         {formatDate(displayDeadline)}
                                     </p>
                                 </div>
@@ -698,45 +649,37 @@ export default function ProjectDetailPage() {
                                 Ver Archivos
                             </button>
 
-                            {/* Acción Cliente: Aprobar Cotización */}
+                            {/* Acción Cliente: Aprobar Cotización 
                             {user?.role === 'client' && project.status === 'quoted' && (
                                 <button className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
                                     <FiCheckCircle className="mr-2" /> Aprobar Cotización
                                 </button>
-                            )}
+                            )}*/}
 
-                            {/* Acción Diseñador: Subir Entrega */}
+                            {/* Acción Diseñador: Subir Entrega 
                             {user?.role === 'designer' && project.status === 'in-progress' && (
                                 <button className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
                                     <FiUpload className="mr-2" /> Subir Entregable
                                 </button>
-                            )}
+                            )}*/}
 
-                            {/* Acción Admin: Gestionar Proyecto */}
+                            {/* Acción Admin: Gestionar Proyecto 
                             {user?.role === 'admin' && (
                                 <button className="w-full flex items-center justify-center px-4 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
                                     Cambiar Estado
                                 </button>
-                            )}
+                            )}*/}
 
-                            <button className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                            <Link
+                                href="/contact"
+                                className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                            >
                                 <FiMessageSquare className="mr-2" /> Contactar Soporte
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <ConfirmModal
-                isOpen={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
-                onConfirm={handleDeleteConfirm}
-                title="¿Eliminar proyecto?"
-                message="Esta acción no se puede deshacer. El proyecto y todos sus datos asociados serán eliminados permanentemente."
-                confirmText={deleteLoading ? "Eliminando..." : "Eliminar Proyecto"}
-                cancelText="Cancelar"
-                type="danger"
-            />
         </div>
     );
 }

@@ -14,6 +14,7 @@ import {
     FiSend,
     FiTrash2,
 } from 'react-icons/fi';
+import Link from 'next/dist/client/link';
 
 const SERVICE_TYPES = [
     { value: 'branding', label: 'Diseño de Marca' },
@@ -135,13 +136,13 @@ export default function NewRequestPage() {
     return (
         <div className="max-w-4xl mx-auto">
             <div className="mb-8">
-                <button
-                    onClick={() => router.back()}
+                <Link
+                    href="/dashboard/requests"
                     className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
                 >
                     <FiArrowLeft className="mr-2" />
                     Volver a Mis Solicitudes
-                </button>
+                </Link>
                 <h1 className="text-3xl font-bold text-gray-900">Nueva Solicitud</h1>
                 <p className="text-gray-600 mt-2">
                     Describe tu idea con detalle para que podamos ofrecerte la mejor cotización.
