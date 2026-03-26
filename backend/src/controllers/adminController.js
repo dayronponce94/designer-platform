@@ -734,25 +734,39 @@ const getAllDesignerQuotes = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/requests
 // @access  Private/Admin
 const getAllRequests = asyncHandler(async (req, res) => {
-    const { status, serviceType, fromDate, toDate } = req.query;
+    const { status, serviceType, search, page = 1, limit = 20 } = req.query;
     let query = {};
 
+    // Filtros exactos
     if (status) query.status = status;
     if (serviceType) query.serviceType = serviceType;
-    if (fromDate || toDate) {
-        query.createdAt = {};
-        if (fromDate) query.createdAt.$gte = new Date(fromDate);
-        if (toDate) query.createdAt.$lte = new Date(toDate);
+
+    // Lógica de búsqueda (Search)
+    if (search) {
+        query.$or = [
+            { title: { $regex: search, $options: 'i' } },
+            { 'client.name': { $regex: search, $options: 'i' } } // Nota: Esto requiere un aggregate si el populate no es suficiente, pero por ahora busquemos en el título.
+        ];
     }
+
+    const skip = (page - 1) * limit;
 
     const requests = await Request.find(query)
         .populate('client', 'name email company phone')
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(Number(limit));
+
+    const total = await Request.countDocuments(query);
 
     res.status(200).json(
         ApiResponse.success('Solicitudes obtenidas', {
             requests,
-            count: requests.length
+            pagination: {
+                total,
+                page: Number(page),
+                pages: Math.ceil(total / limit)
+            }
         }).toJSON()
     );
 });

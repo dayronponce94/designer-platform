@@ -4,14 +4,10 @@ import { useState, useEffect } from 'react';
 import { useAdmin } from '@/app/lib/hooks/useAdmin';
 import {
     FiFileText,
-    FiFilter,
     FiSearch,
-    FiCheck,
     FiX,
     FiEye,
-    FiDollarSign,
     FiClock,
-    FiCheckCircle,
     FiXCircle,
     FiClipboard,
 } from 'react-icons/fi';
@@ -45,23 +41,38 @@ export default function AdminRequestsPage() {
 
     useEffect(() => {
         fetchRequests();
-    }, []);
+    }, [filters.status, filters.serviceType, filters.page, filters.search]);
+    // Se dispara cuando cualquiera de estos cambie
 
     const fetchRequests = async () => {
+        setIsLoading(true); // Mostrar loader al filtrar
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch('/api/admin/requests', {
+
+            // Construir los parámetros de la URL
+            const queryParams = new URLSearchParams();
+            if (filters.status) queryParams.append('status', filters.status);
+            if (filters.serviceType) queryParams.append('serviceType', filters.serviceType);
+            if (filters.search) queryParams.append('search', filters.search);
+            queryParams.append('page', filters.page.toString());
+            queryParams.append('limit', filters.limit.toString());
+
+            const response = await fetch(`/api/admin/requests?${queryParams.toString()}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
             const data = await response.json();
-            setRequests(data.data.requests || []);
+
+            if (data.success) {
+                setRequests(data.data.requests || []);
+                setPagination(data.data.pagination || {});
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
             setIsLoading(false);
         }
     };
-
     const handleUpdateStatus = async (requestId: string, status: string) => {
         try {
             await adminAPI.updateRequestStatus(requestId, status);
@@ -241,7 +252,7 @@ export default function AdminRequestsPage() {
                                         Presupuesto (cliente)
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Fecha
+                                        Fecha de creación
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Acciones
