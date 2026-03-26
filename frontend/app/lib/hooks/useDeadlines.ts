@@ -18,6 +18,7 @@ export interface DeadlineStats {
 }
 
 export function useDeadlines(filters?: { timeframe?: string; status?: string }) {
+    const { timeframe, status } = filters || {};
     const [projects, setProjects] = useState<DeadlineProject[]>([]);
     const [stats, setStats] = useState<DeadlineStats | null>(null);
     const [loading, setLoading] = useState(true);
@@ -27,10 +28,10 @@ export function useDeadlines(filters?: { timeframe?: string; status?: string }) 
         try {
             setLoading(true);
             const params: any = {};
-            if (filters?.timeframe) params.timeframe = filters.timeframe;
-            if (filters?.status) params.status = filters.status;
+            if (timeframe) params.timeframe = timeframe;
+            if (status) params.status = status;
 
-            const response = await projectAPI.getDesignerDeadlines(params);
+            const response = await projectAPI.getDesignerDeadlines({ params });
 
             // Procesar proyectos para agregar metadatos de plazos
             const rawProjects: any[] = response.data.data.projects || [];
@@ -87,7 +88,7 @@ export function useDeadlines(filters?: { timeframe?: string; status?: string }) 
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, [timeframe, status]);
 
     useEffect(() => {
         fetchDeadlines();

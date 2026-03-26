@@ -128,11 +128,15 @@ export default function DesignerDeliverablesPage() {
 
     const getStatusBadge = (status: string) => {
         const config: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
-            approved: { color: 'bg-green-100 text-green-800', icon: <FiCheckCircle />, text: 'Aprobado' },
+            approved: { color: 'bg-green-100 text-blue-800', icon: <FiCheckCircle />, text: 'Aprobado' },
             'in-progress': { color: 'bg-yellow-100 text-yellow-800', icon: <FiClock />, text: 'En progreso' },
             review: { color: 'bg-purple-100 text-purple-800', icon: <FiEye />, text: 'En revisión' },
+            completed: { color: 'bg-blue-100 text-green-800', icon: <FiCheckCircle />, text: 'Completado' },
         };
-        const c = config[status] || config['in-progress'];
+
+        // Si el status no existe en config, usamos un estilo gris por defecto en lugar de mentir diciendo "En progreso"
+        const c = config[status] || { color: 'bg-gray-100 text-gray-800', icon: <FiPackage />, text: status };
+
         return (
             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${c.color}`}>
                 {c.icon}
@@ -194,6 +198,7 @@ export default function DesignerDeliverablesPage() {
                             <option value="approved">Aprobados</option>
                             <option value="in-progress">En progreso</option>
                             <option value="review">En revisión</option>
+                            <option value="completed">Completados</option>
                         </select>
                     </div>
                 </div>

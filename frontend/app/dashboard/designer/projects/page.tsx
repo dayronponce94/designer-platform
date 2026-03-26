@@ -58,7 +58,7 @@ export default function DesignerProjectsPage() {
     const [projects, setProjects] = useState<ProjectWithDeliverables[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [filter, setFilter] = useState<string>('active');
+    const [filter, setFilter] = useState<string>('all');
 
     useEffect(() => {
         fetchProjects();
@@ -80,8 +80,6 @@ export default function DesignerProjectsPage() {
                 return;
             }
 
-            // 3. Ya no necesitas filtrar por user._id porque el Backend 
-            // ya te devuelve SOLO los proyectos de ese diseñador.
             let filteredProjects = projectsArray;
 
             // 4. Filtro por estado de la UI
@@ -255,9 +253,9 @@ export default function DesignerProjectsPage() {
                         onChange={(e) => setFilter(e.target.value)}
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
+                        <option value="all">Todos los Proyectos</option>
                         <option value="active">Proyectos Activos</option>
                         <option value="completed">Completados</option>
-                        <option value="all">Todos los Proyectos</option>
                     </select>
                 </div>
             </div>

@@ -55,12 +55,14 @@ const getProjects = asyncHandler(async (req, res) => {
     }
 
     // 3. Filtro de Estado (Si el usuario selecciona uno)
-    if (status && status !== '') {
+    if (status && status !== '' && status !== 'all' && status !== 'active') {
+        // Si el frontend envía un estado real de DB (ej. 'completed'), filtramos por él
         query.status = status;
-    } else if (role === 'designer') {
-        // Si es diseñador y no hay filtro, mostramos solo los activos por defecto
+    } else if (role === 'designer' && status === 'active') {
+        // Solo filtramos si el frontend explícitamente pide 'active'
         query.status = { $in: ['approved', 'in-progress', 'review'] };
     }
+
 
     // 4. Filtro de Búsqueda (Search)
     if (search && search.trim() !== '') {
@@ -69,6 +71,7 @@ const getProjects = asyncHandler(async (req, res) => {
 
     // 5. Ejecutar consulta con paginación
     const projects = await Project.find(query)
+        .populate('designerQuote', 'description')
         .populate('client', 'name email company')
         .populate('designer', 'name email specialty')
         .sort({ createdAt: -1 })
@@ -78,7 +81,6 @@ const getProjects = asyncHandler(async (req, res) => {
     // 6. Contar total para la paginación del frontend
     const total = await Project.countDocuments(query);
 
-    // Tu mapeo de datos limpios se mantiene igual
     const formattedProjects = projects.map(proj => {
         const p = proj.toObject();
         return {
@@ -356,11 +358,20 @@ const getDesignerDeadlines = asyncHandler(async (req, res) => {
         return res.status(403).json(ApiResponse.forbidden('Acceso solo para diseñadores').toJSON());
     }
 
-    const projects = await Project.find({
-        designer: req.user.id,
-        status: { $nin: ['completed', 'cancelled'] }
-    })
-        // 1. Quitamos el .select() restrictivo para traer los campos de las vistas
+    // Capturamos el status si viene de la query (opcional, pero útil)
+    const { status } = req.query;
+
+    let query = { designer: req.user.id };
+
+    // Si NO viene un status específico, por defecto mostramos lo pendiente.
+    // Si viene 'all', no agregamos filtro de status (trae todo).
+    if (status === 'active') {
+        query.status = { $nin: ['completed', 'cancelled'] };
+    } else if (status && status !== 'all') {
+        query.status = status;
+    }
+
+    const projects = await Project.find(query)
         .populate('client', 'name company')
         .sort({ 'designerView.internalDeadline': 1 });
 

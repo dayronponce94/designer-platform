@@ -109,45 +109,50 @@ export default function DeliveriesPage() {
         return labels[type] || type;
     };
 
-    // Filtrar proyectos activos (no completados ni cancelados)
-    const activeProjects = projects.filter(project =>
+    // Proyectos visibles en esta página (Incluimos completados para que el cliente vea su historial reciente)
+    const visibleProjects = projects.filter(project =>
+        ['approved', 'in-progress', 'review', 'completed'].includes(project.status)
+    );
+
+    // Proyectos REALMENTE activos (Solo los que están en curso y tienen entregas pendientes)
+    // Excluimos 'completed' para que no ensucien los contadores de las tarjetas
+    const pendingProjects = projects.filter(project =>
         ['approved', 'in-progress', 'review'].includes(project.status)
     );
 
+    // Función auxiliar para extraer la fecha sin importar si es objeto $date o string
+    const getRawDeadline = (project: any) => {
+        // Prioridad a la fecha del cliente, que es la oficial para esta vista
+        const deadline = project.clientView?.deadline;
+        return deadline?.$date || deadline;
+    };
+
     // Proyectos con fecha de entrega
-    const projectsWithDeadline = activeProjects.filter(project =>
-        project.designerView?.internalDeadline?.$date || project.designerView?.internalDeadline
-    );
+    const projectsWithDeadline = visibleProjects.filter(project => getRawDeadline(project));
 
     // Ordenar por fecha de entrega (más cercana primero)
     const sortedProjects = [...projectsWithDeadline].sort((a, b) => {
-        const dateA = new Date(a.designerView?.internalDeadline?.$date || a.designerView?.internalDeadline || 0);
-        const dateB = new Date(b.designerView?.internalDeadline?.$date || b.designerView?.internalDeadline || 0);
+        const dateA = new Date(getRawDeadline(a) || 0);
+        const dateB = new Date(getRawDeadline(b) || 0);
         return dateA.getTime() - dateB.getTime();
     });
 
     // Proyectos vencidos
-    const overdueProjects = sortedProjects.filter(project => {
-        const daysLeft = getDaysLeft(project.designerView?.internalDeadline?.$date || project.designerView?.internalDeadline);
-        return daysLeft !== null && daysLeft < 0;
+    const overdueProjects = projectsWithDeadline.filter(project => {
+        const daysLeft = getDaysLeft(getRawDeadline(project));
+        // Solo es "vencido" si no está completado
+        return project.status !== 'completed' && daysLeft !== null && daysLeft < 0;
     });
 
     // Próximas entregas (próximos 7 días)
-    const upcomingProjects = sortedProjects.filter(project => {
-        const daysLeft = getDaysLeft(project.designerView?.internalDeadline?.$date || project.designerView?.internalDeadline);
-        return daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
-    });
-
-    // Otros proyectos (más de 7 días)
-    const otherProjects = sortedProjects.filter(project => {
-        const daysLeft = getDaysLeft(project.designerView?.internalDeadline?.$date || project.designerView?.internalDeadline);
-        return daysLeft !== null && daysLeft > 7;
+    const upcomingProjects = projectsWithDeadline.filter(project => {
+        const daysLeft = getDaysLeft(getRawDeadline(project));
+        // Solo es "próximo" si no está completado
+        return project.status !== 'completed' && daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
     });
 
     // Proyectos sin fecha de entrega
-    const projectsWithoutDeadline = activeProjects.filter(project =>
-        !project.designerView?.internalDeadline?.$date && !project.designerView?.internalDeadline
-    );
+    const projectsWithoutDeadline = pendingProjects.filter(project => !getRawDeadline(project));
 
     const getFilteredProjects = () => {
         switch (filter) {
@@ -225,7 +230,8 @@ export default function DeliveriesPage() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Proyectos Activos</p>
-                            <p className="text-2xl font-bold text-gray-900">{activeProjects.length}</p>
+                            {/* Usamos pendingProjects.length en lugar de activeProjects */}
+                            <p className="text-2xl font-bold text-gray-900">{pendingProjects.length}</p>
                         </div>
                     </div>
                 </div>
@@ -338,24 +344,25 @@ export default function DeliveriesPage() {
 
                                                         <div className="text-right">
                                                             {currentDeadline && (
-                                                                <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${isOverdue
-                                                                    ? 'bg-red-100 text-red-800'
-                                                                    : isToday
-                                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                                        : isUpcoming
-                                                                            ? 'bg-orange-100 text-orange-800'
-                                                                            : 'bg-green-100 text-green-800'
-                                                                    }`}>
-                                                                    {isOverdue && <FiAlertCircle className="mr-1 w-4 h-4" />}
-                                                                    {formatShortDate(currentDeadline)}
-                                                                </div>
+                                                                project.status === 'completed' ? (
+                                                                    /* Mensaje para proyectos terminados */
+                                                                    <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 whitespace-nowrap">
+                                                                        <FiCheckCircle className="shrink-0 w-4 h-4 mr-2" />
+                                                                        <span>Listo para descargar</span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${isOverdue ? 'bg-red-100 text-red-800'
+                                                                        : isToday ? 'bg-yellow-100 text-yellow-800'
+                                                                            : isUpcoming ? 'bg-orange-100 text-orange-800'
+                                                                                : 'bg-green-100 text-green-800'
+                                                                        }`}>
+                                                                        {isOverdue && <FiAlertCircle className="mr-1 w-4 h-4" />}
+                                                                        {formatShortDate(currentDeadline)}
+                                                                    </div>
+                                                                )
                                                             )}
                                                         </div>
                                                     </div>
-
-                                                    <p className="text-gray-600 mb-4 line-clamp-2">
-                                                        {project.description}
-                                                    </p>
 
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center space-x-4">
@@ -369,18 +376,20 @@ export default function DeliveriesPage() {
                                                             )}
 
                                                             {daysLeft !== null && (
-                                                                <div className={`text-sm font-medium ${isOverdue
-                                                                    ? 'text-red-600'
-                                                                    : isToday
-                                                                        ? 'text-yellow-600'
-                                                                        : 'text-green-600'
+                                                                <div className={`text-sm font-medium ${project.status === 'completed' ? 'text-green-600' // Siempre verde si está completado
+                                                                    : isOverdue ? 'text-red-600'
+                                                                        : isToday ? 'text-yellow-600'
+                                                                            : 'text-green-600'
                                                                     }`}>
-                                                                    {isOverdue
-                                                                        ? `Vencido hace ${Math.abs(daysLeft)} ${Math.abs(daysLeft) === 1 ? 'día' : 'días'}`
-                                                                        : isToday
-                                                                            ? 'Vence hoy'
-                                                                            : `Faltan ${daysLeft} ${daysLeft === 1 ? 'día' : 'días'}`
-                                                                    }
+                                                                    {project.status === 'completed' ? (
+                                                                        "Proyecto finalizado con éxito"
+                                                                    ) : isOverdue ? (
+                                                                        `Vencido hace ${Math.abs(daysLeft)} ${Math.abs(daysLeft) === 1 ? 'día' : 'días'}`
+                                                                    ) : isToday ? (
+                                                                        'Vence hoy'
+                                                                    ) : (
+                                                                        `Faltan ${daysLeft} ${daysLeft === 1 ? 'día' : 'días'}`
+                                                                    )}
                                                                 </div>
                                                             )}
                                                         </div>

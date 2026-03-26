@@ -53,29 +53,39 @@ export default function DesignerDeadlinesPage() {
 
     // 4. Finalmente, procesamos los proyectos que el Hook nos devolvió
     const filteredProjects = useMemo(() => {
-        // Si projects aún no llega, devolvemos array vacío
-        if (!projects) return [];
-
         return projects.filter((project: any) => {
             const p = project as LocalProject;
 
-            // Lógica de Filtro de Tiempo
-            let matchesTimeframe = true;
-            if (timeframeFilter === 'today') matchesTimeframe = p.daysUntilDeadline === 0;
-            else if (timeframeFilter === 'week') matchesTimeframe = !!(p.daysUntilDeadline !== undefined && p.daysUntilDeadline <= 7 && p.daysUntilDeadline >= 0);
-            else if (timeframeFilter === 'month') matchesTimeframe = !!(p.daysUntilDeadline !== undefined && p.daysUntilDeadline <= 30);
-            else if (timeframeFilter === 'overdue') matchesTimeframe = p.isOverdue === true;
+            // En page.tsx, dentro del filter de filteredProjects:
 
-            // Lógica de Filtro de Estado
-            let matchesStatus = true;
-            if (statusFilter !== 'all') {
-                if (statusFilter === 'active') {
-                    // "Activos" suelen ser los que están aprobados pero no terminados aún
-                    matchesStatus = ['approved', 'in-progress', 'review'].includes(p.status);
-                } else {
-                    matchesStatus = p.status === statusFilter;
-                }
+            // Lógica de Filtro de Tiempo corregida
+            let matchesTimeframe = true;
+
+            if (timeframeFilter === 'today') {
+                matchesTimeframe = p.daysUntilDeadline === 0;
+            } else if (timeframeFilter === 'week') {
+                // Definimos "Semana" como: venció hace hasta 7 días O vence en los próximos 7 días
+                // Esto asegura que tu proyecto de ayer ( -1 ) aparezca.
+                matchesTimeframe = !!(
+                    p.daysUntilDeadline !== undefined &&
+                    p.daysUntilDeadline >= -7 && // <--- Permitimos que haya vencido hace poco
+                    p.daysUntilDeadline <= 7
+                );
+            } else if (timeframeFilter === 'month') {
+                matchesTimeframe = !!(p.daysUntilDeadline !== undefined && p.daysUntilDeadline <= 30);
+            } else if (timeframeFilter === 'overdue') {
+                matchesTimeframe = p.isOverdue === true;
             }
+
+            let matchesStatus = true;
+            if (statusFilter === 'active') {
+                // Incluimos los estados de trabajo real
+                matchesStatus = ['approved', 'in-progress', 'review'].includes(p.status);
+            } else if (statusFilter !== 'all') {
+                // Si es 'completed', 'approved', etc., comparamos directo
+                matchesStatus = p.status === statusFilter;
+            }
+            // Si statusFilter es 'all', matchesStatus se queda en true.
 
             return matchesTimeframe && matchesStatus;
         });
@@ -115,7 +125,8 @@ export default function DesignerDeadlinesPage() {
 
     const getDaysText = (project: any) => {
         // Usamos 'deadline' que ya viene procesado por el hook (es el internalDeadline)
-        if (!project.deadline || project.status === 'completed') return '';
+        if (project.status === 'completed') return 'Entrega finalizada';
+        if (!project.deadline) return '';
 
         const deadline = new Date(project.deadline);
         const now = new Date();
@@ -261,12 +272,6 @@ export default function DesignerDeadlinesPage() {
                                 <p className="text-gray-600 mb-6 max-w-md mx-auto">
                                     No encontramos proyectos que coincidan con los criterios seleccionados. Prueba cambiando el período o el estado.
                                 </p>
-                                <button
-                                    onClick={() => { setStatusFilter('all'); setTimeframeFilter('all'); }}
-                                    className="text-blue-600 font-bold hover:underline"
-                                >
-                                    Limpiar todos los filtros
-                                </button>
                             </>
                         ) : (
                             <>
@@ -307,11 +312,15 @@ export default function DesignerDeadlinesPage() {
                                                         </span>
 
                                                         {/* Estado real del proyecto (workflow) */}
-                                                        <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm">
-                                                            {p.status === 'in-progress' ? 'En Progreso' :
-                                                                p.status === 'review' ? 'En Revisión' :
-                                                                    p.status === 'approved' ? 'Aprobado' : p.status}
-                                                        </span>
+                                                        {p.status !== 'completed' && (
+                                                            <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 bg-white border border-gray-200 px-3 py-1 rounded-full shadow-sm">
+                                                                {p.status === 'in-progress' ? 'En Progreso' :
+                                                                    p.status === 'review' ? 'En Revisión' :
+                                                                        p.status === 'approved' ? 'Aprobado' :
+                                                                            p.status === 'cancelled' ? 'Cancelado' :
+                                                                                p.status}
+                                                            </span>
+                                                        )}
 
                                                         {/* Tipo de Servicio */}
                                                         <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">

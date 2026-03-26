@@ -16,7 +16,8 @@ import {
     FiFilter,
     FiChevronLeft,
     FiChevronRight,
-    FiDollarSign
+    FiDollarSign,
+    FiCalendar
 } from 'react-icons/fi';
 
 interface Project {
@@ -29,6 +30,10 @@ interface Project {
     budget: number;
     deadline: string;
     createdAt: string;
+    designerQuote?: {
+        _id: string;
+        description: string; // Esta es la descripción de Quote.js que queremos
+    };
     client: {
         _id: string;
         name: string;
@@ -47,13 +52,16 @@ export default function ProjectsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
 
+
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
         page: 1,
-        limit: 6 // Ajusta el límite según prefieras
+        limit: 6
     });
     const [totalPages, setTotalPages] = useState(1);
+
+
 
     // 2. useEffect escucha cambios en el objeto filters
     useEffect(() => {
@@ -94,7 +102,7 @@ export default function ProjectsPage() {
 
     const getStatusBadge = (status: string) => {
         const statusConfig: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
-            'approved': { color: 'bg-green-100 text-green-800', icon: <FiCheckCircle />, text: 'Aprobado' },
+            'approved': { color: 'bg-blue-100 text-blue-800', icon: <FiCheckCircle />, text: 'Aprobado' },
             'in-progress': { color: 'bg-purple-100 text-purple-800', icon: <FiBriefcase />, text: 'En Progreso' },
             'review': { color: 'bg-orange-100 text-orange-800', icon: <FiEye />, text: 'En Revisión' },
             'completed': { color: 'bg-green-100 text-green-800', icon: <FiCheckCircle />, text: 'Completado' },
@@ -192,7 +200,7 @@ export default function ProjectsPage() {
                     {projects.length === 0 ? (
                         <div className="bg-white rounded-xl shadow p-12 text-center">
                             <FiBriefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes proyectos aún</h3>
+                            <h3 className="text-xl font-semibold text-gray-900 mb-2">No tienes proyectos con el filtro seleccionado</h3>
                             <p className="text-gray-600 mb-6 max-w-md mx-auto">
                                 Comienza solicitando tu primer proyecto de diseño. Nuestro equipo estará encantado de ayudarte a convertir tus ideas en realidad.
                             </p>
@@ -213,14 +221,14 @@ export default function ProjectsPage() {
                                         </div>
 
                                         <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                                            {project.clientView?.description || 'Sin descripción'}
+                                            {project.designerQuote?.description || 'Sin descripción'}
                                         </p>
                                         <div className="space-y-3 text-sm text-gray-500 mb-6">
                                             <div className="flex items-center">
                                                 <FiDollarSign className="mr-2" />
                                                 <span>
                                                     {project.clientView?.budget && project.clientView.budget > 0
-                                                        ? `Costo: $${project.clientView.budget.toLocaleString()}`
+                                                        ? `Costo: ${project.clientView.budget.toLocaleString()}`
                                                         : 'Presupuesto por definir'}
                                                 </span>
                                             </div>
@@ -230,7 +238,7 @@ export default function ProjectsPage() {
                                             </div>
                                             {project.clientView?.deadline && (
                                                 <div className="flex items-center">
-                                                    <FiClock className="mr-2" />
+                                                    <FiCalendar className="mr-2" />
                                                     <span>Entrega: {formatDate(project.clientView.deadline)}</span>
                                                 </div>
                                             )}

@@ -204,6 +204,14 @@ export default function RequestDetailPage() {
         }
     };
 
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-64">
+                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            </div>
+        );
+    }
+
     if (!request) {
         return (
             <div className="text-center py-12">
