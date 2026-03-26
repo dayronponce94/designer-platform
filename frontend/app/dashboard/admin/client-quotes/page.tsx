@@ -229,7 +229,7 @@ export default function AdminClientQuotesPage() {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex space-x-2">
                                                 <Link
-                                                    href={`/dashboard/admin/client-quotes/${quote._id}`}
+                                                    href={`/dashboard/quotes/${quote._id}`}
                                                     className="text-blue-600 hover:text-blue-900"
                                                     title="Ver detalles"
                                                 >

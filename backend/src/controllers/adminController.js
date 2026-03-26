@@ -604,9 +604,24 @@ const createQuote = asyncHandler(async (req, res) => {
 // @desc    Obtener todas las cotizaciones de clientes
 // @route   GET /api/admin/quotes
 const getAllQuotes = asyncHandler(async (req, res) => {
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status, search, page = 1, limit = 20 } = req.query;
     const query = {};
+
+    // Filtro por estado
     if (status) query.status = status;
+
+    // Filtro por búsqueda (Proyecto o Cliente)
+    if (search) {
+        // Buscamos solicitudes (Request) que coincidan con el título
+        const matchingRequests = await mongoose.model('Request').find({
+            title: { $regex: search, $options: 'i' }
+        }).select('_id');
+
+        const requestIds = matchingRequests.map(r => r._id);
+
+        // Filtramos las cotizaciones que pertenezcan a esas solicitudes
+        query.request = { $in: requestIds };
+    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
