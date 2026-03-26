@@ -60,17 +60,17 @@ export default function AdminDashboardPage() {
     };
 
     const ROLE_CONFIG: Record<string, { label: string, classes: string }> = {
-        admin: { label: 'Administrador', classes: 'bg-indigo-100 text-indigo-800' },
+        admin: { label: 'Administrador', classes: 'bg-green-100 text-green-800' },
         designer: { label: 'Diseñador', classes: 'bg-purple-100 text-purple-800' },
         client: { label: 'Cliente', classes: 'bg-blue-100 text-blue-800' }
     };
 
     const STATUS_CONFIG: Record<string, { label: string, classes: string }> = {
         requested: { label: 'Solicitado', classes: 'bg-gray-100 text-gray-800' },
-        quoted: { label: 'Cotizado', classes: 'bg-orange-100 text-orange-800' },
-        approved: { label: 'Aprobado', classes: 'bg-cyan-100 text-cyan-800' },
-        'in-progress': { label: 'En Progreso', classes: 'bg-yellow-100 text-yellow-800' },
-        review: { label: 'En Revisión', classes: 'bg-magenta-100 text-magenta-800' },
+        quoted: { label: 'Cotizado', classes: 'bg-yellow-100 text-yellow-800' },
+        approved: { label: 'Aprobado', classes: 'bg-blue-100 text-blue-800' },
+        'in-progress': { label: 'En Progreso', classes: 'bg-purple-100 text-purple-800' },
+        review: { label: 'En Revisión', classes: 'bg-orange-100 text-orange-800' },
         completed: { label: 'Completado', classes: 'bg-green-100 text-green-800' },
         cancelled: { label: 'Cancelado', classes: 'bg-red-100 text-red-800' }
     };
@@ -287,7 +287,7 @@ export default function AdminDashboardPage() {
                                 {recentUsers.map((user) => (
                                     <div key={user._id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
                                         <div className="flex items-center">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-600' : user.role === 'designer' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${user.role === 'admin' ? 'bg-green-100 text-green-600' : user.role === 'designer' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
                                                 <FiUsers className="w-5 h-5" />
                                             </div>
                                             <div>
@@ -296,7 +296,7 @@ export default function AdminDashboardPage() {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-800' : user.role === 'designer' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${ROLE_CONFIG[user.role]?.classes || 'bg-gray-100 text-gray-800'}`}>
                                                 {ROLE_CONFIG[user.role]?.label || user.role}
                                             </span>
                                             <p className="text-xs text-gray-500 mt-1">{formatDate(user.createdAt)}</p>
@@ -333,7 +333,7 @@ export default function AdminDashboardPage() {
                                     <div key={project._id} className="p-3 hover:bg-gray-50 rounded-lg">
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="font-medium text-gray-900 truncate">{project.title}</h3>
-                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${project.status === 'completed' ? 'bg-green-100 text-green-800' : project.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}`}>
+                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${STATUS_CONFIG[project.status]?.classes || 'bg-gray-100 text-gray-800'}`}>
                                                 {STATUS_CONFIG[project.status]?.label || project.status}
                                             </span>
                                         </div>
@@ -344,7 +344,11 @@ export default function AdminDashboardPage() {
                                             </div>
                                             <div className="flex items-center">
                                                 <FiDollarSign className="w-3 h-3 mr-1" />
-                                                <span>{formatCurrency(project.budget || 0)}</span>
+                                                <span>
+                                                    {formatCurrency(
+                                                        (project.clientView?.budget || 0) - (project.designerView?.earnings || 0)
+                                                    )}
+                                                </span>
                                             </div>
                                             <span>{formatDate(project.createdAt)}</span>
                                         </div>

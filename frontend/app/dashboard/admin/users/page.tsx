@@ -254,7 +254,7 @@ export default function AdminUsersPage() {
                                         <tr key={user._id} className="hover:bg-gray-50">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
-                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-600' : user.role === 'designer' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${user.role === 'admin' ? 'bg-green-100 text-green-600' : user.role === 'designer' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
                                                         <FiUsers className="w-5 h-5" />
                                                     </div>
                                                     <div>
@@ -264,7 +264,7 @@ export default function AdminUsersPage() {
                                                             <div className="text-xs text-gray-400">{user.company}</div>
                                                         )}
                                                         {isMainAdminUser && (
-                                                            <div className="text-xs text-indigo-600 font-medium">
+                                                            <div className="text-xs text-green-600 font-medium">
                                                                 Administrador Principal
                                                             </div>
                                                         )}
@@ -273,7 +273,7 @@ export default function AdminUsersPage() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <select
-                                                    className={`px-2 py-0.5 text-sm font-medium rounded-full border ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' : user.role === 'designer' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200'} ${isMainAdminUser ? 'cursor-not-allowed opacity-50' : ''}`}
+                                                    className={`px-2 py-0.5 text-sm font-medium rounded-full border ${user.role === 'admin' ? 'bg-green-100 text-green-800 border-green-200' : user.role === 'designer' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-blue-100 text-blue-800 border-blue-200'} ${isMainAdminUser ? 'cursor-not-allowed opacity-50' : ''}`}
                                                     value={user.role}
                                                     onChange={(e) => handleRoleChange(user._id, e.target.value)}
                                                     disabled={isMainAdminUser}
@@ -334,7 +334,7 @@ export default function AdminUsersPage() {
                                                 <div className="flex space-x-2">
                                                     {/* --- BOTONES EXISTENTES --- */}
                                                     <button
-                                                        className="text-green-600 hover:text-green-900 transition-colors"
+                                                        className="text-blue-600 hover:text-blue-900 transition-colors"
                                                         onClick={() => handleViewDetails(user._id)}
                                                         title="Ver detalles del usuario"
                                                     >
@@ -342,7 +342,7 @@ export default function AdminUsersPage() {
                                                     </button>
 
                                                     <button
-                                                        className="text-blue-600 hover:text-blue-900 transition-colors"
+                                                        className="text-green-600 hover:text-green-900 transition-colors"
                                                         onClick={() => handleEditUser(user._id)}
                                                         title="Editar usuario"
                                                     >

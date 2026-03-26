@@ -12,6 +12,8 @@ import {
     FiEye,
     FiEdit,
     FiFileText,
+    FiCheckCircle,
+    FiAlertCircle,
 } from 'react-icons/fi';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -83,38 +85,23 @@ export default function AdminProjectsPage() {
         return format(new Date(dateString), 'dd/MM/yyyy', { locale: es });
     };
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'approved':
-                return 'bg-green-100 text-green-800';
-            case 'in-progress':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'review':
-                return 'bg-purple-100 text-purple-800';
-            case 'completed':
-                return 'bg-indigo-100 text-indigo-800';
-            case 'cancelled':
-                return 'bg-red-100 text-red-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
+    const getStatusBadge = (status: string) => {
+        const statusConfig: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
+            'approved': { color: 'bg-blue-100 text-blue-800', icon: <FiCheckCircle />, text: 'Aprobado' },
+            'in-progress': { color: 'bg-purple-100 text-purple-800', icon: <FiBriefcase />, text: 'En Progreso' },
+            'review': { color: 'bg-orange-100 text-orange-800', icon: <FiEye />, text: 'En Revisión' },
+            'completed': { color: 'bg-green-100 text-green-800', icon: <FiCheckCircle />, text: 'Completado' },
+            'cancelled': { color: 'bg-red-100 text-red-800', icon: <FiAlertCircle />, text: 'Cancelado' },
+        };
 
-    const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'approved':
-                return 'Aprobado';
-            case 'in-progress':
-                return 'En progreso';
-            case 'review':
-                return 'En revisión';
-            case 'completed':
-                return 'Completado';
-            case 'cancelled':
-                return 'Cancelado';
-            default:
-                return status;
-        }
+        const config = statusConfig[status] || { color: 'bg-gray-100 text-gray-800', icon: <FiAlertCircle />, text: status };
+
+        return (
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${config.color}`}>
+                {config.icon}
+                <span className="ml-1">{config.text}</span>
+            </span>
+        );
     };
 
     const getServiceTypeLabel = (type: string) => {
@@ -262,13 +249,7 @@ export default function AdminProjectsPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span
-                                                className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                                                    project.status
-                                                )}`}
-                                            >
-                                                {getStatusLabel(project.status)}
-                                            </span>
+                                            {getStatusBadge(project.status)}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="text-sm text-gray-900">

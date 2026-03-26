@@ -17,10 +17,7 @@ import {
     FiCalendar,
     FiDollarSign,
     FiUpload,
-    FiList,
-    FiUserCheck,
     FiPieChart,
-    FiUserPlus,
     FiClipboard
 } from 'react-icons/fi';
 import { useAuthContext } from '@/app/providers/AuthProvider';
@@ -56,7 +53,7 @@ export default function Sidebar() {
     const adminNavigation = [
         { name: 'Inicio', href: '/dashboard/admin', icon: FiHome },
         { name: 'Usuarios', href: '/dashboard/admin/users', icon: FiUsers },
-        { name: 'Solicitudes', href: '/dashboard/admin/requests', icon: FiFileText },
+        { name: 'Solicitudes', href: '/dashboard/admin/requests', icon: FiClipboard },
         { name: 'Cotizaciones / Clientes', href: '/dashboard/admin/client-quotes', icon: FiFileText },
         { name: 'Cotizaciones / Diseñadores', href: '/dashboard/admin/designer-quotes', icon: FiFileText },
         { name: 'Proyectos', href: '/dashboard/admin/projects', icon: FiBriefcase },

@@ -116,7 +116,7 @@ export default function RequestDetailPage() {
                 desc: 'Tu solicitud está pendiente de revisión. Pronto recibirás una cotización.'
             },
             'quoted': {
-                color: 'bg-blue-100 text-blue-800 border-blue-200',
+                color: 'bg-green-100 text-green-800 border-green-200',
                 icon: <FiFileText className="w-4 h-4" />,
                 label: 'Cotizado',
                 desc: 'Ya tienes una cotización disponible. Revisa los detalles y decide si deseas continuar.'

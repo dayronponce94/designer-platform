@@ -10,6 +10,10 @@ import {
     FiX,
     FiEye,
     FiDollarSign,
+    FiClock,
+    FiCheckCircle,
+    FiXCircle,
+    FiClipboard,
 } from 'react-icons/fi';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -102,30 +106,20 @@ export default function AdminRequestsPage() {
         return format(new Date(dateString), 'dd/MM/yyyy', { locale: es });
     };
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'requested':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'quoted':
-                return 'bg-blue-100 text-blue-800';
-            case 'cancelled':
-                return 'bg-red-100 text-red-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
-
     const getStatusLabel = (status: string) => {
-        switch (status) {
-            case 'requested':
-                return 'Solicitado';
-            case 'quoted':
-                return 'Cotizado';
-            case 'cancelled':
-                return 'Cancelado';
-            default:
-                return status;
-        }
+        const config: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
+            requested: { color: 'bg-yellow-100 text-yellow-800', icon: <FiClock />, text: 'Solicitado' },
+            quoted: { color: 'bg-green-100 text-green-800', icon: <FiFileText />, text: 'Cotizado' },
+            cancelled: { color: 'bg-red-100 text-red-800', icon: <FiXCircle />, text: 'Cancelado' },
+
+        };
+        const c = config[status] || config.pending;
+        return (
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${c.color}`}>
+                {c.icon}
+                <span className="ml-1">{c.text}</span>
+            </span>
+        );
     };
 
     const getServiceTypeLabel = (type: string) => {
@@ -148,7 +142,7 @@ export default function AdminRequestsPage() {
                 <div>
                     <div className="flex items-center space-x-3">
                         <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
-                            <FiFileText className="w-6 h-6" />
+                            <FiClipboard className="w-6 h-6" />
                         </div>
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -276,11 +270,7 @@ export default function AdminRequestsPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span
-                                                className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                                                    request.status
-                                                )}`}
-                                            >
+                                            <span>
                                                 {getStatusLabel(request.status)}
                                             </span>
                                         </td>

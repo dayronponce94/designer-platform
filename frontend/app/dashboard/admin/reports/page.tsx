@@ -77,6 +77,17 @@ export default function AdminReportsPage() {
         }
     };
 
+    const STATUS_CONFIG: Record<string, { label: string, classes: string }> = {
+        requested: { label: 'Solicitado', classes: 'bg-gray-100 text-gray-800' },
+        quoted: { label: 'Cotizado', classes: 'bg-yellow-100 text-yellow-800' },
+        approved: { label: 'Aprobado', classes: 'bg-blue-100 text-blue-800' },
+        'in-progress': { label: 'En Progreso', classes: 'bg-purple-100 text-purple-800' },
+        review: { label: 'En Revisión', classes: 'bg-orange-100 text-orange-800' },
+        completed: { label: 'Completado', classes: 'bg-green-100 text-green-800' },
+        cancelled: { label: 'Cancelado', classes: 'bg-red-100 text-red-800' }
+    };
+
+
     // Datos para gráficos
     const revenueData = reports?.projectsByMonth?.map((item: any) => ({
         name: `${getMonthName(item.month)} ${item.year}`,
@@ -323,8 +334,8 @@ export default function AdminReportsPage() {
                                     {reports.projectsByStatus.map((item: any, index: number) => (
                                         <tr key={index}>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(item.status)}`}>
-                                                    {getStatusLabel(item.status)}
+                                                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${STATUS_CONFIG[item.status]?.classes || 'bg-gray-100 text-gray-800'}`}>
+                                                    {STATUS_CONFIG[item.status]?.label || item.status}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -348,16 +359,3 @@ export default function AdminReportsPage() {
     );
 }
 
-// Función auxiliar para colores
-function getStatusColor(status: string) {
-    switch (status) {
-        case 'requested': return 'bg-gray-100 text-gray-800';
-        case 'quoted': return 'bg-blue-100 text-blue-800';
-        case 'approved': return 'bg-green-100 text-green-800';
-        case 'in-progress': return 'bg-yellow-100 text-yellow-800';
-        case 'review': return 'bg-purple-100 text-purple-800';
-        case 'completed': return 'bg-indigo-100 text-indigo-800';
-        case 'cancelled': return 'bg-red-100 text-red-800';
-        default: return 'bg-gray-100 text-gray-800';
-    }
-}
