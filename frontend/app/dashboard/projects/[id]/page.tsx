@@ -130,7 +130,7 @@ export default function ProjectDetailPage() {
                 desc: 'Se ha enviado una cotización al cliente.'
             },
             'approved': {
-                color: 'bg-green-100 text-green-800 border-green-200',
+                color: 'bg-blue-100 text-blue-800 border-blue-200',
                 icon: <FiCheckCircle className="w-4 h-4" />,
                 label: 'Aprobado',
                 desc: 'Proyecto aprobado. Listo para comenzar el trabajo de diseño.'
@@ -236,11 +236,8 @@ export default function ProjectDetailPage() {
     const designerFiles = project.designerView?.attachments || [];
     const allAttachments = [...clientFiles, ...designerFiles];
 
-    // 2. Descripción: Si es diseñador, mostramos su "Propuesta Estética" (designerView)
-    // Si no hay, o es admin/cliente, mostramos la del cliente.
-    const displayDescription = (isDesigner && project.designerView?.description)
-        ? project.designerView.description
-        : project.clientView?.description;
+    // 2. Descripción: Mostramos su "Propuesta Estética" (designerView)
+    const displayDescription = project.designerView?.description || 'Sin descripción';
 
     // Extraemos la fecha correcta dependiendo de si es diseñador o no
     const rawDeadline = isDesigner

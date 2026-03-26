@@ -19,7 +19,8 @@ import {
     FiChevronLeft,
     FiChevronRight,
     FiSearch,
-    FiClipboard
+    FiClipboard,
+    FiCalendar
 } from 'react-icons/fi';
 import { Request } from '@/app/types/request';
 
@@ -258,7 +259,7 @@ export default function RequestsPage() {
                                                 </div>
                                                 {req.deadline && (
                                                     <div className="flex items-center">
-                                                        <FiClock className="mr-2" />
+                                                        <FiCalendar className="mr-2" />
                                                         <span>Entrega deseada: {formatDate(req.deadline)}</span>
                                                     </div>
                                                 )}

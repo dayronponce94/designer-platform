@@ -127,8 +127,12 @@ const getProjectById = asyncHandler(async (req, res) => {
     let projectData = project.toObject();
 
     if (role === 'client') {
-        // El cliente no debe ver las ganancias netas del diseñador ni su fecha interna
-        delete projectData.designerView;
+        // El cliente no debe ver las ganancias netas del diseñador ni la fecha interna
+        if (projectData.designerView) {
+            delete projectData.designerView.earnings;
+            delete projectData.designerView.internalDeadline;
+        }
+
     } else if (role === 'designer') {
         // El diseñador no debe ver cuánto pagó el cliente a la plataforma
         delete projectData.clientView.budget;

@@ -127,14 +127,14 @@ export default function DesignerProjectsPage() {
             case 'in-progress':
                 return {
                     icon: FiClock,
-                    color: 'text-yellow-600 bg-yellow-100',
+                    color: 'text-purple-600 bg-purple-100',
                     label: 'En Progreso',
                     nextAction: 'Marcar para revisión'
                 };
             case 'review':
                 return {
                     icon: FiAlertCircle,
-                    color: 'text-purple-600 bg-purple-100',
+                    color: 'text-orange-600 bg-orange-100',
                     label: 'En Revisión',
                     nextAction: 'Esperando feedback'
                 };
@@ -371,18 +371,10 @@ export default function DesignerProjectsPage() {
                                                 <div className="flex items-center space-x-2">
                                                     <Link
                                                         href={`/dashboard/projects/${project._id}`}
-                                                        className="flex items-center px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                                                        className="flex items-center px-3 py-2 text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-lg"
                                                     >
                                                         <FiEye className="mr-1" />
                                                         Ver Detalles
-                                                    </Link>
-
-                                                    <Link
-                                                        href={`/dashboard/projects/${project._id}`}
-                                                        className="flex items-center px-3 py-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg"
-                                                    >
-                                                        <FiMessageSquare className="mr-1" />
-                                                        Mensajes
                                                     </Link>
                                                 </div>
                                             </div>
