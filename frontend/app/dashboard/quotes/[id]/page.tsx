@@ -46,6 +46,10 @@ export default function QuoteDetailPage() {
     const { user } = useAuthContext();
     const quoteId = params.id as string;
 
+    // Lógica de roles
+    const isAdmin = user?.role === 'admin';
+    const backPath = isAdmin ? '/dashboard/admin/client-quotes' : '/dashboard/quotes';
+
     const [quote, setQuote] = useState<Quote | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
@@ -182,7 +186,7 @@ export default function QuoteDetailPage() {
                 <FiFileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900">Cotización no encontrada</h3>
                 <button
-                    onClick={() => router.push('/dashboard/quotes')}
+                    onClick={() => router.push(backPath)}
                     className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
                     Volver a cotizaciones
@@ -194,7 +198,7 @@ export default function QuoteDetailPage() {
     return (
         <div>
             <button
-                onClick={() => router.push('/dashboard/quotes')}
+                onClick={() => router.push(backPath)}
                 className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
             >
                 <FiArrowLeft className="mr-2" />
@@ -281,7 +285,7 @@ export default function QuoteDetailPage() {
                     {/* Notas del cliente (si ya respondió) */}
                     {quote.clientNotes && (
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Tus notas</h3>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Notas del cliente</h3>
                             <div className="bg-green-50 p-4 rounded-lg text-green-700">
                                 {quote.clientNotes}
                             </div>
@@ -289,7 +293,7 @@ export default function QuoteDetailPage() {
                     )}
 
                     {/* Acciones para cotización pendiente */}
-                    {quote.status === 'pending' && (
+                    {!isAdmin && quote.status === 'pending' && (
                         <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
                             <button
                                 onClick={() => setShowAcceptModal(true)}
@@ -312,75 +316,88 @@ export default function QuoteDetailPage() {
                     {quote.status === 'accepted' && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-green-700">
                             <FiCheckCircle className="inline mr-2" />
-                            Aceptaste esta cotización el {formatDate(quote.acceptedAt)}. El proyecto pasará a estado "Aprobado".
+                            Cotización aceptada el {formatDate(quote.acceptedAt)}. El proyecto pasará a estado "Aprobado".
                         </div>
                     )}
                     {quote.status === 'rejected' && (
                         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
                             <FiXCircle className="inline mr-2" />
-                            Rechazaste esta cotización el {formatDate(quote.rejectedAt)}. El administrador puede generar una nueva.
+                            Cotización rechazada el {formatDate(quote.rejectedAt)}. El administrador puede generar una nueva.
                         </div>
                     )}
                 </div>
             </div>
 
+            {/* Si eres Admin, podrías mostrar algo informativo en lugar de acciones */}
+            {isAdmin && (
+                <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-2">Vista de Administrador</h3>
+                    <p className="text-blue-700 text-sm">
+                        Estás visualizando los detalles de una cotización enviada a un cliente. Como administrador, solo puedes supervisar el contenido y el estado de la misma.
+                    </p>
+                </div>
+            )}
             {/* Modal de confirmación para aceptar */}
-            <ConfirmModal
-                isOpen={showAcceptModal}
-                onClose={() => setShowAcceptModal(false)}
-                onConfirm={handleAccept}
-                title="Aceptar cotización"
-                message={
-                    <div>
-                        <p className="mb-4">¿Estás seguro de que deseas aceptar esta cotización? Esta acción no se puede deshacer.</p>
-                        <textarea
-                            value={clientNotes}
-                            onChange={(e) => setClientNotes(e.target.value)}
-                            placeholder="Puedes agregar notas o comentarios (opcional)"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            rows={3}
-                            maxLength={500}
-                        />
-                        <div className="flex justify-between items-center mt-2">
-                            <p className="text-xs text-gray-500">
-                                {clientNotes.length}/500 caracteres
-                            </p>
-                        </div>
-                    </div>
-                }
-                confirmText={actionLoading ? 'Aceptando...' : 'Sí, aceptar'}
-                cancelText="Cancelar"
-                type="success"
-            />
+            {!isAdmin && (
+                <>
+                    <ConfirmModal
+                        isOpen={showAcceptModal}
+                        onClose={() => setShowAcceptModal(false)}
+                        onConfirm={handleAccept}
+                        title="Aceptar cotización"
+                        message={
+                            <div>
+                                <p className="mb-4">¿Estás seguro de que deseas aceptar esta cotización? Esta acción no se puede deshacer.</p>
+                                <textarea
+                                    value={clientNotes}
+                                    onChange={(e) => setClientNotes(e.target.value)}
+                                    placeholder="Puedes agregar notas o comentarios (opcional)"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    rows={3}
+                                    maxLength={500}
+                                />
+                                <div className="flex justify-between items-center mt-2">
+                                    <p className="text-xs text-gray-500">
+                                        {clientNotes.length}/500 caracteres
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                        confirmText={actionLoading ? 'Aceptando...' : 'Sí, aceptar'}
+                        cancelText="Cancelar"
+                        type="success"
+                    />
 
-            {/* Modal de confirmación para rechazar */}
-            <ConfirmModal
-                isOpen={showRejectModal}
-                onClose={() => setShowRejectModal(false)}
-                onConfirm={handleReject}
-                title="Rechazar cotización"
-                message={
-                    <div>
-                        <p className="mb-4">¿Estás seguro de que deseas rechazar esta cotización? Puedes indicar el motivo.</p>
-                        <textarea
-                            value={clientNotes}
-                            onChange={(e) => setClientNotes(e.target.value)}
-                            placeholder="Motivo del rechazo (opcional)"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            rows={3}
-                            maxLength={500}
-                        />
-                        <div className="flex justify-between items-center mt-2">
-                            <p className="text-xs text-gray-500">
-                                {clientNotes.length}/500 caracteres
-                            </p>
-                        </div>
-                    </div>
-                }
-                confirmText={actionLoading ? 'Rechazando...' : 'Sí, rechazar'}
-                cancelText="Cancelar"
-                type="danger"
-            />
+                    {/* Modal de confirmación para rechazar */}
+                    <ConfirmModal
+                        isOpen={showRejectModal}
+                        onClose={() => setShowRejectModal(false)}
+                        onConfirm={handleReject}
+                        title="Rechazar cotización"
+                        message={
+                            <div>
+                                <p className="mb-4">¿Estás seguro de que deseas rechazar esta cotización? Puedes indicar el motivo.</p>
+                                <textarea
+                                    value={clientNotes}
+                                    onChange={(e) => setClientNotes(e.target.value)}
+                                    placeholder="Motivo del rechazo (opcional)"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    rows={3}
+                                    maxLength={500}
+                                />
+                                <div className="flex justify-between items-center mt-2">
+                                    <p className="text-xs text-gray-500">
+                                        {clientNotes.length}/500 caracteres
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                        confirmText={actionLoading ? 'Rechazando...' : 'Sí, rechazar'}
+                        cancelText="Cancelar"
+                        type="danger"
+                    />
+                </>
+            )}
         </div>
     );
 }

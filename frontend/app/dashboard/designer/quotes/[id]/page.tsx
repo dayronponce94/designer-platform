@@ -18,11 +18,19 @@ import {
     FiMessageSquare,
     FiTag
 } from 'react-icons/fi';
+import { useAuth } from '@/app/lib/hooks/useAuth';
 
 export default function DesignerQuoteDetailPage() {
     const params = useParams();
     const router = useRouter();
     const quoteId = params.id as string;
+
+    const { user } = useAuth();
+    const isAdmin = user?.role === 'admin';
+
+    const backPath = isAdmin
+        ? '/dashboard/admin/designer-quotes'
+        : '/dashboard/designer/quotes';
 
     const [quote, setQuote] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -146,7 +154,7 @@ export default function DesignerQuoteDetailPage() {
                 <FiFileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-xl font-medium text-gray-900 mb-2">Cotización no encontrada</h3>
                 <button
-                    onClick={() => router.push('/dashboard/designer/quotes')}
+                    onClick={() => router.push(backPath)}
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
                     Volver a Mis Cotizaciones
@@ -162,7 +170,7 @@ export default function DesignerQuoteDetailPage() {
             {/* Header */}
             <div className="mb-8">
                 <button
-                    onClick={() => router.push('/dashboard/designer/quotes')}
+                    onClick={() => router.push(backPath)}
                     className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
                 >
                     <FiArrowLeft className="mr-2" />
@@ -233,11 +241,23 @@ export default function DesignerQuoteDetailPage() {
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Si eres Admin, podrías mostrar algo informativo en lugar de acciones */}
+                                    {isAdmin && (
+                                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                                            <h3 className="text-lg font-semibold text-blue-900 mb-2">Vista de Administrador</h3>
+                                            <p className="text-blue-700 text-sm">
+                                                Estás visualizando los detalles de una cotización enviada a un diseñador. Como administrador, solo puedes supervisar el contenido y el estado de la misma.
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
+
                         </div>
                     </div>
                 </div>
+
 
                 {/* Sidebar */}
                 <div className="space-y-6">
@@ -305,104 +325,112 @@ export default function DesignerQuoteDetailPage() {
                     )}
 
                     {/* Acciones */}
-                    <div className="bg-white rounded-xl shadow p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones</h3>
-                        <div className="space-y-3">
-                            {quote.status === 'pending' && (
-                                <>
-                                    <button
-                                        onClick={() => setShowAcceptModal(true)}
-                                        className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                                    >
-                                        <FiCheckCircle className="mr-2" />
-                                        Aceptar Cotización
-                                    </button>
-                                    <button
-                                        onClick={() => setShowRejectModal(true)}
-                                        className="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                                    >
-                                        <FiXCircle className="mr-2" />
-                                        Rechazar Cotización
-                                    </button>
-                                </>
-                            )}
+                    {!isAdmin && (
+                        <div className="bg-white rounded-xl shadow p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones</h3>
+                            <div className="space-y-3">
+                                {quote.status === 'pending' && (
+                                    <>
+                                        <button
+                                            onClick={() => setShowAcceptModal(true)}
+                                            className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                                        >
+                                            <FiCheckCircle className="mr-2" />
+                                            Aceptar Cotización
+                                        </button>
+                                        <button
+                                            onClick={() => setShowRejectModal(true)}
+                                            className="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                                        >
+                                            <FiXCircle className="mr-2" />
+                                            Rechazar Cotización
+                                        </button>
+                                    </>
+                                )}
 
-                            {quote.status === 'accepted' && (
-                                <div className="bg-green-50 p-4 rounded-lg text-green-700 flex items-center">
-                                    <FiCheckCircle className="mr-2 shrink-0" />
-                                    <span>Ya aceptaste esta cotización.</span>
-                                </div>
-                            )}
+                                {quote.status === 'accepted' && (
+                                    <div className="bg-green-50 p-4 rounded-lg text-green-700 flex items-center">
+                                        <FiCheckCircle className="mr-2 shrink-0" />
+                                        <span>Cotización aceptada.</span>
+                                    </div>
+                                )}
 
-                            {quote.status === 'rejected' && (
-                                <div className="bg-red-50 p-4 rounded-lg text-red-700 flex items-center">
-                                    <FiXCircle className="mr-2 shrink-0" />
-                                    <span>Rechazaste esta cotización.</span>
-                                </div>
-                            )}
+                                {quote.status === 'rejected' && (
+                                    <div className="bg-red-50 p-4 rounded-lg text-red-700 flex items-center">
+                                        <FiXCircle className="mr-2 shrink-0" />
+                                        <span>Cotización rechazada.</span>
+                                    </div>
+                                )}
 
-                            <button
-                                onClick={() => router.push(`/dashboard/designer/projects?quote=${quote._id}`)}
-                                className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                            >
-                                <FiBriefcase className="mr-2" />
-                                Ver Proyectos
-                            </button>
+                                <button
+                                    onClick={() => router.push(`/dashboard/designer/projects?quote=${quote._id}`)}
+                                    className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                                >
+                                    <FiBriefcase className="mr-2" />
+                                    Ver Proyectos
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
+
             </div>
 
-            {/* Modales */}
-            <ConfirmModal
-                isOpen={showAcceptModal}
-                onClose={() => {
-                    setShowAcceptModal(false);
-                    setNotes('');
-                }}
-                onConfirm={handleAccept}
-                title="Aceptar cotización"
-                message={
-                    <div>
-                        <p className="mb-4">Al aceptar, se creará un proyecto en tu panel. Puedes agregar notas.</p>
-                        <textarea
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Notas (opcional)"
-                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            rows={3}
-                        />
-                    </div>
-                }
-                confirmText={actionLoading ? 'Aceptando...' : 'Sí, aceptar'}
-                cancelText="Cancelar"
-                type="success"
-            />
 
-            <ConfirmModal
-                isOpen={showRejectModal}
-                onClose={() => {
-                    setShowRejectModal(false);
-                    setNotes('');
-                }}
-                onConfirm={handleReject}
-                title="Rechazar cotización"
-                message={
-                    <div>
-                        <p className="mb-4">¿Estás seguro? Puedes indicar el motivo.</p>
-                        <textarea
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Motivo (opcional)"
-                            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            rows={3}
-                        />
-                    </div>
-                }
-                confirmText={actionLoading ? 'Rechazando...' : 'Sí, rechazar'}
-                cancelText="Cancelar"
-                type="danger"
-            />
+            {/* Modales */}
+            {!isAdmin && (
+                <>
+                    <ConfirmModal
+                        isOpen={showAcceptModal}
+                        onClose={() => {
+                            setShowAcceptModal(false);
+                            setNotes('');
+                        }}
+                        onConfirm={handleAccept}
+                        title="Aceptar cotización"
+                        message={
+                            <div>
+                                <p className="mb-4">Al aceptar, se creará un proyecto en tu panel. Puedes agregar notas.</p>
+                                <textarea
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="Notas (opcional)"
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    rows={3}
+                                />
+                            </div>
+                        }
+                        confirmText={actionLoading ? 'Aceptando...' : 'Sí, aceptar'}
+                        cancelText="Cancelar"
+                        type="success"
+                    />
+
+                    <ConfirmModal
+                        isOpen={showRejectModal}
+                        onClose={() => {
+                            setShowRejectModal(false);
+                            setNotes('');
+                        }}
+                        onConfirm={handleReject}
+                        title="Rechazar cotización"
+                        message={
+                            <div>
+                                <p className="mb-4">¿Estás seguro? Puedes indicar el motivo.</p>
+                                <textarea
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    placeholder="Motivo (opcional)"
+                                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    rows={3}
+                                />
+                            </div>
+                        }
+                        confirmText={actionLoading ? 'Rechazando...' : 'Sí, rechazar'}
+                        cancelText="Cancelar"
+                        type="danger"
+                    />
+                </>
+            )}
         </div>
     );
 }

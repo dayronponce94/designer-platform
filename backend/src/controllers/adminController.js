@@ -745,6 +745,29 @@ const getAllDesignerQuotes = asyncHandler(async (req, res) => {
     );
 });
 
+// @desc    Obtener una cotización de diseñador por ID
+// @route   GET /api/admin/designer-quotes/:id
+const getDesignerQuoteById = asyncHandler(async (req, res) => {
+    const quote = await DesignerQuote.findOne({
+        _id: req.params.id,
+    }).populate({
+        path: 'clientQuote',
+        populate: {
+            path: 'request',
+            select: 'title description client serviceType',
+            populate: { path: 'client', select: 'name email' }
+        }
+    });
+
+    if (!quote) {
+        return res.status(404).json(ApiResponse.notFound('Cotización no encontrada').toJSON());
+    }
+
+    res.status(200).json(
+        ApiResponse.success('Cotización obtenida', { quote }).toJSON()
+    );
+});
+
 // @desc    Obtener todas las solicitudes (admin)
 // @route   GET /api/admin/requests
 // @access  Private/Admin
@@ -870,6 +893,7 @@ module.exports = {
     getQuoteById,
     createDesignerQuote,
     getAllDesignerQuotes,
+    getDesignerQuoteById,
     getAllRequests,
     getRequestById,
     updateRequestStatus,

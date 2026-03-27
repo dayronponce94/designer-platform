@@ -16,6 +16,7 @@ const {
     getQuoteById,
     createDesignerQuote,
     getAllDesignerQuotes,
+    getDesignerQuoteById,
     getAllRequests,
     getRequestById,
     updateRequestStatus,
@@ -75,6 +76,8 @@ router.route('/quotes/:quoteId/designer-quote')
 // Cotizaciones de diseñadores
 router.route('/designer-quotes')
     .get(getAllDesignerQuotes);
+router.route('/designer-quotes/:id')
+    .get(getDesignerQuoteById);
 
 // Rutas para solicitudes (admin)
 router.get('/requests', getAllRequests);

@@ -213,7 +213,7 @@ export default function AdminDesignerQuotesPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <Link
-                                                href={`/dashboard/admin/designer-quotes/${q._id}`}
+                                                href={`/dashboard/designer/quotes/${q._id}`}
                                                 className="text-blue-600 hover:text-blue-900"
                                                 title="Ver detalles"
                                             >

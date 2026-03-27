@@ -183,7 +183,6 @@ const getMyDesignerQuotes = asyncHandler(async (req, res) => {
 const getDesignerQuoteById = asyncHandler(async (req, res) => {
     const quote = await DesignerQuote.findOne({
         _id: req.params.id,
-        designer: req.user.id
     }).populate({
         path: 'clientQuote',
         populate: {
