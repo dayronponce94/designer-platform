@@ -714,9 +714,30 @@ const createDesignerQuote = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/designer-quotes
 // @access  Private/Admin
 const getAllDesignerQuotes = asyncHandler(async (req, res) => {
-    const { status, page = 1, limit = 20 } = req.query;
+    // 1. Extraer search de req.query (faltaba en tu código)
+    const { status, search, page = 1, limit = 20 } = req.query;
     const query = {};
+
     if (status) query.status = status;
+
+    // 2. Lógica de búsqueda replicada
+    if (search) {
+        // Buscamos solicitudes (Request) que coincidan con el título
+        const matchingRequests = await mongoose.model('Request').find({
+            title: { $regex: search, $options: 'i' }
+        }).select('_id');
+
+        const requestIds = matchingRequests.map(r => r._id);
+
+        const matchingClientQuotes = await mongoose.model('Quote').find({
+            request: { $in: requestIds }
+        }).select('_id');
+
+        const clientQuoteIds = matchingClientQuotes.map(cq => cq._id);
+
+        // Filtramos las DesignerQuotes que pertenezcan a esas ClientQuotes
+        query.clientQuote = { $in: clientQuoteIds };
+    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 

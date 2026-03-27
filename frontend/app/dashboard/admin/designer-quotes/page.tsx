@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { adminAPI } from '@/app/lib/api/endpoints';
 import Alert from '@/components/ui/Alert';
 import {
-    FiFileText, FiClock, FiCheckCircle, FiXCircle, FiEye,
-    FiUser, FiDollarSign, FiCalendar, FiSearch
+    FiFileText, FiClock, FiCheckCircle, FiXCircle, FiEye, FiSearch
 } from 'react-icons/fi';
 import Link from 'next/link';
 
@@ -191,10 +190,10 @@ export default function AdminDesignerQuotesPage() {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {quotes.map((q) => (
                                     <tr key={q._id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             {q.clientQuote?.request?.title
-                                                ? q.clientQuote.request.title.length > 30
-                                                    ? q.clientQuote.request.title.substring(0, 30) + '...'
+                                                ? q.clientQuote.request.title.length > 25
+                                                    ? q.clientQuote.request.title.substring(0, 25) + '...'
                                                     : q.clientQuote.request.title
                                                 : 'N/A'}
                                         </td>
