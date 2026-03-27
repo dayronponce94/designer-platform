@@ -230,6 +230,7 @@ export default function DesignerQuoteDetailPage() {
                                         </div>
                                     </div>
 
+                                    {/* Notas del administrador */}
                                     {quote.adminNotes && (
                                         <div>
                                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -238,6 +239,18 @@ export default function DesignerQuoteDetailPage() {
                                             </h3>
                                             <div className="bg-blue-50 p-6 rounded-lg text-blue-700">
                                                 {quote.adminNotes}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* Notas del diseñador */}
+                                    {quote.designerNotes && (
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                                <FiMessageSquare className="mr-2" />
+                                                Notas del diseñador
+                                            </h3>
+                                            <div className="bg-green-50 p-6 rounded-lg text-green-700">
+                                                {quote.designerNotes}
                                             </div>
                                         </div>
                                     )}
@@ -277,7 +290,8 @@ export default function DesignerQuoteDetailPage() {
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Tipo de servicio</p>
-                                <p className="font-medium capitalize">
+                                <p className="font-medium flex items-center">
+                                    <FiBriefcase className="mr-2 text-gray-400" />
                                     {quote.clientQuote?.request?.serviceType
                                         ? getServiceTypeLabel(quote.clientQuote.request.serviceType)
                                         : 'No especificado'}
@@ -285,7 +299,7 @@ export default function DesignerQuoteDetailPage() {
                             </div>
                             {quote.deadline && (
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Fecha límite</p>
+                                    <p className="text-sm text-gray-500 mb-1">Fecha de entrega</p>
                                     <p className="font-medium flex items-center">
                                         <FiCalendar className="mr-2 text-gray-400" />
                                         {formatDate(quote.deadline)}
@@ -294,7 +308,10 @@ export default function DesignerQuoteDetailPage() {
                             )}
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Creada el</p>
-                                <p className="text-sm">{formatDateTime(quote.createdAt)}</p>
+                                <p className="font-medium flex items-center">
+                                    <FiClock className="mr-2 text-gray-400" />
+                                    {formatDateTime(quote.createdAt)}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -394,10 +411,16 @@ export default function DesignerQuoteDetailPage() {
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
-                                    placeholder="Notas (opcional)"
+                                    placeholder="Puedes agregar notas o comentarios (opcional)"
                                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     rows={3}
+                                    maxLength={500}
                                 />
+                                <div className="flex justify-between items-center mt-2">
+                                    <p className="text-xs text-gray-500">
+                                        {notes.length}/500 caracteres
+                                    </p>
+                                </div>
                             </div>
                         }
                         confirmText={actionLoading ? 'Aceptando...' : 'Sí, aceptar'}
@@ -419,10 +442,16 @@ export default function DesignerQuoteDetailPage() {
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
-                                    placeholder="Motivo (opcional)"
+                                    placeholder="Motivo del rechazo (opcional)"
                                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     rows={3}
+                                    maxLength={500}
                                 />
+                                <div className="flex justify-between items-center mt-2">
+                                    <p className="text-xs text-gray-500">
+                                        {notes.length}/500 caracteres
+                                    </p>
+                                </div>
                             </div>
                         }
                         confirmText={actionLoading ? 'Rechazando...' : 'Sí, rechazar'}

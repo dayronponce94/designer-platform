@@ -658,7 +658,14 @@ const getAllQuotes = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/quotes/:id
 const getQuoteById = asyncHandler(async (req, res) => {
     const quote = await Quote.findById(req.params.id)
-        .populate('request', 'title description serviceType client')
+        .populate({
+            path: 'request',
+            select: 'title serviceType client',
+            populate: {
+                path: 'client',
+                select: 'name email'
+            }
+        })
         .populate('createdBy', 'name email');
 
     if (!quote) {

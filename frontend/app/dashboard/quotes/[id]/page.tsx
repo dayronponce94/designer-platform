@@ -15,9 +15,13 @@ import {
     FiFileText,
     FiUser,
     FiMail,
+    FiMessageSquare,
+    FiTag,
+    FiBriefcase,
 } from 'react-icons/fi';
 
 interface Quote {
+    clientQuote: any;
     _id: string;
     request: {
         _id: string;
@@ -57,6 +61,7 @@ export default function QuoteDetailPage() {
     const [showAcceptModal, setShowAcceptModal] = useState(false);
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [clientNotes, setClientNotes] = useState('');
+    const [activeTab, setActiveTab] = useState<'overview' | 'details'>('overview');
 
     useEffect(() => {
         fetchQuote();
@@ -143,6 +148,32 @@ export default function QuoteDetailPage() {
         });
     };
 
+    const getStatusConfig = (status: string) => {
+        const configs: Record<string, { color: string; icon: React.ReactNode; label: string; desc: string }> = {
+            pending: {
+                color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                icon: <FiClock className="w-4 h-4" />,
+                label: 'Pendiente',
+                desc: 'Esta cotización está pendiente de tu respuesta.'
+            },
+            accepted: {
+                color: 'bg-green-100 text-green-800 border-green-200',
+                icon: <FiCheckCircle className="w-4 h-4" />,
+                label: 'Aceptada',
+                desc: 'Aceptaste esta cotización. Se ha creado un proyecto en tu área.'
+            },
+            rejected: {
+                color: 'bg-red-100 text-red-800 border-red-200',
+                icon: <FiXCircle className="w-4 h-4" />,
+                label: 'Rechazada',
+                desc: 'Rechazaste esta cotización.'
+            }
+        };
+        return configs[status] || configs.pending;
+    };
+
+
+
     const getStatusBadge = (status: string) => {
         const config: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
             pending: { color: 'bg-yellow-100 text-yellow-800', icon: <FiClock />, text: 'Pendiente' },
@@ -195,60 +226,165 @@ export default function QuoteDetailPage() {
         );
     }
 
+    const statusConfig = getStatusConfig(quote.status);
+
     return (
         <div>
-            <button
-                onClick={() => router.push(backPath)}
-                className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
-            >
-                <FiArrowLeft className="mr-2" />
-                Volver a cotizaciones
-            </button>
+            {/* Header */}
+            <div className="mb-8">
+                <button
+                    onClick={() => router.push(backPath)}
+                    className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
+                >
+                    <FiArrowLeft className="mr-2" />
+                    Volver a Mis Cotizaciones
+                </button>
 
-            <div className="bg-white rounded-xl shadow overflow-hidden">
-                <div className="p-6 border-b border-gray-200">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Cotización para "{quote.request.title}"</h1>
-                            <p className="text-sm text-gray-500 mt-1">{getServiceTypeLabel(quote.request.serviceType)} </p>
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">
+                            {quote.request.title || 'Cotización'}
+                        </h1>
+                        <div className="flex items-center flex-wrap gap-2 mt-2">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${statusConfig.color}`}>
+                                {statusConfig.icon}
+                                <span className="ml-1">{statusConfig.label}</span>
+                            </span>
+                            <span className="text-gray-600">•</span>
+                            <span className="text-gray-600">Recibida: {formatDate(quote.createdAt)}</span>
                         </div>
-                        {getStatusBadge(quote.status)}
+                        <p className="text-gray-600 mt-2">{statusConfig.desc}</p>
+                    </div>
+                </div>
+            </div>
+
+            {error && <Alert type="error" message={error} onClose={() => setError('')} className="mb-6" />}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Columna principal */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* Pestañas */}
+                    <div className="bg-white rounded-xl shadow">
+                        <div className="border-b border-gray-200">
+                            <nav className="flex space-x-8 px-6">
+                                <button
+                                    onClick={() => setActiveTab('overview')}
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'overview'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                        }`}
+                                >
+                                    Resumen
+                                </button>
+                            </nav>
+                        </div>
+
+                        <div className="p-6">
+                            {/* Resumen */}
+                            {activeTab === 'overview' && (
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                            <FiFileText className="mr-2" />
+                                            Descripción
+                                        </h3>
+                                        <div className="whitespace-pre-line text-gray-700 bg-gray-50 p-6 rounded-lg">
+                                            {quote.description}
+                                        </div>
+                                    </div>
+
+                                    {quote.adminNotes && (
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                                <FiMessageSquare className="mr-2" />
+                                                Notas del administrador
+                                            </h3>
+                                            <div className="bg-blue-50 p-6 rounded-lg text-blue-700">
+                                                {quote.adminNotes}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {quote.clientNotes && (
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                                <FiMessageSquare className="mr-2" />
+                                                Notas del cliente
+                                            </h3>
+                                            <div className="bg-green-50 p-6 rounded-lg text-green-700">
+                                                {quote.clientNotes}
+                                            </div>
+                                        </div>
+                                    )}
+
+
+                                    {/* Si eres Admin, podrías mostrar algo informativo en lugar de acciones */}
+                                    {isAdmin && (
+                                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                                            <h3 className="text-lg font-semibold text-blue-900 mb-2">Vista de Administrador</h3>
+                                            <p className="text-blue-700 text-sm">
+                                                Estás visualizando los detalles de una cotización enviada a un diseñador. Como administrador, solo puedes supervisar el contenido y el estado de la misma.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                        </div>
                     </div>
                 </div>
 
-                <div className="p-6 space-y-6">
-                    {/* Detalles principales */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Sidebar */}
+                <div className="space-y-6">
+                    {/* Información de la cotización */}
+                    <div className="bg-white rounded-xl shadow p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <FiTag className="mr-2" />
+                            Detalles de la Cotización
+                        </h3>
                         <div className="space-y-4">
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Monto</p>
-                                <p className="text-2xl font-bold text-gray-900 flex items-center">
-                                    <FiDollarSign className="mr-1 text-gray-400" />
+                                <p className="font-medium flex items-center">
+                                    <FiDollarSign className="mr-2 text-gray-400" />
                                     {quote.amount.toLocaleString()}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 mb-1">Fecha límite de entrega</p>
-                                <p className="flex items-center text-gray-700">
-                                    <FiCalendar className="mr-2 text-gray-400" />
-                                    {formatDate(quote.deadline)}
+                                <p className="text-sm text-gray-500 mb-1">Tipo de servicio</p>
+                                <p className="font-medium flex items-center">
+                                    <FiBriefcase className="mr-2 text-gray-400" />
+                                    {getServiceTypeLabel(quote.request.serviceType)}
                                 </p>
                             </div>
-                            {quote.validUntil && (
+                            {quote.deadline && (
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Válido hasta</p>
-                                    <p className="flex items-center text-gray-700">
-                                        <FiClock className="mr-2 text-gray-400" />
-                                        {formatDate(quote.validUntil)}
+                                    <p className="text-sm text-gray-500 mb-1">Fecha Entrega</p>
+                                    <p className="font-medium flex items-center">
+                                        <FiCalendar className="mr-2 text-gray-400" />
+                                        {formatDate(quote.deadline)}
                                     </p>
                                 </div>
                             )}
-                        </div>
+                            <div>
+                                <p className="text-sm text-gray-500 mb-1">Creada el</p>
+                                <p className="font-medium flex items-center">
+                                    <FiClock className="mr-2 text-gray-400" />
+                                    {formatDate(quote.createdAt)}
+                                </p>
+                            </div>
 
-                        <div className="space-y-4">
+                            <div>
+                                <p className="text-sm text-gray-500 mb-1">Valida hasta</p>
+                                <p className="font-medium flex items-center">
+                                    <FiClock className="mr-2 text-gray-400" />
+                                    {formatDate(quote.validUntil)}
+                                </p>
+                            </div>
+
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Creada por</p>
-                                <p className="flex items-center text-gray-700">
+                                <p className="font-medium flex items-center">
                                     <FiUser className="mr-2 text-gray-400" />
                                     {quote.createdBy.name}
                                 </p>
@@ -257,86 +393,88 @@ export default function QuoteDetailPage() {
                                     {quote.createdBy.email}
                                 </p>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Fecha de creación</p>
-                                <p className="text-gray-700">{formatDate(quote.createdAt)}</p>
-                            </div>
+
                         </div>
                     </div>
 
-                    {/* Descripción de la cotización */}
-                    <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3">Descripción de la cotización</h3>
-                        <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-line text-gray-700">
-                            {quote.description}
-                        </div>
-                    </div>
-
-                    {/* Notas del admin */}
-                    {quote.adminNotes && (
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Notas del administrador</h3>
-                            <div className="bg-blue-50 p-4 rounded-lg text-blue-700">
-                                {quote.adminNotes}
+                    {/* Cliente */}
+                    {quote.request?.client && (
+                        <div className="bg-white rounded-xl shadow p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <FiUser className="mr-2" />
+                                Cliente
+                            </h3>
+                            <div className="space-y-3">
+                                <div className="flex items-center">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold mr-3">
+                                        {quote.request.client.name?.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">
+                                            {quote.request.client.name}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            {quote.request.client.email}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Notas del cliente (si ya respondió) */}
-                    {quote.clientNotes && (
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-3">Notas del cliente</h3>
-                            <div className="bg-green-50 p-4 rounded-lg text-green-700">
-                                {quote.clientNotes}
+                    {/* Acciones */}
+                    {!isAdmin && (
+                        <div className="bg-white rounded-xl shadow p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Acciones</h3>
+                            <div className="space-y-3">
+                                {quote.status === 'pending' && (
+                                    <>
+                                        <button
+                                            onClick={() => setShowAcceptModal(true)}
+                                            className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                                        >
+                                            <FiCheckCircle className="mr-2" />
+                                            Aceptar Cotización
+                                        </button>
+                                        <button
+                                            onClick={() => setShowRejectModal(true)}
+                                            className="w-full flex items-center justify-center px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                                        >
+                                            <FiXCircle className="mr-2" />
+                                            Rechazar Cotización
+                                        </button>
+                                    </>
+                                )}
+
+                                {quote.status === 'accepted' && (
+                                    <div className="bg-green-50 p-4 rounded-lg text-green-700 flex items-center">
+                                        <FiCheckCircle className="mr-2 shrink-0" />
+                                        <span>Cotización aceptada.</span>
+                                    </div>
+                                )}
+
+                                {quote.status === 'rejected' && (
+                                    <div className="bg-red-50 p-4 rounded-lg text-red-700 flex items-center">
+                                        <FiXCircle className="mr-2 shrink-0" />
+                                        <span>Cotización rechazada.</span>
+                                    </div>
+                                )}
+
+                                <button
+                                    onClick={() => router.push(`/dashboard/designer/projects?quote=${quote._id}`)}
+                                    className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                                >
+                                    <FiBriefcase className="mr-2" />
+                                    Ver Proyectos
+                                </button>
                             </div>
-                        </div>
-                    )}
-
-                    {/* Acciones para cotización pendiente */}
-                    {!isAdmin && quote.status === 'pending' && (
-                        <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
-                            <button
-                                onClick={() => setShowAcceptModal(true)}
-                                className="flex-1 flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                            >
-                                <FiCheckCircle className="mr-2" />
-                                Aceptar cotización
-                            </button>
-                            <button
-                                onClick={() => setShowRejectModal(true)}
-                                className="flex-1 flex items-center justify-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                            >
-                                <FiXCircle className="mr-2" />
-                                Rechazar cotización
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Mensaje si ya fue aceptada o rechazada */}
-                    {quote.status === 'accepted' && (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-green-700">
-                            <FiCheckCircle className="inline mr-2" />
-                            Cotización aceptada el {formatDate(quote.acceptedAt)}. El proyecto pasará a estado "Aprobado".
-                        </div>
-                    )}
-                    {quote.status === 'rejected' && (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-                            <FiXCircle className="inline mr-2" />
-                            Cotización rechazada el {formatDate(quote.rejectedAt)}. El administrador puede generar una nueva.
                         </div>
                     )}
                 </div>
+
             </div>
 
-            {/* Si eres Admin, podrías mostrar algo informativo en lugar de acciones */}
-            {isAdmin && (
-                <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
-                    <h3 className="text-lg font-semibold text-blue-900 mb-2">Vista de Administrador</h3>
-                    <p className="text-blue-700 text-sm">
-                        Estás visualizando los detalles de una cotización enviada a un cliente. Como administrador, solo puedes supervisar el contenido y el estado de la misma.
-                    </p>
-                </div>
-            )}
+
             {/* Modal de confirmación para aceptar */}
             {!isAdmin && (
                 <>
