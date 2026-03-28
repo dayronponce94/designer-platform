@@ -663,7 +663,7 @@ const getQuoteById = asyncHandler(async (req, res) => {
             select: 'title serviceType client',
             populate: {
                 path: 'client',
-                select: 'name email'
+                select: 'name email company phone'
             }
         })
         .populate('createdBy', 'name email');

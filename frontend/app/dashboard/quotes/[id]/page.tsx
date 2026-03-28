@@ -71,9 +71,14 @@ export default function QuoteDetailPage() {
         try {
             setIsLoading(true);
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/quotes/${quoteId}`, {
+
+            // Condición según rol
+            const endpoint = isAdmin ? `/api/admin/quotes/${quoteId}` : `/api/quotes/${quoteId}`;
+
+            const res = await fetch(endpoint, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+
             const data = await res.json();
             if (data.success) {
                 setQuote(data.data.quote);
@@ -398,7 +403,7 @@ export default function QuoteDetailPage() {
                     </div>
 
                     {/* Cliente */}
-                    {quote.request?.client && (
+                    {isAdmin && quote.request?.client && (
                         <div className="bg-white rounded-xl shadow p-6">
                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                 <FiUser className="mr-2" />

@@ -341,6 +341,37 @@ export default function DesignerQuoteDetailPage() {
                         </div>
                     )}
 
+                    {/* Diseñador Asignado: visible para Admin y Cliente, pero oculto para el propio Diseñador */}
+                    {user?.role !== 'designer' && quote.designer && (
+                        <div className="bg-white rounded-xl shadow p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <FiUser className="mr-2" />
+                                Diseñador Asignado
+                            </h3>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center">
+                                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold mr-3">
+                                        {quote.designer.name?.charAt(0) || 'D'}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">{quote.designer.name}</p>
+                                        <p className="text-sm text-gray-500">{quote.designer.email}</p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Especialidad</p>
+                                    <p className="font-medium capitalize text-sm">
+                                        {quote.designer.specialty
+                                            ? getServiceTypeLabel(quote.designer.specialty)
+                                            : 'Sin especialidad'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Acciones */}
                     {!isAdmin && (
                         <div className="bg-white rounded-xl shadow p-6">
