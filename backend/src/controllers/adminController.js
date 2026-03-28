@@ -778,19 +778,27 @@ const getAllDesignerQuotes = asyncHandler(async (req, res) => {
 const getDesignerQuoteById = asyncHandler(async (req, res) => {
     const quote = await DesignerQuote.findOne({
         _id: req.params.id,
-    }).populate({
-        path: 'clientQuote',
-        populate: {
-            path: 'request',
-            select: 'title description client serviceType',
-            populate: { path: 'client', select: 'name email' }
-        }
-    });
+    })
+        .populate({
+            path: 'clientQuote',
+            populate: {
+                path: 'request',
+                select: 'title description client serviceType',
+                populate: {
+                    path: 'client',
+                    select: 'name email'
+                }
+            }
+        })
+        .populate({
+            path: 'designer',
+            select: 'name email specialty experience portfolio bio skills'
+        });
 
     if (!quote) {
         return res.status(404).json(ApiResponse.notFound('Cotización no encontrada').toJSON());
     }
-
+    console.log('POPULATED DESIGNER:', quote.designer);
     res.status(200).json(
         ApiResponse.success('Cotización obtenida', { quote }).toJSON()
     );

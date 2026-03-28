@@ -86,27 +86,51 @@ export default function DesignerQuoteDetailPage() {
     };
 
     const getStatusConfig = (status: string) => {
-        const configs: Record<string, { color: string; icon: React.ReactNode; label: string; desc: string }> = {
-            pending: {
-                color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                icon: <FiClock className="w-4 h-4" />,
-                label: 'Pendiente',
-                desc: 'Esta cotización está pendiente de tu respuesta.'
-            },
-            accepted: {
-                color: 'bg-green-100 text-green-800 border-green-200',
-                icon: <FiCheckCircle className="w-4 h-4" />,
-                label: 'Aceptada',
-                desc: 'Aceptaste esta cotización. Se ha creado un proyecto en tu área.'
-            },
-            rejected: {
-                color: 'bg-red-100 text-red-800 border-red-200',
-                icon: <FiXCircle className="w-4 h-4" />,
-                label: 'Rechazada',
-                desc: 'Rechazaste esta cotización.'
-            }
-        };
-        return configs[status] || configs.pending;
+        if (isAdmin) {
+            const configs: Record<string, { color: string; icon: React.ReactNode; label: string; desc: string }> = {
+                pending: {
+                    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                    icon: <FiClock className="w-4 h-4" />,
+                    label: 'Pendiente',
+                    desc: 'Esta cotización está pendiente de una respuesta.'
+                },
+                accepted: {
+                    color: 'bg-green-100 text-green-800 border-green-200',
+                    icon: <FiCheckCircle className="w-4 h-4" />,
+                    label: 'Aceptada',
+                    desc: `Cotización aceptada por ${quote?.designer?.name || 'el diseñador'}. Se ha creado un proyecto para esta cotización.`
+                },
+                rejected: {
+                    color: 'bg-red-100 text-red-800 border-red-200',
+                    icon: <FiXCircle className="w-4 h-4" />,
+                    label: 'Rechazada',
+                    desc: `Cotización rechazada por ${quote?.designer?.name || 'el diseñador'}.`
+                }
+            };
+            return configs[status] || configs.pending;
+        } else {
+            const configs: Record<string, { color: string; icon: React.ReactNode; label: string; desc: string }> = {
+                pending: {
+                    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                    icon: <FiClock className="w-4 h-4" />,
+                    label: 'Pendiente',
+                    desc: 'Esta cotización está pendiente de tu respuesta.'
+                },
+                accepted: {
+                    color: 'bg-green-100 text-green-800 border-green-200',
+                    icon: <FiCheckCircle className="w-4 h-4" />,
+                    label: 'Aceptada',
+                    desc: 'Aceptaste esta cotización. Se ha creado un proyecto en tu área.'
+                },
+                rejected: {
+                    color: 'bg-red-100 text-red-800 border-red-200',
+                    icon: <FiXCircle className="w-4 h-4" />,
+                    label: 'Rechazada',
+                    desc: 'Rechazaste esta cotización.'
+                }
+            };
+            return configs[status] || configs.pending;
+        }
     };
 
     const formatDate = (dateStr: string) => {
@@ -157,7 +181,7 @@ export default function DesignerQuoteDetailPage() {
                     onClick={() => router.push(backPath)}
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                    Volver a Mis Cotizaciones
+                    {isAdmin ? 'Volver a Cotizaciones / Diseñadores' : 'Volver a Mis Cotizaciones'}
                 </button>
             </div>
         );
@@ -174,7 +198,7 @@ export default function DesignerQuoteDetailPage() {
                     className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
                 >
                     <FiArrowLeft className="mr-2" />
-                    Volver a Mis Cotizaciones
+                    {isAdmin ? 'Volver a Cotizaciones / Diseñadores' : 'Volver a Mis Cotizaciones'}
                 </button>
 
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
