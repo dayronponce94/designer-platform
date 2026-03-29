@@ -126,6 +126,7 @@ export default function DesignerDeadlinesPage() {
     const getDaysText = (project: any) => {
         // Usamos 'deadline' que ya viene procesado por el hook (es el internalDeadline)
         if (project.status === 'completed') return 'Entrega finalizada';
+        if (project.status === 'cancelled') return 'Proyecto cancelado';
         if (!project.deadline) return '';
 
         const deadline = new Date(project.deadline);
@@ -303,13 +304,22 @@ export default function DesignerDeadlinesPage() {
                                                     </h3>
                                                     <div className="flex flex-wrap items-center gap-2 mb-2">
                                                         {/* Nuevo Badge de Estado según Plazo */}
-                                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold border ${getStatusStyles(p)}`}>
-                                                            <StatusIcon className="w-4 h-4 mr-2" />
-                                                            {p.status === 'completed' ? 'Completado' :
-                                                                p.isOverdue ? 'Vencido' :
-                                                                    p.isUrgent ? 'Urgente' :
-                                                                        (p.daysUntilDeadline && p.daysUntilDeadline <= 7) ? 'Próximo' : 'En Tiempo'}
-                                                        </span>
+                                                        {p.status !== 'cancelled' && (
+                                                            <span
+                                                                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold border ${getStatusStyles(p)}`}
+                                                            >
+                                                                <StatusIcon className="w-4 h-4 mr-2" />
+                                                                {p.status === 'completed'
+                                                                    ? 'Completado'
+                                                                    : p.isOverdue
+                                                                        ? 'Vencido'
+                                                                        : p.isUrgent
+                                                                            ? 'Urgente'
+                                                                            : p.daysUntilDeadline && p.daysUntilDeadline <= 7
+                                                                                ? 'Próximo'
+                                                                                : 'En Tiempo'}
+                                                            </span>
+                                                        )}
 
                                                         {/* Estado real del proyecto (workflow) */}
                                                         {p.status !== 'completed' && (

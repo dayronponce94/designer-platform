@@ -101,7 +101,7 @@ export default function AdminDesignerQuotesPage() {
                             <FiFileText className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Cotizaciones a Diseñadores</h1>
+                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Cotizaciones de Diseñadores</h1>
                             <p className="text-gray-600 mt-1">
                                 Gestiona las cotizaciones enviadas a los diseñadores
                             </p>

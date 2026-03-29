@@ -84,6 +84,10 @@ export default function ProjectDetailPage() {
 
     const projectId = params.id as string;
 
+    const isAdmin = user?.role === 'admin';
+    const isDesigner = user?.role === 'designer';
+    const isClient = user?.role === 'client';
+
     useEffect(() => {
         fetchProject();
     }, [projectId]);
@@ -228,7 +232,6 @@ export default function ProjectDetailPage() {
 
     const statusConfig = getStatusConfig(project.status);
 
-    const isDesigner = user?.role === 'designer';
 
     // 1. Archivos: Queremos ver los que subió el cliente (clientView) 
     // y, si existen, los que subió el diseñador (designerView)
@@ -255,9 +258,9 @@ export default function ProjectDetailPage() {
             <div className="mb-8">
                 <button
                     onClick={() => {
-                        if (user?.role === 'admin') {
+                        if (isAdmin) {
                             router.push('/dashboard/admin/projects');
-                        } else if (user?.role === 'designer') {
+                        } else if (isDesigner) {
                             router.push('/dashboard/designer/projects');
                         } else {
                             // Para clientes o cualquier otro rol base
@@ -267,7 +270,11 @@ export default function ProjectDetailPage() {
                     className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
                 >
                     <FiArrowLeft className="mr-2" />
-                    Volver a Proyectos
+                    {isDesigner
+                        ? 'Volver a Proyectos Asignados'
+                        : isAdmin
+                            ? 'Volver a Proyectos'
+                            : 'Volver a Mis Proyectos'}
                 </button>
 
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -287,8 +294,8 @@ export default function ProjectDetailPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        {/* Botón Editar: Solo Admin o Cliente si está solicitado */}
-                        {((user?.role === 'client' && project.status === 'requested') || user?.role === 'admin') && (
+                        {/* Botón Editar: Solo Admin */}
+                        {isAdmin && (
                             <button
                                 onClick={() => router.push(`/dashboard/projects/${projectId}/edit`)}
                                 className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
@@ -364,7 +371,7 @@ export default function ProjectDetailPage() {
                                         </div>
                                     </div>
 
-                                    {(user?.role === 'designer' || user?.role === 'admin') && project.references && (
+                                    {(isDesigner || isAdmin) && project.references && (
                                         <div>
                                             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                                                 <FiGlobe className="mr-2" />
@@ -512,8 +519,8 @@ export default function ProjectDetailPage() {
                                 </p>
                             </div>
 
-                            {/* Presupuesto: Solo visible para Admin o Cliente */}
-                            {(user?.role === 'admin' || user?.role === 'client') && (
+                            {/* Costo: Solo visible Cliente */}
+                            {isClient && (
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Costo</p>
                                     <p className="font-medium flex items-center">
@@ -525,10 +532,10 @@ export default function ProjectDetailPage() {
                                 </div>
                             )}
 
-                            {/* Si es diseñador, mostramos sus ganancias netas en lugar del presupuesto total */}
+                            {/* Pago: Solo visible Diseñador */}
                             {isDesigner && (
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Ganancias Netas</p>
+                                    <p className="text-sm text-gray-500 mb-1">Pago</p>
                                     <p className="font-medium flex items-center">
                                         <FiDollarSign className="mr-2" />
                                         {project.designerView?.earnings
@@ -536,6 +543,41 @@ export default function ProjectDetailPage() {
                                             : 'No asignado'}
                                     </p>
                                 </div>
+                            )}
+
+                            {/* Presupuesto Total(Costo Cliente, Pago Diseñador, Ganacias Netas): Solo visible Admin */}
+                            {isAdmin && (
+                                <>
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Costo Cliente</p>
+                                        <p className="font-medium flex items-center">
+                                            <FiDollarSign className="mr-2 text-gray-400" />
+                                            {project.clientView?.budget && project.clientView.budget > 0
+                                                ? `${project.clientView.budget.toLocaleString()}`
+                                                : 'Costo por definir'}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Pago Diseñador</p>
+                                        <p className="font-medium flex items-center">
+                                            <FiDollarSign className="mr-2 text-gray-400" />
+                                            {project.designerView?.earnings
+                                                ? `${project.designerView.earnings.toLocaleString()}`
+                                                : 'No asignado'}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-sm text-gray-500 mb-1">Ganancia Neta</p>
+                                        <p className="font-medium flex items-center">
+                                            <FiDollarSign className="mr-2 text-gray-400" />
+                                            {project.clientView?.budget && project.designerView?.earnings
+                                                ? (project.clientView.budget - project.designerView.earnings).toLocaleString()
+                                                : 'Ganancia por definir'}
+                                        </p>
+                                    </div>
+                                </>
                             )}
 
                             {displayDeadline && (

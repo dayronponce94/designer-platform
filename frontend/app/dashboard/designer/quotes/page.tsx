@@ -9,7 +9,9 @@ import {
     FiCheckCircle,
     FiXCircle,
     FiEye,
-    FiSearch
+    FiSearch,
+    FiCalendar,
+    FiDollarSign
 } from 'react-icons/fi';
 import Link from 'next/link';
 
@@ -18,11 +20,13 @@ interface DesignerQuote {
     clientQuote: {
         request: {
             title: string;
+            serviceType: string;
             client: { name: string; email: string };
         };
     };
     amount: number;
     deadline: string;
+    description: string;
     status: 'pending' | 'accepted' | 'rejected';
     createdAt: string;
 }
@@ -98,6 +102,19 @@ export default function DesignerQuotesPage() {
         setFilters({ ...filters, limit: parseInt(e.target.value), page: 1 });
     };
 
+    const getServiceTypeLabel = (type: string) => {
+        const labels: Record<string, string> = {
+            'branding': 'Diseño de Marca',
+            'ux-ui': 'Diseño UX/UI',
+            'graphic': 'Diseño Gráfico',
+            'web': 'Diseño Web',
+            'motion': 'Animación Gráfica',
+            'illustration': 'Ilustración',
+            'other': 'Otro'
+        };
+        return labels[type] || type;
+    };
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -145,103 +162,70 @@ export default function DesignerQuotesPage() {
                             <option value="accepted">Aceptada</option>
                             <option value="rejected">Rechazada</option>
                         </select>
-                        <select
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={filters.limit}
-                            onChange={handleLimitChange}
-                        >
-                            <option value="10">10 por página</option>
-                            <option value="20">20 por página</option>
-                            <option value="50">50 por página</option>
-                        </select>
                     </div>
                 </div>
             </div>
 
-            {/* Tabla */}
-            <div className="bg-white rounded-xl shadow overflow-hidden">
-                {loading ? (
-                    <div className="text-center py-12">
-                        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <p className="text-gray-600">Cargando cotizaciones...</p>
-                    </div>
-                ) : quotes.length === 0 ? (
-                    <div className="text-center py-12">
-                        <FiFileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-xl font-medium text-gray-900 mb-2">
-                            No hay cotizaciones
-                        </h3>
-                        <p className="text-gray-500">
-                            No se encontraron cotizaciones con los filtros seleccionados.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Proyecto
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Cliente
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Monto
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Fecha límite
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Estado
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Acciones
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                                {quotes.map((q) => {
-                                    const clientName = q.clientQuote?.request?.client?.name;
-                                    const projectTitle = q.clientQuote?.request?.title;
 
-                                    return (
-                                        <tr key={q._id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {q.clientQuote?.request?.title
-                                                    ? q.clientQuote.request.title.length > 30
-                                                        ? q.clientQuote.request.title.substring(0, 30) + '...'
-                                                        : q.clientQuote.request.title
-                                                    : 'N/A'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {clientName || (q.clientQuote?.request?.client as any)?.email || '—'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                ${q.amount.toLocaleString()}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                {q.deadline ? formatDate(q.deadline) : '—'}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {getStatusBadge(q.status)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                <Link
-                                                    href={`/dashboard/designer/quotes/${q._id}`}
-                                                    className="text-blue-600 hover:text-blue-900"
-                                                >
-                                                    <FiEye className="w-4 h-4" />
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+            {loading ? (
+                <div className="flex justify-center items-center py-20">
+                    <div className="text-center">
+                        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-500">Cargando cotizaciones...</p>
                     </div>
-                )}
-            </div>
+                </div>
+            ) : quotes.length === 0 ? (
+                <div className="bg-white rounded-xl shadow p-12 text-center">
+                    <FiFileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">No hay cotizaciones</h3>
+                    <p className="text-gray-600">
+                        No se encontraron cotizaciones con los filtros seleccionados.
+                    </p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {quotes.map((q) => (
+                        <div key={q._id} className="bg-white rounded-xl shadow hover:shadow-md transition p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+                                        {q.clientQuote?.request?.title || 'Cotización'}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        {getServiceTypeLabel(q.clientQuote?.request?.serviceType)}
+                                    </p>
+                                </div>
+                                {getStatusBadge(q.status)}
+                            </div>
+
+                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">{q.description}</p>
+
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-center text-gray-700">
+                                    <FiDollarSign className="mr-2 text-gray-400" />
+                                    <span>Pago: {q.amount.toLocaleString()}</span>
+                                </div>
+                                {q.deadline && (
+                                    <div className="flex items-center text-gray-600">
+                                        <FiCalendar className="mr-2 text-gray-400" />
+                                        <span>Entrega: {formatDate(q.deadline)}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                                <Link
+                                    href={`/dashboard/designer/quotes/${q._id}`}
+                                    className="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                >
+                                    <FiEye className="mr-2" />
+                                    Ver detalles
+                                </Link>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Paginación */}
             {pagination && pagination.pages > 1 && (

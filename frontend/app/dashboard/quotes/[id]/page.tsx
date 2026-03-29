@@ -250,7 +250,7 @@ export default function QuoteDetailPage() {
                     className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
 
-                    {isAdmin ? 'Volver a Cotizaciones / Diseñadores' : 'Volver a Mis Cotizaciones'}
+                    {isAdmin ? 'Volver a Cotizaciones / Clientes' : 'Volver a Cotizaciones'}
                 </button>
             </div>
         );

@@ -160,8 +160,14 @@ export default function CreateDesignerQuoteModal({ quote, onClose, onSuccess }: 
                             required
                             rows={4}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Detalla las tareas a realizar..."
+                            placeholder="Detalla las tareas a realizar para que el diseñador tenga claro lo que se espera de él."
+                            maxLength={2000}
                         />
+                        <div className="flex justify-between items-center mt-2">
+                            <p className="text-xs text-gray-500">
+                                {description.length}/2000 caracteres
+                            </p>
+                        </div>
                     </div>
 
                     <div>
@@ -173,7 +179,14 @@ export default function CreateDesignerQuoteModal({ quote, onClose, onSuccess }: 
                             onChange={(e) => setAdminNotes(e.target.value)}
                             rows={2}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Notas que verá el diseñador, como detalles adicionales o instrucciones específicas."
+                            maxLength={500}
                         />
+                        <div className="flex justify-between items-center mt-2">
+                            <p className="text-xs text-gray-500">
+                                {adminNotes.length}/500 caracteres
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex justify-end space-x-3 pt-4">

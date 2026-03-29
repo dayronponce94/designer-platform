@@ -76,6 +76,9 @@ export default function RequestDetailPage() {
 
     const requestId = params.id as string;
 
+    // Lógica de roles
+    const isAdmin = user?.role === 'admin';
+
     useEffect(() => {
         fetchRequest();
     }, [requestId]);
@@ -107,34 +110,66 @@ export default function RequestDetailPage() {
         }
     };
 
-    const getStatusConfig = (status: string) => {
-        const configs: Record<string, { color: string; icon: React.ReactNode; label: string; desc: string }> = {
-            'requested': {
-                color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                icon: <FiClock className="w-4 h-4" />,
-                label: 'Solicitado',
-                desc: 'Tu solicitud está pendiente de revisión. Pronto recibirás una cotización.'
-            },
-            'quoted': {
-                color: 'bg-green-100 text-green-800 border-green-200',
-                icon: <FiFileText className="w-4 h-4" />,
-                label: 'Cotizado',
-                desc: 'Ya tienes una cotización disponible. Revisa los detalles y decide si deseas continuar.'
-            },
-            'cancelled': {
-                color: 'bg-red-100 text-red-800 border-red-200',
-                icon: <FiAlertCircle className="w-4 h-4" />,
-                label: 'Cancelado',
-                desc: 'Esta solicitud ha sido cancelada.'
-            }
-        };
 
-        return configs[status] || {
-            color: 'bg-gray-100 text-gray-800 border-gray-200',
-            icon: <FiAlertCircle className="w-4 h-4" />,
-            label: status,
-            desc: 'Estado desconocido'
-        };
+    const getStatusConfig = (status: string) => {
+        if (isAdmin) {
+            const configs: Record<string, { color: string; icon: React.ReactNode; label: string; desc: string }> = {
+                'requested': {
+                    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                    icon: <FiClock className="w-4 h-4" />,
+                    label: 'Solicitado',
+                    desc: 'Solicitud pendiente de revisión. Realiza una cotización.'
+                },
+                'quoted': {
+                    color: 'bg-green-100 text-green-800 border-green-200',
+                    icon: <FiFileText className="w-4 h-4" />,
+                    label: 'Cotizado',
+                    desc: 'Ya existe una cotización disponible para esta solicitud. Espera respuesta del cliente.'
+                },
+                'cancelled': {
+                    color: 'bg-red-100 text-red-800 border-red-200',
+                    icon: <FiAlertCircle className="w-4 h-4" />,
+                    label: 'Cancelado',
+                    desc: 'Esta solicitud ha sido cancelada por el cliente.'
+                }
+            };
+
+            return configs[status] || {
+                color: 'bg-gray-100 text-gray-800 border-gray-200',
+                icon: <FiAlertCircle className="w-4 h-4" />,
+                label: status,
+                desc: 'Estado desconocido'
+            };
+        } else {
+            const configs: Record<string, { color: string; icon: React.ReactNode; label: string; desc: string }> = {
+                'requested': {
+                    color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                    icon: <FiClock className="w-4 h-4" />,
+                    label: 'Solicitado',
+                    desc: 'Tu solicitud está pendiente de revisión. Pronto recibirás una cotización.'
+                },
+                'quoted': {
+                    color: 'bg-green-100 text-green-800 border-green-200',
+                    icon: <FiFileText className="w-4 h-4" />,
+                    label: 'Cotizado',
+                    desc: 'Ya tienes una cotización disponible. Revisa los detalles y decide si deseas continuar.'
+                },
+                'cancelled': {
+                    color: 'bg-red-100 text-red-800 border-red-200',
+                    icon: <FiAlertCircle className="w-4 h-4" />,
+                    label: 'Cancelado',
+                    desc: 'Esta solicitud ha sido cancelada.'
+                }
+            };
+
+            return configs[status] || {
+                color: 'bg-gray-100 text-gray-800 border-gray-200',
+                icon: <FiAlertCircle className="w-4 h-4" />,
+                label: status,
+                desc: 'Estado desconocido'
+            };
+        }
+
     };
 
     const getServiceTypeLabel = (type: string) => {
@@ -222,7 +257,7 @@ export default function RequestDetailPage() {
                     onClick={() => router.push('/dashboard/requests')}
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                    Volver a Mis Solicitudes
+                    {isAdmin ? 'Volver a Solicitudes / Clientes' : 'Volver a Mis Solicitudes'}
                 </button>
             </div>
         );
@@ -236,7 +271,7 @@ export default function RequestDetailPage() {
             <div className="mb-8">
                 <button
                     onClick={() => {
-                        if (user?.role === 'admin') {
+                        if (isAdmin) {
                             router.push('/dashboard/admin/requests');
                         } else {
                             router.push('/dashboard/requests');
@@ -245,7 +280,7 @@ export default function RequestDetailPage() {
                     className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
                 >
                     <FiArrowLeft className="mr-2" />
-                    Volver a Mis Solicitudes
+                    {isAdmin ? 'Volver a Solicitudes' : 'Volver a Mis Solicitudes'}
                 </button>
 
 
