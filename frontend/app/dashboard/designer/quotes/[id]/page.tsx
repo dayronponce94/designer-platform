@@ -181,7 +181,7 @@ export default function DesignerQuoteDetailPage() {
                     onClick={() => router.push(backPath)}
                     className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                    {isAdmin ? 'Volver a Cotizaciones / Diseñadores' : 'Volver a Mis Cotizaciones'}
+                    {isAdmin ? 'Volver a Cotizaciones de Diseñadores' : 'Volver a Mis Cotizaciones'}
                 </button>
             </div>
         );
@@ -198,7 +198,7 @@ export default function DesignerQuoteDetailPage() {
                     className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
                 >
                     <FiArrowLeft className="mr-2" />
-                    {isAdmin ? 'Volver a Cotizaciones / Diseñadores' : 'Volver a Mis Cotizaciones'}
+                    {isAdmin ? 'Volver a Cotizaciones de Diseñadores' : 'Volver a Mis Cotizaciones'}
                 </button>
 
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -306,7 +306,7 @@ export default function DesignerQuoteDetailPage() {
                         </h3>
                         <div className="space-y-4">
                             <div>
-                                <p className="text-sm text-gray-500 mb-1">Monto</p>
+                                <p className="text-sm text-gray-500 mb-1">Pago</p>
                                 <p className="font-medium flex items-center">
                                     <FiDollarSign className="mr-2 text-gray-400" />
                                     {quote.amount.toLocaleString()}
@@ -384,13 +384,13 @@ export default function DesignerQuoteDetailPage() {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">Especialidad</p>
-                                    <p className="font-medium capitalize text-sm">
+                                <div className="flex items-center text-gray-600 text-sm">
+                                    <FiTag className="mr-2 text-gray-400" />
+                                    <span>
                                         {quote.designer.specialty
                                             ? getServiceTypeLabel(quote.designer.specialty)
                                             : 'Sin especialidad'}
-                                    </p>
+                                    </span>
                                 </div>
                             </div>
                         </div>

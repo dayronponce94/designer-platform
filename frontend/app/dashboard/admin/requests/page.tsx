@@ -18,6 +18,7 @@ import { useSearchParams } from 'next/navigation';
 import { adminAPI } from '@/app/lib/api/endpoints';
 import CreateQuoteModal from '@/components/modals/CreateQuoteModal';
 import { Request } from '@/app/types/request';
+import Alert from '@/components/ui/Alert';
 
 export default function AdminRequestsPage() {
     const [requests, setRequests] = useState<Request[]>([]);
@@ -38,6 +39,8 @@ export default function AdminRequestsPage() {
 
     const params = useSearchParams();
     const clientId = params.get('clientId');
+
+
 
     useEffect(() => {
         fetchRequests();
@@ -109,8 +112,6 @@ export default function AdminRequestsPage() {
 
         // Recargar solicitudes después de crear la cotización
         fetchRequests();
-        // Opcional: mostrar notificación de éxito
-        alert('Cotización creada exitosamente');
     };
 
     const formatDate = (dateString: string) => {

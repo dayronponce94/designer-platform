@@ -652,13 +652,12 @@ export default function ProjectDetailPage() {
                                     </div>
                                 </div>
 
-                                <div>
-                                    <p className="text-sm text-gray-500 mb-1">Especialidad</p>
-                                    <p className="font-medium capitalize text-sm">
+                                <div className="flex items-center text-gray-600 text-sm">
+                                    <FiTag className="mr-2 text-gray-400" />
+                                    <span>
                                         {project.designer.specialty
                                             ? getServiceTypeLabel(project.designer.specialty)
-                                            : 'Sin especialidad'}
-                                    </p>
+                                            : 'Sin especialidad'}</span>
                                 </div>
 
                                 {project.designer.portfolio && (

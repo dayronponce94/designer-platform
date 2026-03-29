@@ -128,10 +128,10 @@ export default function DesignerDeliverablesPage() {
 
     const getStatusBadge = (status: string) => {
         const config: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
-            approved: { color: 'bg-green-100 text-blue-800', icon: <FiCheckCircle />, text: 'Aprobado' },
-            'in-progress': { color: 'bg-yellow-100 text-yellow-800', icon: <FiClock />, text: 'En progreso' },
-            review: { color: 'bg-purple-100 text-purple-800', icon: <FiEye />, text: 'En revisión' },
-            completed: { color: 'bg-blue-100 text-green-800', icon: <FiCheckCircle />, text: 'Completado' },
+            approved: { color: 'bg-blue-100 text-blue-800', icon: <FiCheckCircle />, text: 'Aprobado' },
+            'in-progress': { color: 'bg-purple-100 text-purple-800', icon: <FiClock />, text: 'En progreso' },
+            review: { color: 'bg-orange-100 text-orange-800', icon: <FiEye />, text: 'En revisión' },
+            completed: { color: 'bg-green-100 text-green-800', icon: <FiCheckCircle />, text: 'Completado' },
         };
 
         // Si el status no existe en config, usamos un estilo gris por defecto en lugar de mentir diciendo "En progreso"
@@ -271,7 +271,7 @@ export default function DesignerDeliverablesPage() {
                                                 </button>
                                                 <Link
                                                     href={`/dashboard/projects/${project._id}`}
-                                                    className="text-green-600 hover:text-green-900 transition-colors"
+                                                    className="text-blue-600 hover:text-blue-900 transition-colors"
                                                     title="Ver detalles del proyecto"
                                                 >
                                                     <FiEye className="w-4 h-4" />
@@ -345,7 +345,13 @@ export default function DesignerDeliverablesPage() {
                                             rows={3}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                                             placeholder="Comentarios sobre esta entrega..."
+                                            maxLength={500}
                                         />
+                                        <div className="flex justify-between items-center mt-2">
+                                            <p className="text-xs text-gray-500">
+                                                {notes.length}/500 caracteres
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
 

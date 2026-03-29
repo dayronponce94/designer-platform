@@ -448,11 +448,11 @@ export default function RequestDetailPage() {
 
                 {/* Sidebar */}
                 <div className="space-y-6">
-                    {/* Información del proyecto */}
+                    {/* Información de la solicitud */}
                     <div className="bg-white rounded-xl shadow p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                             <FiTag className="mr-2" />
-                            Detalles del Proyecto
+                            Detalles de la Solicitud
                         </h3>
 
                         <div className="space-y-4">
@@ -505,39 +505,40 @@ export default function RequestDetailPage() {
                     </div>
 
                     {/* Información del cliente */}
-                    <div className="bg-white rounded-xl shadow p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <FiUser className="mr-2" />
-                            Información del Cliente
-                        </h3>
+                    {isAdmin && (
+                        <div className="bg-white rounded-xl shadow p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                <FiUser className="mr-2" />
+                                Información del Cliente
+                            </h3>
 
-                        <div className="space-y-3">
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold mr-3">
-                                    {request.client.name.charAt(0)}
+                            <div className="space-y-3">
+                                <div className="flex items-center">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold mr-3">
+                                        {request.client.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-gray-900">{request.client.name}</p>
+                                        <p className="text-sm text-gray-500">{request.client.email}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-medium text-gray-900">{request.client.name}</p>
-                                    <p className="text-sm text-gray-500">{request.client.email}</p>
-                                </div>
+
+                                {request.client.company && (
+                                    <div className="flex items-center text-gray-600">
+                                        <FiBriefcase className="mr-2 text-gray-400" />
+                                        <span>{request.client.company}</span>
+                                    </div>
+                                )}
+
+                                {request.client.phone && (
+                                    <div className="flex items-center text-gray-600">
+                                        <FiPhone className="mr-2 text-gray-400" />
+                                        <span>{request.client.phone}</span>
+                                    </div>
+                                )}
                             </div>
-
-                            {request.client.company && (
-                                <div className="flex items-center text-gray-600">
-                                    <FiBriefcase className="mr-2 text-gray-400" />
-                                    <span>{request.client.company}</span>
-                                </div>
-                            )}
-
-                            {request.client.phone && (
-                                <div className="flex items-center text-gray-600">
-                                    <FiPhone className="mr-2 text-gray-400" />
-                                    <span>{request.client.phone}</span>
-                                </div>
-                            )}
                         </div>
-                    </div>
-
+                    )}
 
 
                     {/* Acciones rápidas */}
@@ -553,13 +554,14 @@ export default function RequestDetailPage() {
                                 Ver Archivos
                             </button>
 
-                            <Link
-                                href="/contact"
-                                className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                            >
-                                <FiMessageSquare className="mr-2" /> Contactar Soporte
-                            </Link>
-
+                            {!isAdmin && (
+                                <Link
+                                    href="/contact"
+                                    className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                                >
+                                    <FiMessageSquare className="mr-2" /> Contactar Soporte
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>
