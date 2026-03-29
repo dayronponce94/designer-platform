@@ -427,7 +427,7 @@ const uploadDeliverable = asyncHandler(async (req, res) => {
                 cb(null, 'deliverable-' + uniqueSuffix + path.extname(file.originalname));
             }
         }),
-        limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
+        limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
         fileFilter: (req, file, cb) => {
             const allowedExtensions = /\.(zip|rar|7z|tar\.gz|gz)$/i;
             if (!allowedExtensions.test(file.originalname)) {

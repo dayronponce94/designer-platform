@@ -10,7 +10,8 @@ import {
     FiFile, FiMessageSquare, FiEdit, FiDownload,
     FiPhone, FiGlobe, FiEye,
     FiPaperclip, FiExternalLink, FiTag,
-    FiFileText, FiUpload
+    FiFileText, FiUpload,
+    FiLink
 } from 'react-icons/fi';
 import Link from 'next/dist/client/link';
 
@@ -69,6 +70,17 @@ interface Project {
         internalDeadline: string;
         attachments: Array<any>; // Archivos que el diseñador suba después
     };
+
+    // Dentro de interface Project
+    deliverables?: Array<{
+        url: string;
+        filename: string;
+        filetype: string;
+        size: number;
+        uploadedAt: string;
+        version: number;
+        _id: string;
+    }>;
 }
 
 export default function ProjectDetailPage() {
@@ -79,7 +91,7 @@ export default function ProjectDetailPage() {
     const [project, setProject] = useState<Project | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState<'overview' | 'files' | 'timeline'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'files' | 'timeline' | 'final-files'>('overview');
 
 
     const projectId = params.id as string;
@@ -352,6 +364,13 @@ export default function ProjectDetailPage() {
                                 >
                                     Cronograma
                                 </button>
+                                {/* Nueva pestaña: Solo visible si hay entregables o si no es cliente en fase inicial */}
+                                <button
+                                    onClick={() => setActiveTab('final-files')}
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'final-files' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                                >
+                                    Entregable ({project.deliverables?.length || 0})
+                                </button>
                             </nav>
                         </div>
 
@@ -391,13 +410,10 @@ export default function ProjectDetailPage() {
                             {activeTab === 'files' && (
                                 <div>
                                     <div className="flex justify-between items-center mb-6">
-                                        <h3 className="text-lg font-semibold text-gray-900">Documentación del Proyecto</h3>
-                                        {/* Solo el admin o diseñador pueden subir archivos si el flujo lo requiere 
-                                        {(user?.role === 'admin' || user?.role === 'designer') && (
-                                            <button className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700">
-                                                <FiUpload className="mr-1" /> Subir Archivo
-                                            </button>
-                                        )}*/}
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900">Archivos de Ejemplos</h3>
+                                            <p className="text-sm text-gray-500">Aquí encontrarás los archivos de ejemplo para este proyecto.</p>
+                                        </div>
                                     </div>
 
                                     {allAttachments.length === 0 ? (
@@ -495,6 +511,58 @@ export default function ProjectDetailPage() {
                                             </div>
                                         )}
                                     </div>
+                                </div>
+                            )}
+                            {/* Contenido: Entregable Final */}
+                            {activeTab === 'final-files' && (
+                                <div>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900">Entregables Finales del Proyecto</h3>
+                                            <p className="text-sm text-gray-500">Aquí encontrarás los productos terminados listos para descargar.</p>
+                                        </div>
+                                    </div>
+
+                                    {!project.deliverables || project.deliverables.length === 0 ? (
+                                        <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                                            <FiBriefcase className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                            <h3 className="text-md font-medium text-gray-900">Aún no hay entregables</h3>
+                                            <p className="text-gray-500 text-sm">El diseñador subirá los archivos finales una vez completado el trabajo.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 gap-4">
+                                            {project.deliverables.map((file) => (
+                                                <div
+                                                    key={file._id}
+                                                    className="flex items-center justify-between p-5 border border-blue-100 bg-blue-50/30 rounded-xl hover:bg-blue-50 transition"
+                                                >
+                                                    <div className="flex items-center min-w-0">
+                                                        <div className="p-3 bg-blue-100 rounded-lg mr-4">
+                                                            <FiLink className="text-blue-600 w-6 h-6" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="font-bold text-gray-900 truncate">{file.filename}</p>
+                                                            <div className="flex items-center text-xs text-gray-500 mt-1">
+                                                                <span className="bg-blue-600 text-white px-2 py-0.5 rounded mr-2">Versión {file.version}</span>
+                                                                <span>{formatFileSize(file.size)}</span>
+                                                                <span className="mx-2">•</span>
+                                                                <span>Subido el {formatDate(file.uploadedAt)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <a
+                                                        href={file.url}
+                                                        download
+
+                                                        className="p-2 text-green-600 hover:text-green-700 hover:bg-green-200 rounded-lg transition"
+                                                        title="Descargar entregable"
+                                                    >
+                                                        <FiDownload />
+                                                    </a>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -686,27 +754,6 @@ export default function ProjectDetailPage() {
                                 <FiFile className="mr-2" />
                                 Ver Archivos
                             </button>
-
-                            {/* Acción Cliente: Aprobar Cotización 
-                            {user?.role === 'client' && project.status === 'quoted' && (
-                                <button className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                                    <FiCheckCircle className="mr-2" /> Aprobar Cotización
-                                </button>
-                            )}*/}
-
-                            {/* Acción Diseñador: Subir Entrega 
-                            {user?.role === 'designer' && project.status === 'in-progress' && (
-                                <button className="w-full flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-                                    <FiUpload className="mr-2" /> Subir Entregable
-                                </button>
-                            )}*/}
-
-                            {/* Acción Admin: Gestionar Proyecto 
-                            {user?.role === 'admin' && (
-                                <button className="w-full flex items-center justify-center px-4 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition">
-                                    Cambiar Estado
-                                </button>
-                            )}*/}
 
                             <Link
                                 href="/contact"

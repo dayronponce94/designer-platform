@@ -105,19 +105,26 @@ export default function DesignerDeliverablesPage() {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`/api/projects/${selectedProject._id}/deliverables`, {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const response = await fetch(`${API_URL}/projects/${selectedProject._id}/deliverables`, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${token}` },
-                body: formData
+                body: formData,
             });
 
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message || 'Error al subir entregable');
+            if (!response.ok) {
+                if (response.status === 413) {
+                    throw new Error('El archivo excede el límite permitido de 50 MB.');
+                }
+                const data = await response.json().catch(() => null);
+                throw new Error(data?.message || 'Error al subir entregable');
+            }
 
+            const data = await response.json();
             setUploadSuccess('Entregable subido correctamente');
             setTimeout(() => {
                 setModalOpen(false);
-                fetchProjects(); // refrescar lista
+                fetchProjects();
             }, 2000);
         } catch (err: any) {
             setUploadError(err.message);
@@ -314,10 +321,11 @@ export default function DesignerDeliverablesPage() {
                                             type="file"
                                             accept=".zip,.rar,.7z,.tar.gz,.gz"
                                             onChange={handleFileChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 file:hidden"
                                         />
+
                                         <p className="text-xs text-gray-500 mt-1">
-                                            Máximo 50 MB.
+                                            Máximo 100 MB.
                                         </p>
                                     </div>
 
