@@ -494,12 +494,18 @@ export default function RequestDetailPage() {
 
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Creado el</p>
-                                <p className="font-medium">{formatDateTime(request.createdAt)}</p>
+                                <p className="font-medium flex items-center">
+                                    <FiClock className="mr-2 text-gray-400" />
+                                    {formatDate(request.createdAt)}
+                                </p>
                             </div>
 
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Última actualización</p>
-                                <p className="font-medium">{formatDateTime(request.updatedAt)}</p>
+                                <p className="font-medium flex items-center">
+                                    <FiClock className="mr-2 text-gray-400" />
+                                    {formatDate(request.updatedAt)}
+                                </p>
                             </div>
                         </div>
                     </div>

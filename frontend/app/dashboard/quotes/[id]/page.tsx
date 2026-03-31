@@ -353,7 +353,7 @@ export default function QuoteDetailPage() {
                                         <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
                                             <h3 className="text-lg font-semibold text-blue-900 mb-2">Vista de Administrador</h3>
                                             <p className="text-blue-700 text-sm">
-                                                Estás visualizando los detalles de una cotización enviada a un diseñador. Como administrador, solo puedes supervisar el contenido y el estado de la misma.
+                                                Estás visualizando los detalles de una cotización enviada a un cliente. Como administrador, solo puedes supervisar el contenido y el estado de la misma.
                                             </p>
                                         </div>
                                     )}

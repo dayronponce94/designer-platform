@@ -241,14 +241,14 @@ export default function DesignerPortfolioPage() {
                                     <div className="flex items-center space-x-2">
                                         <button
                                             onClick={() => router.push(`/dashboard/designer/portfolio/${item._id}`)}
-                                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-blue-50 rounded-lg transition"
+                                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                                             title="Detalles"
                                         >
                                             <FiEye className="w-4 h-4" />
                                         </button>
                                         <button
                                             onClick={() => router.push(`/dashboard/designer/portfolio/edit/${item._id}`)}
-                                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
                                             title="Editar"
                                         >
                                             <FiEdit className="mr-1" />
@@ -336,14 +336,14 @@ export default function DesignerPortfolioPage() {
                                                 <div className="flex items-center space-x-2">
                                                     <button
                                                         onClick={() => router.push(`/dashboard/designer/portfolio/${item._id}`)}
-                                                        className="p-2 text-gray-500 hover:text-green-600 hover:bg-blue-50 rounded-lg transition"
+                                                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                                                         title="Detalles"
                                                     >
                                                         <FiEye className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={() => router.push(`/dashboard/designer/portfolio/edit/${item._id}`)}
-                                                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                        className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
                                                         title="Editar"
                                                     >
                                                         <FiEdit className="w-4 h-4" />
