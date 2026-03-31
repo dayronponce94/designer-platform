@@ -5,7 +5,7 @@ import { adminAPI } from '@/app/lib/api/endpoints';
 import Alert from '@/components/ui/Alert';
 import {
     FiFileText, FiClock, FiCheckCircle, FiXCircle, FiEye,
-    FiUser, FiDollarSign, FiCalendar, FiUserPlus, FiSearch
+    FiUserPlus, FiSearch
 } from 'react-icons/fi';
 import Link from 'next/link';
 import CreateDesignerQuoteModal from '@/components/modals/CreateDesignerQuoteModal';

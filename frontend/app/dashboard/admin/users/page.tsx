@@ -28,7 +28,7 @@ export default function AdminUsersPage() {
         isVerified: '',
         search: '',
         page: 1,
-        limit: 20
+        limit: 5
     });
     const [pagination, setPagination] = useState<any>({});
 
@@ -399,10 +399,13 @@ export default function AdminUsersPage() {
 
             {/* Paginación */}
             {pagination && pagination.pages > 1 && (
-                <div className="flex justify-center">
+                <div className="flex justify-between items-center">
+                    <div className="text-sm text-gray-500">
+                        Mostrando {((filters.page - 1) * filters.limit) + 1} - {Math.min(filters.page * filters.limit, pagination.total)} de {pagination.total} resultados
+                    </div>
                     <div className="flex space-x-2">
                         <button
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                             disabled={filters.page === 1}
                             onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
                         >
@@ -412,7 +415,7 @@ export default function AdminUsersPage() {
                             Página {filters.page} de {pagination.pages}
                         </span>
                         <button
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                             disabled={filters.page === pagination.pages}
                             onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
                         >
