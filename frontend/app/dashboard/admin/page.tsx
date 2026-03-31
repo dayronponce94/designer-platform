@@ -26,11 +26,11 @@ export default function AdminDashboardPage() {
             setStats(reports);
 
             // Obtener usuarios recientes
-            const usersData = await adminAPI.getAllUsers({ limit: 5, sort: '-createdAt' });
+            const usersData = await adminAPI.getAllUsers({ limit: 3, sort: '-createdAt' });
             setRecentUsers(usersData.data.data.users || []);
 
             // Obtener proyectos recientes
-            const projectsData = await adminAPI.getAllProjects({ limit: 5, sort: '-createdAt' });
+            const projectsData = await adminAPI.getAllProjects({ limit: 3, sort: '-createdAt' });
             setRecentProjects(projectsData.data.data.projects || []);
         } catch (error) {
             console.error('Error loading dashboard data:', error);
