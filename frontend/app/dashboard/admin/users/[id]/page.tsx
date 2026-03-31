@@ -224,39 +224,22 @@ export default function UserDetailsPage() {
                                 </div>
                             </div>
                         </div>
+                        {user.role === 'designer' && (
+                            <div className="p-4 bg-blue-50 rounded-lg">
+                                <h3 className="font-medium text-gray-900 mb-3">Acciones Rápidas</h3>
+                                <div className="space-y-2">
 
-                        <div className="p-4 bg-blue-50 rounded-lg">
-                            <h3 className="font-medium text-gray-900 mb-3">Acciones Rápidas</h3>
-                            <div className="space-y-2">
-                                <button
-                                    onClick={() => router.push(`/dashboard/admin/users/${userId}/edit`)}
-                                    className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                >
-                                    <FiEdit className="mr-2" />
-                                    Editar Usuario
-                                </button>
-
-                                {user.role === 'client' && (
                                     <button
-                                        onClick={() => router.push(`/dashboard/admin/projects?client=${userId}`)}
-                                        className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                                        onClick={() => router.push(`/dashboard/admin/portfolio/${user._id}`)}
+                                        className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                                     >
                                         <FiBriefcase className="mr-2" />
-                                        Ver Proyectos
+                                        Portafolio del diseñador
                                     </button>
-                                )}
 
-                                {user.role === 'designer' && (
-                                    <button
-                                        onClick={() => router.push(`/dashboard/admin/projects?designer=${userId}`)}
-                                        className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                                    >
-                                        <FiBriefcase className="mr-2" />
-                                        Ver Proyectos Asignados
-                                    </button>
-                                )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

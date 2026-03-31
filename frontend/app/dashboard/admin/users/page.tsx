@@ -349,30 +349,6 @@ export default function AdminUsersPage() {
                                                         <FiEdit className="w-4 h-4" />
                                                     </button>
 
-                                                    {/* --- NUEVOS BOTONES DINÁMICOS --- */}
-
-                                                    {/* Si es CLIENTE, mostramos Ver Proyectos */}
-                                                    {user.role === 'client' && (
-                                                        <button
-                                                            className="text-yellow-500 hover:text-yellow-700 transition-colors"
-                                                            onClick={() => handleViewProjects(user._id)}
-                                                            title="Ver proyectos del cliente"
-                                                        >
-                                                            <FiFolder className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-
-                                                    {/* Si es DISEÑADOR, mostramos Ver Portafolio */}
-                                                    {user.role === 'designer' && (
-                                                        <button
-                                                            className="text-purple-600 hover:text-purple-900 transition-colors"
-                                                            onClick={() => router.push(`/dashboard/admin/portfolio/${user._id}`)}
-                                                            title="Ver portafolio del diseñador"
-                                                        >
-                                                            <FiBriefcase className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-
                                                     {/* --- BOTÓN ELIMINAR EXISTENTE --- */}
                                                     <button
                                                         className={`${isMainAdminUser || isCurrentUserUser ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-900 transition-colors'}`}
