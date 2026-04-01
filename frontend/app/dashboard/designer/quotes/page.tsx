@@ -41,7 +41,7 @@ export default function DesignerQuotesPage() {
         search: '',
         status: '',
         page: 1,
-        limit: 10
+        limit: 3
     });
     const [pagination, setPagination] = useState<any>({});
 
@@ -235,7 +235,7 @@ export default function DesignerQuotesPage() {
                     </div>
                     <div className="flex space-x-2">
                         <button
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                             disabled={filters.page === 1}
                             onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
                         >
@@ -245,7 +245,7 @@ export default function DesignerQuotesPage() {
                             Página {filters.page} de {pagination.pages}
                         </span>
                         <button
-                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                             disabled={filters.page === pagination.pages}
                             onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
                         >
