@@ -40,7 +40,7 @@ export default function DesignerDeadlinesPage() {
     const [timeframeFilter, setTimeframeFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
-    const projectsPerPage = 5;
+    const projectsPerPage = 3;
 
     // 2. Definimos el objeto 'filters' que necesita el Hook
     const filters = useMemo(() => ({
@@ -401,49 +401,38 @@ export default function DesignerDeadlinesPage() {
 
             {/* Paginación */}
             {filteredProjects.length > projectsPerPage && (
-                <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 rounded-lg shadow">
-                    <div className="flex flex-1 justify-between sm:hidden">
+                <div className="flex justify-between items-center">
+                    {/* Texto informativo */}
+                    <div className="text-sm text-gray-500">
+                        Mostrando <span className="font-medium">{indexOfFirstProject + 1}</span> –{' '}
+                        <span className="font-medium">
+                            {Math.min(indexOfLastProject, filteredProjects.length)}
+                        </span>{' '}
+                        de <span className="font-medium">{filteredProjects.length}</span> resultados
+                    </div>
+
+                    {/* Navegación */}
+                    <div className="flex items-center space-x-2">
                         <button
                             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
-                            className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                         >
                             Anterior
                         </button>
+
+                        {/* Texto en lugar de botones numéricos */}
+                        <span className="px-4 py-2 text-sm font-medium text-gray-700">
+                            Página {currentPage} de {totalPages}
+                        </span>
+
                         <button
                             onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
-                            className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                         >
                             Siguiente
                         </button>
-                    </div>
-                    <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-sm text-gray-700">
-                                Mostrando <span className="font-medium">{indexOfFirstProject + 1}</span> a{' '}
-                                <span className="font-medium">
-                                    {Math.min(indexOfLastProject, filteredProjects.length)}
-                                </span> de{' '}
-                                <span className="font-medium">{filteredProjects.length}</span> resultados
-                            </p>
-                        </div>
-                        <div>
-                            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
-                                    <button
-                                        key={number}
-                                        onClick={() => setCurrentPage(number)}
-                                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${currentPage === number
-                                            ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                                            : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
-                                            }`}
-                                    >
-                                        {number}
-                                    </button>
-                                ))}
-                            </nav>
-                        </div>
                     </div>
                 </div>
             )}
