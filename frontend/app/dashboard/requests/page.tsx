@@ -60,6 +60,8 @@ export default function RequestsPage() {
         page: 1
     });
 
+    const [totalResults, setTotalResults] = useState(0);
+
     useEffect(() => {
         if (user) fetchRequests();
     }, [user, currentPage, statusFilter, filters.search]);
@@ -70,7 +72,7 @@ export default function RequestsPage() {
             const token = localStorage.getItem('token');
 
             // CONSTRUCCIÓN DE LA URL: Añadimos el parámetro &search
-            const url = `/api/requests?page=${currentPage}&status=${statusFilter}&limit=6&search=${filters.search}`;
+            const url = `/api/requests?page=${currentPage}&status=${statusFilter}&limit=3&search=${filters.search}`;
 
             const response = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -81,6 +83,7 @@ export default function RequestsPage() {
             if (resData.success) {
                 setRequests(resData.data?.requests || []);
                 setTotalPages(resData.data?.pagination?.pages || 1);
+                setTotalResults(resData.data?.pagination?.total || 0);
             } else {
                 throw new Error(resData.message || 'Error al cargar');
             }
@@ -303,24 +306,35 @@ export default function RequestsPage() {
 
                     {/* Paginación */}
                     {totalPages > 1 && (
-                        <div className="flex justify-center items-center space-x-4 pt-4">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
-                            >
-                                <FiChevronLeft />
-                            </button>
-                            <span className="text-sm font-medium text-gray-700">
-                                Página {currentPage} de {totalPages}
-                            </span>
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                disabled={currentPage === totalPages}
-                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
-                            >
-                                <FiChevronRight />
-                            </button>
+                        <div className="flex justify-between items-center">
+                            <div className="text-sm text-gray-500">
+                                Mostrando {(requests.length > 0) ? ((currentPage - 1) * 6 + 1) : 0} –{" "}
+                                {(requests.length > 0) ? ((currentPage - 1) * 6 + requests.length) : 0}{" "}
+                                de {totalResults} resultados
+                            </div>
+
+                            <div className="flex space-x-2">
+                                <button
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Anterior
+                                </button>
+
+                                <span className="px-4 py-2">
+                                    Página {currentPage} de {totalPages}
+                                </span>
+
+                                <button
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+
+                                >
+                                    Siguiente
+                                </button>
+                            </div>
                         </div>
                     )}
                 </>

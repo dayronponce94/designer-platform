@@ -42,7 +42,7 @@ const upload = multer({
 const getRequests = asyncHandler(async (req, res) => {
     const { role, id: userId } = req.user;
     // 1. Extraemos 'search' de la query
-    const { page = 1, limit = 6, status, search } = req.query;
+    const { page = 1, limit = 3, status, search } = req.query;
 
     let query = {};
     if (role === 'client') {
