@@ -41,7 +41,7 @@ export default function DesignerDeliverablesPage() {
         search: '',
         status: '', // Puedes dejarlo vacío para "Todos los activos"
         page: 1,
-        limit: 10
+        limit: 5
     });
     const [pagination, setPagination] = useState({ total: 0, pages: 1 });
 
@@ -396,47 +396,29 @@ export default function DesignerDeliverablesPage() {
             </div>
 
             {/* Paginación */}
-            {pagination.pages > 1 && (
-                <div className="flex justify-between items-center bg-white px-4 py-3 border-t border-gray-200 sm:px-6 mt-4 rounded-lg shadow">
-                    <div className="flex-1 flex justify-between sm:hidden">
+            {pagination && pagination.pages > 1 && (
+                <div className="flex justify-between items-center">
+                    <div className="text-sm text-gray-500">
+                        Mostrando {((filters.page - 1) * filters.limit) + 1} - {Math.min(filters.page * filters.limit, pagination.total)} de {pagination.total} resultados
+                    </div>
+                    <div className="flex space-x-2">
                         <button
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                             disabled={filters.page === 1}
                             onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
-                            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                         >
                             Anterior
                         </button>
+                        <span className="px-4 py-2">
+                            Página {filters.page} de {pagination.pages}
+                        </span>
                         <button
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                             disabled={filters.page === pagination.pages}
                             onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
-                            className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                         >
                             Siguiente
                         </button>
-                    </div>
-                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-sm text-gray-700">
-                                Mostrando página <span className="font-medium">{filters.page}</span> de <span className="font-medium">{pagination.pages}</span>
-                            </p>
-                        </div>
-                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                            <button
-                                disabled={filters.page === 1}
-                                onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
-                                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                            >
-                                Anterior
-                            </button>
-                            {/* Puedes mapear los números de página aquí si quieres */}
-                            <button
-                                disabled={filters.page === pagination.pages}
-                                onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
-                                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                            >
-                                Siguiente
-                            </button>
-                        </nav>
                     </div>
                 </div>
             )}
