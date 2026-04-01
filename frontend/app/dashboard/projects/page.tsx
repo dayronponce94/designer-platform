@@ -57,9 +57,10 @@ export default function ProjectsPage() {
         search: '',
         status: 'all',
         page: 1,
-        limit: 6
+        limit: 3
     });
     const [totalPages, setTotalPages] = useState(1);
+    const [totalResults, setTotalResults] = useState(0);
 
 
 
@@ -92,6 +93,7 @@ export default function ProjectsPage() {
             if (data.success) {
                 setProjects(data.data.projects || []);
                 setTotalPages(data.data.pagination?.pages || 1);
+                setTotalResults(data.data.pagination?.total || 0);
             }
         } catch (err: any) {
             setError(err.message);
@@ -278,24 +280,36 @@ export default function ProjectsPage() {
 
                     {/* Paginación */}
                     {totalPages > 1 && (
-                        <div className="flex justify-center items-center space-x-4 pt-8">
-                            <button
-                                onClick={() => setFilters(f => ({ ...f, page: Math.max(f.page - 1, 1) }))}
-                                disabled={filters.page === 1}
-                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
-                            >
-                                <FiChevronLeft />
-                            </button>
-                            <span className="text-sm font-medium text-gray-700">
-                                Página {filters.page} de {totalPages}
-                            </span>
-                            <button
-                                onClick={() => setFilters(f => ({ ...f, page: Math.min(f.page + 1, totalPages) }))}
-                                disabled={filters.page === totalPages}
-                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50 transition"
-                            >
-                                <FiChevronRight />
-                            </button>
+                        <div className="flex justify-between items-center">
+                            <div className="text-sm text-gray-500">
+                                Mostrando {(projects.length > 0) ? ((filters.page - 1) * 3 + 1) : 0} –{" "}
+                                {(projects.length > 0) ? ((filters.page - 1) * 3 + projects.length) : 0}{" "}
+                                de {totalResults} resultados
+                            </div>
+
+                            <div className="flex space-x-2">
+                                <button
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                    onClick={() => setFilters(f => ({ ...f, page: Math.max(f.page - 1, 1) }))}
+                                    disabled={filters.page === 1}
+                                >
+                                    Anterior
+                                </button>
+
+                                <span className="px-4 py-2">
+                                    Página {filters.page} de {totalPages}
+
+                                </span>
+
+                                <button
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                    onClick={() => setFilters(f => ({ ...f, page: Math.min(f.page + 1, totalPages) }))}
+                                    disabled={filters.page === totalPages}
+
+                                >
+                                    Siguiente
+                                </button>
+                            </div>
                         </div>
                     )}
                 </>
