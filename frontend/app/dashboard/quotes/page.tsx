@@ -47,6 +47,7 @@ export default function QuotesPage() {
         page: 1
     });
     const [totalPages, setTotalPages] = useState(1);
+    const [totalResults, setTotalResults] = useState(0);
 
     useEffect(() => {
         fetchQuotes();
@@ -61,7 +62,7 @@ export default function QuotesPage() {
                 page: filters.page.toString(),
                 search: filters.search,
                 status: filters.status,
-                limit: '6'
+                limit: '3'
             });
 
             const res = await fetch(`/api/quotes?${queryParams}`, {
@@ -72,6 +73,7 @@ export default function QuotesPage() {
             if (data.success) {
                 setQuotes(data.data.quotes || []);
                 setTotalPages(data.data.pagination?.pages || 1);
+                setTotalResults(data.data.pagination?.total || 0);
             } else {
                 setError(data.message || 'Error al cargar cotizaciones');
             }
@@ -233,22 +235,36 @@ export default function QuotesPage() {
 
                     {/* Paginación */}
                     {totalPages > 1 && (
-                        <div className="flex justify-center items-center space-x-4 mt-10">
-                            <button
-                                onClick={() => setFilters(f => ({ ...f, page: Math.max(f.page - 1, 1) }))}
-                                disabled={filters.page === 1}
-                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50"
-                            >
-                                <FiChevronLeft />
-                            </button>
-                            <span className="text-sm font-medium">Página {filters.page} de {totalPages}</span>
-                            <button
-                                onClick={() => setFilters(f => ({ ...f, page: Math.min(f.page + 1, totalPages) }))}
-                                disabled={filters.page === totalPages}
-                                className="p-2 rounded-lg border border-gray-300 disabled:opacity-30 hover:bg-gray-50"
-                            >
-                                <FiChevronRight />
-                            </button>
+                        <div className="flex justify-between items-center">
+                            <div className="text-sm text-gray-500">
+                                Mostrando {(quotes.length > 0) ? ((filters.page - 1) * 3 + 1) : 0} –{" "}
+                                {(quotes.length > 0) ? ((filters.page - 1) * 3 + quotes.length) : 0}{" "}
+                                de {totalResults} resultados
+                            </div>
+
+                            <div className="flex space-x-2">
+                                <button
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                    onClick={() => setFilters(f => ({ ...f, page: Math.max(f.page - 1, 1) }))}
+                                    disabled={filters.page === 1}
+                                >
+                                    Anterior
+                                </button>
+
+                                <span className="px-4 py-2">
+                                    Página {filters.page} de {totalPages}
+
+                                </span>
+
+                                <button
+                                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                    onClick={() => setFilters(f => ({ ...f, page: Math.min(f.page + 1, totalPages) }))}
+                                    disabled={filters.page === totalPages}
+
+                                >
+                                    Siguiente
+                                </button>
+                            </div>
                         </div>
                     )}
                 </>
