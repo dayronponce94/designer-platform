@@ -58,43 +58,29 @@ export default function DesignerProjectsPage() {
     const [projects, setProjects] = useState<ProjectWithDeliverables[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [filter, setFilter] = useState<string>('all');
+    const [pagination, setPagination] = useState<any>(null);
+    const [filters, setFilters] = useState({
+        status: 'all',
+        search: '',
+        page: 1,
+        limit: 3
+    });
+
+
 
     useEffect(() => {
         fetchProjects();
-    }, [filter]);
+    }, [filters]);
 
     const fetchProjects = async () => {
         try {
             setLoading(true);
-            // 1. Llamada a la API
-            const response = await projectAPI.getProjects();
-
-            // 2. Acceso correcto a la data según tu ApiResponse del backend
-            // Estructura: response (Axios) -> data (Backend wrapper) -> data (Payload) -> projects (Array)
-            const projectsArray = response.data?.data?.projects;
-
-            if (!Array.isArray(projectsArray)) {
-                console.error("La API no devolvió un array en 'projects':", response.data);
-                setProjects([]);
-                return;
-            }
-
-            let filteredProjects = projectsArray;
-
-            // 4. Filtro por estado de la UI
-            if (filter === 'active') {
-                filteredProjects = projectsArray.filter((p: any) =>
-                    ['approved', 'in-progress', 'review'].includes(p.status)
-                );
-            } else if (filter === 'completed') {
-                filteredProjects = projectsArray.filter((p: any) => p.status === 'completed');
-            }
-
-            setProjects(filteredProjects);
+            const response = await projectAPI.getProjects(filters);
+            const projectsArray = response.data?.data?.projects || [];
+            setProjects(projectsArray);
+            setPagination(response.data?.data?.pagination);
             setError(null);
         } catch (err: any) {
-            console.error("Error en fetchProjects:", err);
             setError(err.response?.data?.message || 'Error al cargar proyectos');
         } finally {
             setLoading(false);
@@ -249,8 +235,8 @@ export default function DesignerProjectsPage() {
                 <div className="flex items-center space-x-2">
                     <FiFilter className="text-gray-400" />
                     <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
+                        value={filters.status}
+                        onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                         <option value="all">Todos los Proyectos</option>
@@ -270,7 +256,7 @@ export default function DesignerProjectsPage() {
                         <div>
                             <p className="text-sm text-gray-500">Proyectos Activos</p>
                             <p className="text-2xl font-bold text-gray-900">
-                                {projects.filter(p => ['approved', 'in-progress', 'review'].includes(p.status)).length}
+                                {filters.status === 'active' ? pagination?.total : 0}
                             </p>
                         </div>
                     </div>
@@ -415,6 +401,36 @@ export default function DesignerProjectsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Paginación */}
+            {pagination && pagination.total > 0 && (
+                <div className="flex justify-between items-center">
+                    <div className="text-sm text-gray-500">
+                        Mostrando {((filters.page - 1) * filters.limit) + 1} - {Math.min(filters.page * filters.limit, pagination.total)} de {pagination.total} resultados
+                    </div>
+                    {pagination.pages > 1 && (
+                        <div className="flex space-x-2">
+                            <button
+                                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                disabled={filters.page === 1}
+                                onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
+                            >
+                                Anterior
+                            </button>
+                            <span className="px-4 py-2">
+                                Página {filters.page} de {pagination.pages}
+                            </span>
+                            <button
+                                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                disabled={filters.page === pagination.pages}
+                                onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
+                            >
+                                Siguiente
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Guía rápida */}
             <div className="bg-linear-to-r from-blue-50 to-indigo-50 rounded-xl shadow p-6">
