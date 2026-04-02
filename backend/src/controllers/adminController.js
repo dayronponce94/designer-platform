@@ -535,7 +535,6 @@ const getDesignerPortfolio = asyncHandler(async (req, res) => {
 
     const Portfolio = require('../models/Portfolio');
 
-    // 💡 CONSTRUIR QUERY DE FILTRADO
     let query = { designerId: designerId };
 
     if (category && category !== 'all') {

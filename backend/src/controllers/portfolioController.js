@@ -52,14 +52,22 @@ exports.getPortfolioItems = asyncHandler(async (req, res, next) => {
 // @route   GET /api/portfolio/my-portfolio
 // @access  Privado (solo diseñador)
 exports.getMyPortfolio = asyncHandler(async (req, res, next) => {
-    const { category, limit = 20, page = 1 } = req.query;
+    const { category, search, limit = 3, page = 1 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Construir query
     const query = { designerId: req.user.id };
 
-    if (category) {
+    if (category && category !== 'all') {
         query.category = category;
+    }
+
+    if (search) {
+        query.$or = [
+            { title: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } },
+            { tags: { $regex: search, $options: 'i' } }
+        ];
     }
 
     // Obtener items

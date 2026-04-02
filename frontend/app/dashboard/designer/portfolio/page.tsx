@@ -25,18 +25,18 @@ import ConfirmModal from '@/components/modals/ConfirmModal';
 export default function DesignerPortfolioPage() {
     const router = useRouter();
     const { user } = useAuthContext();
-    const { items, loading, error, fetchMyPortfolio, deletePortfolioItem } = usePortfolio();
+    const { items, loading, error, fetchMyPortfolio, deletePortfolioItem, pagination } = usePortfolio();
 
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [selectedCategory, setSelectedCategory] = useState<string>('all');
-    const [searchTerm, setSearchTerm] = useState('');
+    const [filters, setFilters] = useState({ category: 'all', search: '', page: 1, limit: 3 });
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
     useEffect(() => {
         if (user && user.role === 'designer') {
-            fetchMyPortfolio();
+            fetchMyPortfolio(filters);
         }
-    }, [user, fetchMyPortfolio]);
+    }, [user, filters, fetchMyPortfolio]);
+
 
     const categories = [
         { value: 'all', label: 'Todas las categorías' },
@@ -73,15 +73,6 @@ export default function DesignerPortfolioPage() {
         }
     };
 
-    const filteredItems = items.filter(item => {
-        const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
-        const matchesSearch = searchTerm === '' ||
-            item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-
-        return matchesCategory && matchesSearch;
-    });
 
     if (loading && items.length === 0) {
         return (
@@ -106,7 +97,7 @@ export default function DesignerPortfolioPage() {
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mi Portafolio</h1>
                             <p className="text-gray-600 mt-1">
-                                {items.length} {items.length === 1 ? 'trabajo' : 'trabajos'} en tu portafolio
+                                {pagination?.total || 0} {pagination?.total === 1 ? 'trabajo' : 'trabajos'} en el portafolio
                             </p>
                         </div>
                     </div>
@@ -144,20 +135,21 @@ export default function DesignerPortfolioPage() {
                             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Buscar por título, descripción o tags..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Buscar en el portafolio..."
+                                value={filters.search}
+                                onChange={(e) => setFilters({ ...filters, search: e.target.value, page: 1 })}
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
+
                         </div>
                     </div>
 
                     <div className="flex items-center space-x-2">
                         <FiFilter className="text-gray-400" />
                         <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            value={filters.category}
+                            onChange={(e) => setFilters({ ...filters, category: e.target.value, page: 1 })}
+                            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                             {categories.map(category => (
                                 <option key={category.value} value={category.value}>
@@ -165,6 +157,7 @@ export default function DesignerPortfolioPage() {
                                 </option>
                             ))}
                         </select>
+
                     </div>
                 </div>
             </div>
@@ -176,19 +169,19 @@ export default function DesignerPortfolioPage() {
             )}
 
             {/* Contenido del portafolio */}
-            {filteredItems.length === 0 ? (
+            {items.length === 0 ? (
                 <div className="bg-white rounded-xl shadow p-8 text-center">
                     <FiImage className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-xl font-medium text-gray-900 mb-2">
-                        {searchTerm || selectedCategory !== 'all' ? 'No hay resultados' : 'Tu portafolio está vacío'}
+                        {filters.search || filters.category !== 'all' ? 'No hay resultados' : 'Tu portafolio está vacío'}
                     </h3>
                     <p className="text-gray-600 mb-6">
-                        {searchTerm || selectedCategory !== 'all'
+                        {filters.search || filters.category !== 'all'
                             ? 'Intenta con otros términos de búsqueda o selecciona otra categoría'
                             : 'Agrega tus mejores trabajos para atraer más clientes y mostrar tu experiencia.'
                         }
                     </p>
-                    {(!searchTerm && selectedCategory === 'all') && (
+                    {(!filters.search && filters.category === 'all') && (
                         <button
                             onClick={() => router.push('/dashboard/designer/portfolio/upload')}
                             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -201,7 +194,7 @@ export default function DesignerPortfolioPage() {
             ) : viewMode === 'grid' ? (
                 // Vista Grid
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredItems.map(item => {
+                    {items.map(item => {
                         const thumbnail = item.images.find(img => img.isThumbnail) || item.images[0];
 
                         return (
@@ -297,7 +290,7 @@ export default function DesignerPortfolioPage() {
                 // Vista Lista
                 <div className="bg-white rounded-xl shadow overflow-hidden">
                     <div className="divide-y divide-gray-100">
-                        {filteredItems.map(item => {
+                        {items.map(item => {
                             const thumbnail = item.images.find(img => img.isThumbnail) || item.images[0];
 
                             return (
@@ -393,6 +386,34 @@ export default function DesignerPortfolioPage() {
                 cancelText="Cancelar"
                 type="danger"
             />
+
+            {pagination && pagination.pages > 1 && (
+                <div className="flex justify-between items-center">
+                    <div className="text-sm text-gray-500">
+                        Mostrando {((filters.page - 1) * filters.limit) + 1} - {Math.min(filters.page * filters.limit, pagination.total)} de {pagination.total} resultados
+                    </div>
+                    <div className="flex space-x-2">
+                        <button
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            disabled={filters.page === 1}
+                            onClick={() => setFilters({ ...filters, page: filters.page - 1 })}
+                        >
+                            Anterior
+                        </button>
+                        <span className="px-4 py-2">
+                            Página {filters.page} de {pagination.pages}
+                        </span>
+                        <button
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            disabled={filters.page === pagination.pages}
+                            onClick={() => setFilters({ ...filters, page: filters.page + 1 })}
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+            )}
+
 
             {/* Información */}
             <div className="bg-linear-to-r from-purple-50 to-pink-50 rounded-xl shadow p-6">
