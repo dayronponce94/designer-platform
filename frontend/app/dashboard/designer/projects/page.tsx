@@ -59,6 +59,7 @@ export default function DesignerProjectsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [pagination, setPagination] = useState<any>(null);
+
     const [filters, setFilters] = useState({
         status: 'all',
         search: '',
@@ -66,19 +67,27 @@ export default function DesignerProjectsPage() {
         limit: 3
     });
 
-
-
-    useEffect(() => {
-        fetchProjects();
-    }, [filters]);
+    const [stats, setStats] = useState({
+        active: 0,
+        completed: 0,
+        upcoming: 0,
+        overdue: 0
+    });
 
     const fetchProjects = async () => {
         try {
             setLoading(true);
             const response = await projectAPI.getProjects(filters);
-            const projectsArray = response.data?.data?.projects || [];
-            setProjects(projectsArray);
-            setPagination(response.data?.data?.pagination);
+            const data = response.data?.data; // Accedemos al objeto data
+
+            setProjects(data?.projects || []);
+            setPagination(data?.pagination);
+
+            // 2. Guardamos las estadísticas globales que vienen del backend
+            if (data?.stats) {
+                setStats(data.stats);
+            }
+
             setError(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al cargar proyectos');
@@ -86,6 +95,10 @@ export default function DesignerProjectsPage() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchProjects();
+    }, [filters]);
 
     const formatDate = (dateInput: any) => {
         if (!dateInput) return 'Sin fecha definida';
@@ -241,7 +254,8 @@ export default function DesignerProjectsPage() {
                     >
                         <option value="all">Todos los Proyectos</option>
                         <option value="active">Proyectos Activos</option>
-                        <option value="completed">Completados</option>
+                        <option value="completed">Proyectos Completados</option>
+                        <option value="overdue">Proyectos Vencidos</option>
                     </select>
                 </div>
             </div>
@@ -255,9 +269,7 @@ export default function DesignerProjectsPage() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Proyectos Activos</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {filters.status === 'active' ? pagination?.total : 0}
-                            </p>
+                            <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
                         </div>
                     </div>
                 </div>
@@ -268,24 +280,20 @@ export default function DesignerProjectsPage() {
                             <FiCheckCircle className="w-6 h-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Completados</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {projects.filter(p => p.status === 'completed').length}
-                            </p>
+                            <p className="text-sm text-gray-500">Proyectos Completados</p>
+                            <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="bg-white rounded-xl shadow p-6">
                     <div className="flex items-center">
-                        <div className="p-3 bg-yellow-100 text-yellow-600 rounded-lg mr-4">
+                        <div className="p-3 bg-red-100 text-red-600 rounded-lg mr-4">
                             <FiCalendar className="w-6 h-6" />
                         </div>
                         <div>
-                            <p className="text-sm text-gray-500">Próximo Vencimiento</p>
-                            <p className="text-2xl font-bold text-gray-900">
-                                {projects.filter(p => p.deadline && new Date(p.deadline) > new Date()).length > 0 ? 'Pronto' : 'Ninguno'}
-                            </p>
+                            <p className="text-sm text-gray-500">Proyectos Vencidos</p>
+                            <p className="text-2xl font-bold text-gray-900">{stats.overdue}</p>
                         </div>
                     </div>
                 </div>

@@ -56,10 +56,19 @@ const getProjects = asyncHandler(async (req, res) => {
     // 3. Filtro Dinámico para la LISTA (Búsqueda y Estado seleccionado)
     let listQuery = { ...baseQuery };
 
-    if (status && status !== '' && status !== 'all' && status !== 'active') {
-        listQuery.status = status;
-    } else if (role === 'designer' && status === 'active') {
+    if (status === 'overdue') {
+        // 1. Primero manejamos el caso especial de vencidos
+        const deadlineField = role === 'designer' ? 'designerView.internalDeadline' : 'clientView.deadline';
+        listQuery.status = { $in: ['approved', 'in-progress', 'review'] }; // Solo buscamos en los que aún no terminan
+        listQuery[deadlineField] = { $lt: new Date() }; // Y que la fecha ya pasó
+    }
+    else if (role === 'designer' && status === 'active') {
+        // 2. Luego el caso especial de activos para diseñadores
         listQuery.status = { $in: ['approved', 'in-progress', 'review'] };
+    }
+    else if (status && status !== '' && status !== 'all' && status !== 'active') {
+        // 3. Por último, si es un estado real de la DB (ej: 'completed', 'cancelled')
+        listQuery.status = status;
     }
 
     if (search && search.trim() !== '') {
@@ -78,14 +87,14 @@ const getProjects = asyncHandler(async (req, res) => {
         active: 0,
         upcoming: 0,
         overdue: 0,
-        noDeadline: 0
+        noDeadline: 0,
+        completed: 0
     };
 
     allUserProjects.forEach(proj => {
-        // Solo contamos como "activos" los que no están completados ni cancelados
-        const isActive = ['approved', 'in-progress', 'review'].includes(proj.status);
-
-        if (isActive) {
+        if (proj.status === 'completed') {
+            stats.completed++;
+        } else if (['approved', 'in-progress', 'review'].includes(proj.status)) {
             stats.active++;
 
             // Extraer fecha según el rol
