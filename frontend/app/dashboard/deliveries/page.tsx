@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useProjects } from '@/app/lib/hooks/useProjects';
 import { FiCalendar, FiClock, FiAlertCircle, FiCheckCircle, FiActivity, FiPackage, FiAlertTriangle, FiTrendingUp } from 'react-icons/fi';
 import { format, differenceInDays, isPast, isToday } from 'date-fns';
@@ -8,8 +8,89 @@ import { es } from 'date-fns/locale';
 import Link from 'next/link';
 
 export default function DeliveriesPage() {
-    const { projects, loading, error } = useProjects();
+    const [currentPage, setCurrentPage] = useState(1);
     const [filter, setFilter] = useState<'all' | 'upcoming' | 'overdue'>('all');
+
+    const limit = 3;
+    const { projects, pagination, loading, error, stats } = useProjects({
+        page: currentPage,
+        limit
+    });
+
+
+    const getDaysLeft = (deadline?: string) => {
+        if (!deadline) return null;
+        try {
+            const today = new Date();
+            const deadlineDate = new Date(deadline);
+            return differenceInDays(deadlineDate, today);
+        } catch (error) {
+            return null;
+        }
+    };
+
+
+    // Función auxiliar para extraer la fecha sin importar si es objeto $date o string
+    const getRawDeadline = (project: any) => {
+        // Prioridad a la fecha del cliente, que es la oficial para esta vista
+        const deadline = project.clientView?.deadline;
+        return deadline?.$date || deadline;
+    };
+
+    // 1. Definimos qué proyectos queremos mostrar según el filtro seleccionado
+    const projectsToDisplay = useMemo(() => {
+        // Primero, filtramos por los estados que te interesan (verificados)
+        const baseProjects = projects.filter(project =>
+            ['approved', 'in-progress', 'review', 'completed'].includes(project.status)
+        );
+
+        if (filter === 'all') {
+            // Ordenamos todos los que tienen fecha
+            return [...baseProjects].sort((a, b) => {
+                const dateA = new Date(getRawDeadline(a) || 0).getTime();
+                const dateB = new Date(getRawDeadline(b) || 0).getTime();
+                return dateA - dateB;
+            });
+        }
+
+        if (filter === 'overdue') {
+            return baseProjects.filter(project => {
+                const daysLeft = getDaysLeft(getRawDeadline(project));
+                return project.status !== 'completed' && daysLeft !== null && daysLeft < 0;
+            });
+        }
+
+        if (filter === 'upcoming') {
+            return baseProjects.filter(project => {
+                const daysLeft = getDaysLeft(getRawDeadline(project));
+                return project.status !== 'completed' && daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
+            });
+        }
+
+        return baseProjects;
+    }, [projects, filter]);
+
+    // Mapeo de nombres para las tarjetas 
+    const activeCount = projects.filter(p => ['approved', 'in-progress', 'review'].includes(p.status)).length;
+
+    const upcomingCount = projects.filter(p => {
+        const date = p.clientView?.deadline?.$date || p.clientView?.deadline;
+        const days = getDaysLeft(date);
+        return p.status !== 'completed' && days !== null && days >= 0 && days <= 7;
+    }).length;
+
+    const overdueCount = projects.filter(p => {
+        const date = p.clientView?.deadline?.$date || p.clientView?.deadline;
+        const days = getDaysLeft(date);
+        return p.status !== 'completed' && days !== null && days < 0;
+    }).length;
+
+    const projectsWithoutDeadline = useMemo(() => {
+        return projects.filter(project =>
+            ['approved', 'in-progress', 'review'].includes(project.status) && !getRawDeadline(project)
+        );
+    }, [projects]);
+
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return 'Sin fecha definida';
@@ -40,16 +121,7 @@ export default function DeliveriesPage() {
         }
     };
 
-    const getDaysLeft = (deadline?: string) => {
-        if (!deadline) return null;
-        try {
-            const today = new Date();
-            const deadlineDate = new Date(deadline);
-            return differenceInDays(deadlineDate, today);
-        } catch (error) {
-            return null;
-        }
-    };
+
 
     const getStatusConfig = (status: string) => {
         switch (status) {
@@ -109,61 +181,6 @@ export default function DeliveriesPage() {
         return labels[type] || type;
     };
 
-    // Proyectos visibles en esta página (Incluimos completados para que el cliente vea su historial reciente)
-    const visibleProjects = projects.filter(project =>
-        ['approved', 'in-progress', 'review', 'completed'].includes(project.status)
-    );
-
-    // Proyectos REALMENTE activos (Solo los que están en curso y tienen entregas pendientes)
-    // Excluimos 'completed' para que no ensucien los contadores de las tarjetas
-    const pendingProjects = projects.filter(project =>
-        ['approved', 'in-progress', 'review'].includes(project.status)
-    );
-
-    // Función auxiliar para extraer la fecha sin importar si es objeto $date o string
-    const getRawDeadline = (project: any) => {
-        // Prioridad a la fecha del cliente, que es la oficial para esta vista
-        const deadline = project.clientView?.deadline;
-        return deadline?.$date || deadline;
-    };
-
-    // Proyectos con fecha de entrega
-    const projectsWithDeadline = visibleProjects.filter(project => getRawDeadline(project));
-
-    // Ordenar por fecha de entrega (más cercana primero)
-    const sortedProjects = [...projectsWithDeadline].sort((a, b) => {
-        const dateA = new Date(getRawDeadline(a) || 0);
-        const dateB = new Date(getRawDeadline(b) || 0);
-        return dateA.getTime() - dateB.getTime();
-    });
-
-    // Proyectos vencidos
-    const overdueProjects = projectsWithDeadline.filter(project => {
-        const daysLeft = getDaysLeft(getRawDeadline(project));
-        // Solo es "vencido" si no está completado
-        return project.status !== 'completed' && daysLeft !== null && daysLeft < 0;
-    });
-
-    // Próximas entregas (próximos 7 días)
-    const upcomingProjects = projectsWithDeadline.filter(project => {
-        const daysLeft = getDaysLeft(getRawDeadline(project));
-        // Solo es "próximo" si no está completado
-        return project.status !== 'completed' && daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
-    });
-
-    // Proyectos sin fecha de entrega
-    const projectsWithoutDeadline = pendingProjects.filter(project => !getRawDeadline(project));
-
-    const getFilteredProjects = () => {
-        switch (filter) {
-            case 'upcoming':
-                return upcomingProjects;
-            case 'overdue':
-                return overdueProjects;
-            default:
-                return sortedProjects;
-        }
-    };
 
     if (loading) {
         return (
@@ -210,13 +227,16 @@ export default function DeliveriesPage() {
 
                 <div className="flex items-center space-x-2">
                     <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value as 'all' | 'upcoming' | 'overdue')}
+                        value={filter} // Cambiado de statusFilter a filter
+                        onChange={(e) => {
+                            setFilter(e.target.value as any); // Cambiado de setStatusFilter a setFilter
+                            setCurrentPage(1); // Esto es clave para que al filtrar reinicie a la página 1
+                        }}
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                        <option value="all">Todos los proyectos</option>
-                        <option value="upcoming">Próximos 7 días</option>
-                        <option value="overdue">Vencidos</option>
+                        <option value="all">Todas las Entregas</option>
+                        <option value="upcoming">Próximas (7 días)</option>
+                        <option value="overdue">Vencidas</option>
                     </select>
                 </div>
             </div>
@@ -230,8 +250,7 @@ export default function DeliveriesPage() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Proyectos Activos</p>
-                            {/* Usamos pendingProjects.length en lugar de activeProjects */}
-                            <p className="text-2xl font-bold text-gray-900">{pendingProjects.length}</p>
+                            <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
                         </div>
                     </div>
                 </div>
@@ -243,7 +262,7 @@ export default function DeliveriesPage() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Próximos 7 días</p>
-                            <p className="text-2xl font-bold text-gray-900">{upcomingProjects.length}</p>
+                            <p className="text-2xl font-bold text-gray-900">{stats.upcoming}</p>
                         </div>
                     </div>
                 </div>
@@ -255,7 +274,7 @@ export default function DeliveriesPage() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Vencidos</p>
-                            <p className="text-2xl font-bold text-gray-900">{overdueProjects.length}</p>
+                            <p className="text-2xl font-bold text-gray-900">{stats.overdue}</p>
                         </div>
                     </div>
                 </div>
@@ -267,7 +286,7 @@ export default function DeliveriesPage() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500">Sin fecha</p>
-                            <p className="text-2xl font-bold text-gray-900">{projectsWithoutDeadline.length}</p>
+                            <p className="text-2xl font-bold text-gray-900">{stats.noDeadline}</p>
                         </div>
                     </div>
                 </div>
@@ -284,7 +303,7 @@ export default function DeliveriesPage() {
                     </p>
                 </div>
 
-                {getFilteredProjects().length === 0 ? (
+                {projectsToDisplay.length === 0 ? (
                     <div className="text-center py-12">
                         <FiCalendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                         <h3 className="text-xl font-medium text-gray-900 mb-2">
@@ -303,7 +322,7 @@ export default function DeliveriesPage() {
                     </div>
                 ) : (
                     <div className="divide-y divide-gray-100">
-                        {getFilteredProjects().map((project) => {
+                        {projectsToDisplay.map((project) => {
                             // Extraer la fecha correctamente (considerando el formato de MongoDB $date)
                             const currentDeadline = project.clientView?.deadline?.$date || project.clientView?.deadline;
 
@@ -448,6 +467,42 @@ export default function DeliveriesPage() {
                                 );
                             })}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* PAGINACIÓN */}
+            {pagination && pagination.pages > 1 && projectsToDisplay.length > 0 && (
+                <div className="flex justify-between items-center mt-6">
+                    {/* Texto con rango de resultados */}
+                    <div className="text-sm text-gray-500">
+                        Mostrando {((pagination.page - 1) * limit) + 1} - {Math.min(pagination.page * limit, pagination.total)} de {pagination.total} resultados
+                    </div>
+
+                    <div className="flex space-x-2">
+                        <button
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            disabled={pagination.page === 1}
+                            onClick={() => {
+                                setCurrentPage(prev => prev - 1);
+                            }}
+                        >
+                            Anterior
+                        </button>
+
+                        <span className="px-4 py-2 text-gray-700 font-medium">
+                            Página {pagination.page} de {pagination.pages}
+                        </span>
+
+                        <button
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            disabled={pagination.page >= pagination.pages}
+                            onClick={() => {
+                                setCurrentPage(prev => prev + 1);
+                            }}
+                        >
+                            Siguiente
+                        </button>
                     </div>
                 </div>
             )}

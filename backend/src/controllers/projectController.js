@@ -45,41 +45,79 @@ const getProjects = asyncHandler(async (req, res) => {
     const { status, search, page = 1, limit = 10 } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    let query = {};
-
-    // 2. Filtro base por Rol
+    // 2. Filtro Base (Seguridad por Rol)
+    let baseQuery = {};
     if (role === 'client') {
-        query.client = userId;
+        baseQuery.client = userId;
     } else if (role === 'designer') {
-        query.designer = userId;
+        baseQuery.designer = userId;
     }
 
-    // 3. Filtro de Estado (Si el usuario selecciona uno)
+    // 3. Filtro Dinámico para la LISTA (Búsqueda y Estado seleccionado)
+    let listQuery = { ...baseQuery };
+
     if (status && status !== '' && status !== 'all' && status !== 'active') {
-        // Si el frontend envía un estado real de DB (ej. 'completed'), filtramos por él
-        query.status = status;
+        listQuery.status = status;
     } else if (role === 'designer' && status === 'active') {
-        // Solo filtramos si el frontend explícitamente pide 'active'
-        query.status = { $in: ['approved', 'in-progress', 'review'] };
+        listQuery.status = { $in: ['approved', 'in-progress', 'review'] };
     }
 
-
-    // 4. Filtro de Búsqueda (Search)
     if (search && search.trim() !== '') {
-        query.title = { $regex: search, $options: 'i' };
+        listQuery.title = { $regex: search, $options: 'i' };
     }
 
-    // 5. Ejecutar consulta con paginación
-    const projects = await Project.find(query)
-        .populate('designerQuote', 'description')
+    // --- LÓGICA DE ESTADÍSTICAS GLOBALES ---
+    // Buscamos TODOS los proyectos del usuario para que las tarjetas sean reales
+    const allUserProjects = await Project.find(baseQuery).select('status clientView designerView');
+
+    const today = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+
+    const stats = {
+        active: 0,
+        upcoming: 0,
+        overdue: 0,
+        noDeadline: 0
+    };
+
+    allUserProjects.forEach(proj => {
+        // Solo contamos como "activos" los que no están completados ni cancelados
+        const isActive = ['approved', 'in-progress', 'review'].includes(proj.status);
+
+        if (isActive) {
+            stats.active++;
+
+            // Extraer fecha según el rol
+            const deadlineData = role === 'designer'
+                ? proj.designerView?.internalDeadline
+                : proj.clientView?.deadline;
+
+            // Normalizar fecha (por si viene como objeto $date de Mongo o string)
+            const rawDate = deadlineData?.$date || deadlineData;
+
+            if (!rawDate) {
+                stats.noDeadline++;
+            } else {
+                const date = new Date(rawDate);
+                if (date < today) {
+                    stats.overdue++;
+                } else if (date <= nextWeek) {
+                    stats.upcoming++;
+                }
+            }
+        }
+    });
+
+    // --- EJECUCIÓN DE CONSULTA PAGINADA ---
+    const projects = await Project.find(listQuery)
         .populate('client', 'name email company')
         .populate('designer', 'name email specialty')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit));
 
-    // 6. Contar total para la paginación del frontend
-    const total = await Project.countDocuments(query);
+    const total = await Project.countDocuments(listQuery);
 
     const formattedProjects = projects.map(proj => {
         const p = proj.toObject();
@@ -90,9 +128,11 @@ const getProjects = asyncHandler(async (req, res) => {
         };
     });
 
+    // 7. Respuesta Final con STATS incluidas
     res.status(200).json(
         ApiResponse.success('Proyectos obtenidos', {
             projects: formattedProjects,
+            stats, // Las tarjetas leerán de aquí
             pagination: {
                 total,
                 page: Number(page),
