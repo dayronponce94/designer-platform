@@ -525,39 +525,52 @@ const getUserById = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const getDesignerPortfolio = asyncHandler(async (req, res) => {
     const designerId = req.params.id;
+    // Capturamos todos los filtros posibles
+    const { page = 1, limit = 3, category, search } = req.query;
 
-    // Verificar que el usuario sea un diseñador
-    const designer = await User.findOne({
-        _id: designerId,
-        role: 'designer'
-    }).select('-password');
-
+    const designer = await User.findOne({ _id: designerId, role: 'designer' }).select('-password');
     if (!designer) {
-        return res.status(404).json(
-            ApiResponse.notFound('Diseñador no encontrado').toJSON()
-        );
+        return res.status(404).json(ApiResponse.notFound('Diseñador no encontrado').toJSON());
     }
 
-    // Obtener los items del portafolio del diseñador
-    // Necesitamos el modelo Portfolio - asumo que existe
     const Portfolio = require('../models/Portfolio');
 
-    const portfolioItems = await Portfolio.find({ designerId: designerId })
-        .sort({ createdAt: -1 });
+    // 💡 CONSTRUIR QUERY DE FILTRADO
+    let query = { designerId: designerId };
+
+    if (category && category !== 'all') {
+        query.category = category;
+    }
+
+    if (search && search.trim() !== '') {
+        query.$or = [
+            { title: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } },
+            { tags: { $regex: search, $options: 'i' } }
+        ];
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Ejecutar búsqueda con filtros
+    const portfolioItems = await Portfolio.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+
+    // 💡 CONTAR SOLO LOS DOCUMENTOS QUE CUMPLEN EL FILTRO
+    const total = await Portfolio.countDocuments(query);
 
     res.status(200).json(
         ApiResponse.success('Portafolio obtenido', {
-            designer: {
-                _id: designer._id,
-                name: designer.name,
-                email: designer.email,
-                specialty: designer.specialty,
-                experience: designer.experience,
-                bio: designer.bio,
-                skills: designer.skills
-            },
+            designer,
             portfolio: portfolioItems,
-            count: portfolioItems.length
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total, // Este ahora será 6 si el filtro es "Diseño Web", por ejemplo
+                pages: Math.ceil(total / parseInt(limit))
+            }
         }).toJSON()
     );
 });

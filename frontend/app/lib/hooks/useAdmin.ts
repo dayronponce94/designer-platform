@@ -179,10 +179,11 @@ export function useAdmin() {
     }, []);
 
     // Agregar en el hook useAdmin
-    const getDesignerPortfolio = useCallback(async (designerId: string) => {
+    const getDesignerPortfolio = useCallback(async (designerId: string, params?: any) => {
         try {
             setLoading(true);
-            const response = await adminAPI.getDesignerPortfolio(designerId);
+            // Ahora pasamos los 'params' (que contienen page y limit) a la API
+            const response = await adminAPI.getDesignerPortfolio(designerId, params);
             return response.data.data;
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al cargar el portafolio');
