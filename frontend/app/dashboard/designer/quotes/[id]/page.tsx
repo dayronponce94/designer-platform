@@ -493,7 +493,7 @@ export default function DesignerQuoteDetailPage() {
                         title="Rechazar cotización"
                         message={
                             <div>
-                                <p className="mb-4">¿Estás seguro? Puedes indicar el motivo.</p>
+                                <p className="mb-4">¿Estás seguro que deseas rechazar esta cotización? Puedes indicar el motivo.</p>
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
