@@ -44,39 +44,10 @@ export default function CTASection() {
                             ¿Primera vez? Obtén un 15% de descuento
                         </h3>
                         <p className="text-white/80 mb-6">
-                            Suscríbete y recibe ofertas exclusivas y consejos de diseño directamente en tu email.
+                            Si deseas probar nuestros servicios, crea una cuenta gratuita y obtén un descuento exclusivo en tu primer proyecto.
                         </p>
-
-                        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-                            <div className="flex-1 relative">
-                                <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-300" />
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="tu@email.com"
-                                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent"
-                                    required
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className={`px-8 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${submitted
-                                    ? 'bg-green-500 text-white hover:bg-green-600'
-                                    : 'bg-white text-blue-600 hover:bg-gray-100 hover:shadow-lg'
-                                    }`}
-                            >
-                                {submitted ? (
-                                    <>
-                                        <FiCheck className="w-5 h-5" /> ¡Enviado!
-                                    </>
-                                ) : (
-                                    'Obtener descuento'
-                                )}
-                            </button>
-                        </form>
                         <p className="text-white/60 text-sm mt-4">
-                            Sin spam. Puedes cancelar la suscripción en cualquier momento.
+                            * Descuento válido solo para nuevos usuarios. Aplica en el primer proyecto contratado. No acumulable con otras promociones.
                         </p>
                     </div>
 

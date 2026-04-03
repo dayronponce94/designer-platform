@@ -28,11 +28,11 @@ export default function ContactForm() {
     ];
 
     const budgets = [
-        'Menos de €1,000',
-        '€1,000 - €3,000',
-        '€3,000 - €5,000',
-        '€5,000 - €10,000',
-        'Más de €10,000',
+        'Menos de $1,000',
+        '$1,000 - $3,000',
+        '$3,000 - $5,000',
+        '$5,000 - $10,000',
+        'Más de $10,000',
         'Por definir'
     ];
 

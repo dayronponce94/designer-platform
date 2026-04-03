@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/dist/client/link';
 import { useState } from 'react';
 import {
     FiMonitor,
@@ -171,9 +172,12 @@ export default function ServicesGrid() {
                                             </li>
                                         ))}
                                     </ul>
-                                    <button className="w-full mt-6 py-3 bg-linear-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300">
-                                        Solicitar Servicio
-                                    </button>
+
+                                    <Link href="/login">
+                                        <button className="w-full mt-6 py-3 bg-linear-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300">
+                                            Solicitar Servicio
+                                        </button>
+                                    </Link>
                                 </div>
                             </div>
 

@@ -20,6 +20,11 @@ const quoteSchema = new mongoose.Schema(
         deadline: {
             type: Date,
         },
+        assignedDesigner: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            default: null
+        },
         description: {
             type: String,
             required: true,

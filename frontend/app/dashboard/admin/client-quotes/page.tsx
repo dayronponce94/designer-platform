@@ -5,7 +5,8 @@ import { adminAPI } from '@/app/lib/api/endpoints';
 import Alert from '@/components/ui/Alert';
 import {
     FiFileText, FiClock, FiCheckCircle, FiXCircle, FiEye,
-    FiUserPlus, FiSearch
+    FiUserPlus, FiSearch,
+    FiUser
 } from 'react-icons/fi';
 import Link from 'next/link';
 import CreateDesignerQuoteModal from '@/components/modals/CreateDesignerQuoteModal';
@@ -25,6 +26,7 @@ interface ClientQuote {
     status: 'pending' | 'accepted' | 'rejected' | 'expired';
     createdAt: string;
     validUntil?: string;
+    assignedDesigner?: { _id: string; name: string } | null;
 }
 
 export default function AdminClientQuotesPage() {
@@ -78,6 +80,27 @@ export default function AdminClientQuotesPage() {
             <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${c.color}`}>
                 {c.icon}
                 <span className="ml-1">{c.text}</span>
+            </span>
+        );
+    };
+
+    const getAssignmentBadge = (hasDesigner: boolean, designerName?: string) => {
+        const config = hasDesigner
+            ? {
+                color: 'bg-blue-50 text-blue-700 border-blue-200',
+                icon: <FiUser className="w-3 h-3" />,
+                text: designerName || 'Asignado'
+            }
+            : {
+                color: 'bg-gray-50 text-gray-500 border-gray-200 italic',
+                icon: <FiUserPlus className="w-3 h-3" />,
+                text: 'Sin asignar'
+            };
+
+        return (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wider ${config.color}`}>
+                {config.icon}
+                <span className="ml-1">{config.text}</span>
             </span>
         );
     };
@@ -189,7 +212,7 @@ export default function AdminClientQuotesPage() {
                                         Estado
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Creada por
+                                        Asiganda a
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Acciones
@@ -197,48 +220,73 @@ export default function AdminClientQuotesPage() {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                                {quotes.map((quote) => (
-                                    <tr key={quote._id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">{quote.request.title.length > 30
-                                                ? quote.request.title.substring(0, 30) + '...'
-                                                : quote.request.title}</div>
-                                            <div className="text-sm text-gray-500">{quote.request.client.name}</div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            ${quote.amount.toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {quote.deadline ? formatDate(quote.deadline) : '—'}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {getStatusBadge(quote.status)}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {quote.createdBy.name}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex space-x-2">
-                                                <Link
-                                                    href={`/dashboard/quotes/${quote._id}`}
-                                                    className="text-blue-600 hover:text-blue-900"
-                                                    title="Ver detalles"
-                                                >
-                                                    <FiEye className="w-4 h-4" />
-                                                </Link>
-                                                {quote.status === 'accepted' && (
-                                                    <button
-                                                        onClick={() => handleAssignDesigner(quote)}
-                                                        className="text-green-600 hover:text-green-900"
-                                                        title="Asignar a diseñador"
+                                {quotes.map((quote) => {
+                                    const isAccepted = quote.status === 'accepted';
+                                    const hasDesigner = !!quote.assignedDesigner;
+                                    return (
+                                        <tr key={quote._id} className="hover:bg-gray-50">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="text-sm font-medium text-gray-900">{quote.request.title.length > 30
+                                                    ? quote.request.title.substring(0, 30) + '...'
+                                                    : quote.request.title}</div>
+                                                <div className="text-sm text-gray-500">{quote.request.client.name}</div>
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                ${quote.amount.toLocaleString()}
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {quote.deadline ? formatDate(quote.deadline) : '—'}
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex flex-col gap-1">
+                                                    {getStatusBadge(quote.status)}
+                                                </div>
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex flex-col gap-1">
+                                                    {/* Badge de asignación */}
+                                                    {quote.status === 'accepted' && (
+                                                        getAssignmentBadge(!!quote.assignedDesigner, quote.assignedDesigner?.name)
+                                                    )}
+                                                </div>
+                                            </td>
+
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div className="flex space-x-2">
+                                                    <Link
+                                                        href={`/dashboard/quotes/${quote._id}`}
+                                                        className="text-blue-600 hover:text-blue-900"
+                                                        title="Ver detalles"
                                                     >
-                                                        <FiUserPlus className="w-4 h-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                                        <FiEye className="w-4 h-4" />
+                                                    </Link>
+
+                                                    {/*  EL BOTÓN INTELIGENTE */}
+                                                    {isAccepted && (
+                                                        <button
+                                                            onClick={() => handleAssignDesigner(quote)}
+                                                            className={`transition-colors ${hasDesigner
+                                                                ? 'text-orange-500 hover:text-orange-700'
+                                                                : 'text-green-600 hover:text-green-900'
+                                                                }`}
+                                                            title={hasDesigner ? "Reasignar otro diseñador" : "Asignar a diseñador"}
+                                                        >
+                                                            {hasDesigner ? (
+                                                                <FiUser className="w-5 h-5" /> // Cambia el icono para indicar "usuario ya asignado"
+                                                            ) : (
+                                                                <FiUserPlus className="w-5 h-5" />
+                                                            )}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
                             </tbody>
                         </table>
                     </div>

@@ -647,6 +647,7 @@ const getAllQuotes = asyncHandler(async (req, res) => {
             }
         })
         .populate('createdBy', 'name email')
+        .populate('assignedDesigner', 'name email')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit));
@@ -692,7 +693,7 @@ const getQuoteById = asyncHandler(async (req, res) => {
 // @desc    Crear cotización para diseñador a partir de una cotización de cliente aceptada
 // @route   POST /api/admin/projects/:projectId/designer-quote
 const createDesignerQuote = asyncHandler(async (req, res) => {
-    const { quoteId } = req.params; // Ahora recibimos quoteId
+    const { quoteId } = req.params;
     const { designerId, amount, description, deadline, adminNotes } = req.body;
 
     // 1. Buscar la cotización del cliente
@@ -717,11 +718,17 @@ const createDesignerQuote = asyncHandler(async (req, res) => {
         clientQuote: clientQuote._id,
         designer: designerId,
         amount,
-        // Usamos el título de la solicitud asociada
         description: description || `Trabajo para: ${clientQuote.request.title}`,
         deadline,
         adminNotes,
         status: 'pending'
+    });
+
+    // 💡 AQUÍ ES DONDE ACTUALIZAMOS LA COTIZACIÓN DEL CLIENTE
+    // Guardamos quién es el diseñador asignado para que el frontend sepa qué botón mostrar
+    await Quote.findByIdAndUpdate(quoteId, {
+        assignedDesigner: designerId
+        // Como dijiste, no tocamos el status, se queda en 'accepted'
     });
 
     res.status(201).json(
