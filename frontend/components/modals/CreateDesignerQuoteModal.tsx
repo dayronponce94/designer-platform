@@ -30,7 +30,7 @@ export default function CreateDesignerQuoteModal({ quote, onClose, onSuccess }: 
     useEffect(() => {
         const fetchDesigners = async () => {
             try {
-                const response = await adminAPI.getAllUsers({ role: 'designer', isActive: true });
+                const response = await adminAPI.getAllUsers({ role: 'designer', isActive: true, isVerified: true });
                 setDesigners(response.data.data.users || []);
             } catch (err) {
                 console.error('Error fetching designers:', err);
@@ -120,6 +120,11 @@ export default function CreateDesignerQuoteModal({ quote, onClose, onSuccess }: 
                                 </option>
                             ))}
                         </select>
+                        {designers.length === 0 && (
+                            <p className="text-xs text-amber-600 mt-1">
+                                No hay diseñadores verificados disponibles actualmente.
+                            </p>
+                        )}
                     </div>
 
                     <div>
