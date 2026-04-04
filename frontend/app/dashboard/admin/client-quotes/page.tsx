@@ -249,9 +249,7 @@ export default function AdminClientQuotesPage() {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex flex-col gap-1">
                                                     {/* Badge de asignación */}
-                                                    {quote.status === 'accepted' && (
-                                                        getAssignmentBadge(!!quote.assignedDesigner, quote.assignedDesigner?.name)
-                                                    )}
+                                                    {getAssignmentBadge(!!quote.assignedDesigner, quote.assignedDesigner?.name)}
                                                 </div>
                                             </td>
 

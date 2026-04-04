@@ -411,7 +411,7 @@ export default function DesignerProjectsPage() {
             </div>
 
             {/* Paginación */}
-            {pagination && pagination.total > 0 && (
+            {pagination && pagination.total > 1 && (
                 <div className="flex justify-between items-center">
                     <div className="text-sm text-gray-500">
                         Mostrando {((filters.page - 1) * filters.limit) + 1} - {Math.min(filters.page * filters.limit, pagination.total)} de {pagination.total} resultados

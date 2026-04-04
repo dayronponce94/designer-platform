@@ -16,7 +16,7 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
-import { projectAPI } from '@/app/lib/api/endpoints';
+import { portfolioAPI, projectAPI, requestAPI } from '@/app/lib/api/endpoints';
 
 export default function DashboardPage() {
     const { user, isLoading: authLoading } = useAuthContext();
@@ -27,6 +27,7 @@ export default function DashboardPage() {
         nextStep: 'Cargando...',
         clientsServed: 0,
         projectsInReview: 0,
+        portfolioCount: 0,
     });
     const [loadingStats, setLoadingStats] = useState(true);
 
@@ -34,9 +35,24 @@ export default function DashboardPage() {
         const fetchDashboardStats = async () => {
             try {
                 setLoadingStats(true);
-                // Si no lo tienes, puedes usar projectAPI.getProjects() y calcularlos
                 const response = await projectAPI.getProjects({ limit: 100 });
                 const projects = response.data.data.projects;
+
+                let requests = [];
+                let portfolioItemsCount = 0;
+
+                if (user?.role === 'designer') {
+                    const portResp = await portfolioAPI.getMyPortfolio({ limit: 1 });
+                    portfolioItemsCount = portResp?.data?.message?.pagination?.total || portResp?.data?.data?.pagination?.total || 0;
+                }
+
+                // Solo admin o cliente pueden consultar requests
+                if (user?.role === 'admin' || user?.role === 'client') {
+                    const resp = await requestAPI.getRequests({ limit: 100 });
+                    requests = resp.data.data.requests;
+                }
+
+
 
                 // Calculamos las estadísticas dinámicamente basándonos en los proyectos
                 const active = projects.filter((p: any) => p.status === 'in-progress' || p.status === 'approved').length;
@@ -51,7 +67,8 @@ export default function DashboardPage() {
                     completedProjects: completed,
                     projectsInReview: inReview,
                     clientsServed: uniqueClients,
-                    requestsSent: projects.length, // Asumiendo que cada proyecto es una solicitud enviada
+                    requestsSent: requests.length, // Asumiendo que cada solicitud es una request enviada
+                    portfolioCount: portfolioItemsCount,
                     nextStep: active > 0 ? 'Revisar entregas' : 'Solicitar proyecto'
                 });
             } catch (error) {
@@ -179,7 +196,7 @@ export default function DashboardPage() {
         {
             title: 'Completa tu portafolio',
             description: 'Sube tus mejores trabajos para atraer más clientes',
-            completed: !!user?.portfolio,
+            completed: (statsData.portfolioCount || 0) > 0,
             action: '/dashboard/designer/portfolio'
         },
         {
@@ -190,8 +207,6 @@ export default function DashboardPage() {
         },
     ];
 
-    const nextSteps = user?.role === 'designer' ? designerNextSteps : clientNextSteps;
-
     const SPECIALTY_LABELS: Record<string, string> = {
         branding: 'Diseño de Marca',
         'ux-ui': 'Diseño UX/UI',
@@ -201,6 +216,8 @@ export default function DashboardPage() {
         illustration: 'Ilustración',
         other: 'Otra Especialidad'
     };
+
+    const nextSteps = user?.role === 'designer' ? designerNextSteps : clientNextSteps;
 
     return (
         <div className="space-y-6">
