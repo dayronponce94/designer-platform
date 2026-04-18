@@ -86,7 +86,7 @@ export default function CreateQuoteModal({
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Monto (USD) *
+                            Monto (EUR) *
                         </label>
                         <input
                             type="number"

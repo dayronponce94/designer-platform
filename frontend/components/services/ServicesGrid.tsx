@@ -23,7 +23,7 @@ const services = [
             'Archivos fuente .blend y .FBX/.OBJ',
             'Renders de alta calidad y texturas'
         ],
-        price: 'Desde $300 USD',
+        price: 'Desde €300 EUR',
         color: 'from-purple-500 to-indigo-500',
         popular: false
     },
@@ -38,7 +38,7 @@ const services = [
             'Formatos listos para publicación',
             'Revisiones de color y tipografía'
         ],
-        price: 'Desde $45 USD',
+        price: 'Desde €45 EUR',
         color: 'from-orange-500 to-red-500',
         popular: true
     },
@@ -53,7 +53,7 @@ const services = [
             'Archivos en 300 DPI (PSD/PNG)',
             'Licencia de uso comercial'
         ],
-        price: 'Desde $50 USD',
+        price: 'Desde €50 EUR',
         color: 'from-pink-500 to-rose-500',
         popular: false
     },
@@ -68,7 +68,7 @@ const services = [
             'Archivos vectoriales (.AI / .SVG)',
             'Kit adaptado para Redes Sociales'
         ],
-        price: 'Desde $150 USD',
+        price: 'Desde €150 EUR',
         color: 'from-amber-400 to-orange-600',
         popular: true
     },
@@ -83,7 +83,7 @@ const services = [
             'PDF para imprenta (CMYK) y digital',
             'Archivos fuente empaquetados (.INDD/.AI)'
         ],
-        price: '$15 USD / pág.',
+        price: '€15 EUR / pág.',
         color: 'from-emerald-500 to-teal-700',
         popular: false
     },
@@ -98,7 +98,7 @@ const services = [
             'Guía de estilo (Colores y Tipografía)',
             'Archivos fuente y activos exportados'
         ],
-        price: 'Desde $400 USD',
+        price: 'Desde €400 EUR',
         color: 'from-violet-600 to-fuchsia-600',
         popular: false
     }

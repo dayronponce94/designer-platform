@@ -6,11 +6,11 @@ import { useAuthContext } from '@/app/providers/AuthProvider';
 import Alert from '@/components/ui/Alert';
 import ConfirmModal from '@/components/modals/ConfirmModal';
 import {
-    FiArrowLeft, FiClock, FiCheckCircle, FiAlertCircle,
+    FiArrowLeft, FiClock, FiAlertCircle,
     FiBriefcase, FiDollarSign, FiUser, FiCalendar,
     FiFile, FiMessageSquare, FiEdit, FiDownload,
-    FiTrash2, FiMail, FiPhone, FiGlobe, FiEye,
-    FiPaperclip, FiExternalLink, FiTag,
+    FiTrash2, FiPhone, FiGlobe, FiEye,
+    FiPaperclip, FiTag,
     FiFileText
 } from 'react-icons/fi';
 import Link from 'next/dist/client/link';

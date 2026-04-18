@@ -1,59 +1,98 @@
 'use client';
 
-import { FiDollarSign, FiTrendingUp, FiCalendar, FiFilter } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
+import { paymentAPI } from '@/app/lib/api/endpoints';
+import { FiDollarSign, FiTrendingUp, FiCalendar } from 'react-icons/fi';
+
+interface DesignerPayment {
+    _id: string;
+    amount: number;
+    paidAt: string;
+    project?: {
+        title: string;
+    };
+}
 
 export default function DesignerEarningsPage() {
+    const [payments, setPayments] = useState<DesignerPayment[]>([]);
+    const [totalEarned, setTotalEarned] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchEarnings = async () => {
+            try {
+                const res = await paymentAPI.getPayments({ type: 'designer_payout' });
+                const payouts = res.data.data.payments;
+                setPayments(payouts);
+                const total = payouts.reduce((sum: number, p: any) => sum + p.amount, 0);
+                setTotalEarned(total);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchEarnings();
+    }, []);
+
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(amount);
+    };
+
+    if (loading) return <div className="text-center py-10">Cargando...</div>;
+
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-green-100 text-green-600 rounded-lg">
-                            <FiDollarSign className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mis Ingresos</h1>
-                            <p className="text-gray-600 mt-1">
-                                Resumen de pagos recibidos y comisiones
-                            </p>
-                        </div>
-                    </div>
+            <div className="flex items-center space-x-3">
+                <div className="p-2 bg-green-100 text-green-600 rounded-lg">
+                    <FiDollarSign className="w-6 h-6" />
                 </div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mis Ingresos</h1>
+            </div>
 
-                <div className="flex items-center space-x-2">
-                    <FiFilter className="text-gray-400" />
-                    <select className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                        <option>Este mes</option>
-                        <option>Mes anterior</option>
-                        <option>Últimos 3 meses</option>
-                        <option>Este año</option>
-                    </select>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white rounded-xl shadow p-6">
+                    <p className="text-sm text-gray-500">Total Ganado</p>
+                    <p className="text-3xl font-bold">{formatCurrency(totalEarned)}</p>
+                </div>
+                <div className="bg-white rounded-xl shadow p-6">
+                    <p className="text-sm text-gray-500">Pagos Recibidos</p>
+                    <p className="text-3xl font-bold">{payments.length}</p>
+                </div>
+                <div className="bg-white rounded-xl shadow p-6">
+                    <p className="text-sm text-gray-500">Próximo Pago</p>
+                    <p className="text-3xl font-bold">--</p>
                 </div>
             </div>
 
-            {/* Contenido placeholder */}
-            <div className="bg-white rounded-xl shadow p-8 text-center">
-                <FiDollarSign className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-gray-900 mb-2">
-                    Próximamente: Panel de Ingresos
-                </h3>
-                <p className="text-gray-600 mb-4">
-                    Esta sección estará disponible cuando implementemos el sistema de pagos con Stripe.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                        <div className="text-2xl font-bold text-gray-900 mb-2">$0</div>
-                        <div className="text-sm text-gray-500">Ingresos totales</div>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                        <div className="text-2xl font-bold text-gray-900 mb-2">0</div>
-                        <div className="text-sm text-gray-500">Pagos recibidos</div>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                        <div className="text-2xl font-bold text-gray-900 mb-2">$0</div>
-                        <div className="text-sm text-gray-500">Próximo pago</div>
-                    </div>
+            <div className="bg-white rounded-xl shadow overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-xl font-bold">Historial de Pagos</h2>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Proyecto</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {payments.map((p) => (
+                                <tr key={p._id}>
+                                    <td className="px-6 py-4 text-sm">{p.paidAt ? new Date(p.paidAt).toLocaleDateString() : 'Pendiente'}</td>
+                                    <td className="px-6 py-4 text-sm">{p.project?.title || 'Proyecto'}</td>
+                                    <td className="px-6 py-4 text-sm font-bold">{formatCurrency(p.amount)}</td>
+                                </tr>
+                            ))}
+                            {payments.length === 0 && (
+                                <tr>
+                                    <td colSpan={3} className="text-center py-8 text-gray-500">Aún no has recibido pagos.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

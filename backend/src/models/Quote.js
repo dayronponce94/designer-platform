@@ -32,7 +32,7 @@ const quoteSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ['pending', 'accepted', 'rejected', 'expired'],
+            enum: ['pending', 'accepted', 'rejected', 'expired', 'paid'],
             default: 'pending',
         },
         clientNotes: {

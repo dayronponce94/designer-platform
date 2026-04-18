@@ -14,8 +14,6 @@ import {
     FiUser,
     FiSearch,
     FiFilter,
-    FiChevronLeft,
-    FiChevronRight,
     FiDollarSign,
     FiCalendar
 } from 'react-icons/fi';
@@ -30,10 +28,6 @@ interface Project {
     budget: number;
     deadline: string;
     createdAt: string;
-    designerQuote?: {
-        _id: string;
-        description: string; // Esta es la descripción de Quote.js que queremos
-    };
     client: {
         _id: string;
         name: string;
@@ -43,6 +37,13 @@ interface Project {
         _id: string;
         name: string;
         email: string;
+    };
+
+    designerView: {
+        description: string;
+        earnings: number;
+        internalDeadline: string;
+        attachments: Array<any>; // Archivos que el diseñador suba después
     };
 }
 
@@ -223,7 +224,7 @@ export default function ProjectsPage() {
                                         </div>
 
                                         <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                                            {project.designerQuote?.description || 'Sin descripción'}
+                                            {project.designerView?.description || 'Sin descripción'}
                                         </p>
                                         <div className="space-y-3 text-sm text-gray-500 mb-6">
                                             <div className="flex items-center">

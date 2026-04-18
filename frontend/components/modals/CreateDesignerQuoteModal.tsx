@@ -129,7 +129,7 @@ export default function CreateDesignerQuoteModal({ quote, onClose, onSuccess }: 
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Monto para el diseñador (USD) *
+                            Monto para el diseñador (EUR) *
                         </label>
                         <input
                             type="number"

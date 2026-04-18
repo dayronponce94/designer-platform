@@ -173,6 +173,12 @@ export default function QuoteDetailPage() {
                     icon: <FiXCircle className="w-4 h-4" />,
                     label: 'Rechazada',
                     desc: `Cotización rechazada por ${quote?.request?.client?.name || 'el cliente'}.`
+                },
+                paid: {
+                    color: 'bg-blue-100 text-blue-800 border-blue-200',
+                    icon: <FiDollarSign className="w-4 h-4" />,
+                    label: 'Pagada',
+                    desc: `Cotización pagada por ${quote?.request?.client?.name || 'el cliente'}.`
                 }
             };
             return configs[status] || configs.pending;
@@ -188,13 +194,19 @@ export default function QuoteDetailPage() {
                     color: 'bg-green-100 text-green-800 border-green-200',
                     icon: <FiCheckCircle className="w-4 h-4" />,
                     label: 'Aceptada',
-                    desc: 'Aceptaste esta cotización. Se ha creado un proyecto en tu área.'
+                    desc: 'Aceptaste esta cotización. Procede a realizar el pago.'
                 },
                 rejected: {
                     color: 'bg-red-100 text-red-800 border-red-200',
                     icon: <FiXCircle className="w-4 h-4" />,
                     label: 'Rechazada',
                     desc: 'Rechazaste esta cotización.'
+                },
+                paid: {
+                    color: 'bg-blue-100 text-blue-800 border-blue-200',
+                    icon: <FiDollarSign className="w-4 h-4" />,
+                    label: 'Pagada',
+                    desc: 'Cotización pagada. Se creará un proyecto en tu área.'
                 }
             };
             return configs[status] || configs.pending;

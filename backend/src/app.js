@@ -19,11 +19,23 @@ const requestRoutes = require('./routes/requests');
 
 const app = express();
 
+
+
 // Middleware
 app.use(cors({
     origin: process.env.FRONTEND_URL,
     credentials: true
 }));
+
+// Stripe webhook (necesita body raw, no JSON)
+const stripeWebhook = require('./controllers/paymentController').handleStripeWebhook;
+app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), stripeWebhook);
+
+// Rutas de pagos
+const paymentRoutes = require('./routes/payments');
+app.use('/api/payments', paymentRoutes);
+
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -67,6 +79,8 @@ app.use('*', (req, res) => {
 
 // Error handler
 app.use(errorHandler);
+
+
 
 
 

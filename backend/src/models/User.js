@@ -86,7 +86,20 @@ const userSchema = new mongoose.Schema(
 
         lastLogin: {
             type: Date
-        }
+        },
+        // Stripe
+        stripeCustomerId: {
+            type: String,
+            sparse: true,
+        },
+        stripeAccountId: {        // Para diseñadores (Connect)
+            type: String,
+            sparse: true,
+        },
+        stripeAccountStatus: {    // 'pending', 'active', 'disabled'
+            type: String,
+            default: 'pending',
+        },
     },
     {
         timestamps: true

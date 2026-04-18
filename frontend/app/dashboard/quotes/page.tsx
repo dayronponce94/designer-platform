@@ -14,9 +14,10 @@ import {
     FiEye,
     FiSearch,
     FiFilter,
-    FiChevronLeft,
-    FiChevronRight,
+    FiCreditCard,
 } from 'react-icons/fi';
+import PaymentModal from '@/components/modals/PaymentModal';
+import { usePayments } from '@/app/lib/hooks/usePayments';
 
 interface Quote {
     _id: string;
@@ -30,7 +31,7 @@ interface Quote {
     amount: number;
     deadline: string;
     description: string;
-    status: 'pending' | 'accepted' | 'rejected' | 'expired';
+    status: 'pending' | 'accepted' | 'rejected' | 'expired' | 'paid';
     createdAt: string;
     validUntil?: string;
 }
@@ -38,6 +39,9 @@ interface Quote {
 export default function QuotesPage() {
     const { user } = useAuthContext();
     const [quotes, setQuotes] = useState<Quote[]>([]);
+    const { payments, summary, loading, fetchPayments } = usePayments();
+    const [selectedQuote, setSelectedQuote] = useState<{ id: string, amount: number, description: string } | null>(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -90,6 +94,7 @@ export default function QuotesPage() {
             accepted: { color: 'bg-green-100 text-green-800', icon: <FiCheckCircle />, text: 'Aceptada' },
             rejected: { color: 'bg-red-100 text-red-800', icon: <FiXCircle />, text: 'Rechazada' },
             expired: { color: 'bg-gray-100 text-gray-800', icon: <FiClock />, text: 'Expirada' },
+            paid: { color: 'bg-blue-100 text-blue-800', icon: <FiDollarSign />, text: 'Pagada' },
         };
         const c = config[status] || config.pending;
         return (
@@ -121,6 +126,16 @@ export default function QuotesPage() {
         };
         return labels[type] || type;
     };
+
+    const handlePayNow = (payment: any) => {
+        setSelectedQuote({
+            id: payment.quoteId || payment._id,
+            amount: payment.amount,
+            description: payment.request?.title || 'Sin título'
+        });
+        setShowPaymentModal(true);
+    };
+
 
     return (
         <div className="space-y-8">
@@ -162,6 +177,7 @@ export default function QuotesPage() {
                             <option value="accepted">Aceptadas</option>
                             <option value="rejected">Rechazadas</option>
                             <option value="expired">Expiradas</option>
+                            <option value="paid">Pagadas</option>
                         </select>
                     </div>
                 </div>
@@ -200,7 +216,7 @@ export default function QuotesPage() {
 
                                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">{quote.description}</p>
 
-                                    <div className="space-y-2 text-sm">
+                                    <div className="space-y-3 text-sm text-gray-500 mb-6">
                                         <div className="flex items-center text-gray-700">
                                             <FiDollarSign className="mr-2 text-gray-400" />
                                             <span>Precio: {quote.amount.toLocaleString()}</span>
@@ -219,19 +235,54 @@ export default function QuotesPage() {
                                         )}
                                     </div>
 
-                                    <div className="mt-4 pt-4 border-t border-gray-100">
+                                    <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                                        {/* Botón de Ver Detalles (Siempre visible) */}
                                         <Link
                                             href={`/dashboard/quotes/${quote._id}`}
-                                            className="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                            className="flex items-center text-blue-600 hover:text-blue-700 font-medium"
                                         >
-                                            <FiEye className="mr-2" />
+                                            <FiEye className="mr-1" />
                                             Ver detalles
                                         </Link>
+
+                                        <div className="flex space-x-2">
+                                            {/* CASO 1: Cotización aceptada -> BOTÓN DE PAGAR */}
+                                            {quote.status === 'accepted' && (
+                                                <button
+                                                    onClick={() => handlePayNow(quote)}
+                                                    className="flex items-center text-green-600 hover:text-green-700 font-medium"
+                                                    title="Proceder al pago seguro"
+                                                >
+                                                    <FiCreditCard className="mr-2" />
+                                                    Pagar ahora
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     )}
+
+                    {/* Modal de Pago */}
+                    {showPaymentModal && selectedQuote && (
+                        <PaymentModal
+                            quoteId={selectedQuote.id}
+                            amount={selectedQuote.amount}
+                            description={selectedQuote.description}
+                            onClose={() => {
+                                setShowPaymentModal(false);
+                                setSelectedQuote(null);
+                            }}
+                            onSuccess={() => {
+                                fetchQuotes();
+                                fetchPayments();
+                                setShowPaymentModal(false);
+                                setSelectedQuote(null);
+                            }}
+                        />
+                    )}
+
 
                     {/* Paginación */}
                     {totalPages > 1 && (

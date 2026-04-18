@@ -6,7 +6,8 @@ import Alert from '@/components/ui/Alert';
 import {
     FiFileText, FiClock, FiCheckCircle, FiXCircle, FiEye,
     FiUserPlus, FiSearch,
-    FiUser
+    FiUser,
+    FiDollarSign
 } from 'react-icons/fi';
 import Link from 'next/link';
 import CreateDesignerQuoteModal from '@/components/modals/CreateDesignerQuoteModal';
@@ -23,7 +24,7 @@ interface ClientQuote {
     amount: number;
     deadline?: string;
     description: string;
-    status: 'pending' | 'accepted' | 'rejected' | 'expired';
+    status: 'pending' | 'accepted' | 'rejected' | 'expired' | 'paid';
     createdAt: string;
     validUntil?: string;
     assignedDesigner?: { _id: string; name: string } | null;
@@ -74,6 +75,7 @@ export default function AdminClientQuotesPage() {
             accepted: { color: 'bg-green-100 text-green-800', icon: <FiCheckCircle />, text: 'Aceptada' },
             rejected: { color: 'bg-red-100 text-red-800', icon: <FiXCircle />, text: 'Rechazada' },
             expired: { color: 'bg-gray-100 text-gray-800', icon: <FiClock />, text: 'Expirada' },
+            paid: { color: 'bg-blue-100 text-blue-800', icon: <FiDollarSign />, text: 'Pagada' },
         };
         const c = config[status] || config.pending;
         return (
@@ -176,6 +178,7 @@ export default function AdminClientQuotesPage() {
                             <option value="accepted">Aceptada</option>
                             <option value="rejected">Rechazada</option>
                             <option value="expired">Expirada</option>
+                            <option value="paid">Pagada</option>
                         </select>
                     </div>
                 </div>
@@ -221,7 +224,7 @@ export default function AdminClientQuotesPage() {
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {quotes.map((quote) => {
-                                    const isAccepted = quote.status === 'accepted';
+                                    const isAccepted = quote.status === 'paid';
                                     const hasDesigner = !!quote.assignedDesigner;
                                     return (
                                         <tr key={quote._id} className="hover:bg-gray-50">

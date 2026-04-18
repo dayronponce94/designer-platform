@@ -42,9 +42,9 @@ export default function AdminDashboardPage() {
     };
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('es-ES', {
+        return new Intl.NumberFormat('pt-PT', {
             style: 'currency',
-            currency: 'USD',
+            currency: 'EUR',
             minimumFractionDigits: 0
         }).format(amount);
     };

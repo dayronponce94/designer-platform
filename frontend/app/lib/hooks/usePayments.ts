@@ -11,7 +11,7 @@ interface UsePaymentsReturn {
     fetchPayments: () => Promise<void>;
     fetchPaymentMethods: () => Promise<void>;
     fetchSummary: () => Promise<void>;
-    createPaymentIntent: (amount: number, projectId?: string) => Promise<any>;
+    createPaymentIntent: (quoteId: string) => Promise<any>;
 }
 
 export function usePayments(): UsePaymentsReturn {
@@ -25,10 +25,10 @@ export function usePayments(): UsePaymentsReturn {
         try {
             setLoading(true);
             const response = await paymentAPI.getPayments();
-            setPayments((response.data?.data?.payments ?? []) as Payment[]);
+            setPayments(response.data.data.payments);
             setError(null);
         } catch (err: any) {
-            setError(err.message || 'Error al cargar pagos');
+            setError(err.response?.data?.message || 'Error al cargar pagos');
         } finally {
             setLoading(false);
         }
@@ -37,7 +37,7 @@ export function usePayments(): UsePaymentsReturn {
     const fetchPaymentMethods = useCallback(async () => {
         try {
             const response = await paymentAPI.getPaymentMethods();
-            setPaymentMethods(response.data.data as PaymentMethod[]);
+            setPaymentMethods(response.data.data);
         } catch (err: any) {
             console.error('Error al cargar métodos de pago:', err);
         }
@@ -48,31 +48,24 @@ export function usePayments(): UsePaymentsReturn {
             const response = await paymentAPI.getPaymentSummary();
             setSummary(response.data.data);
         } catch (err: any) {
-            console.error('Error al cargar resumen de pagos:', err);
+            console.error('Error al cargar resumen:', err);
         }
     }, []);
 
-    const createPaymentIntent = useCallback(async (amount: number, projectId?: string) => {
+    const createPaymentIntent = useCallback(async (quoteId: string) => {
         try {
-            const response = await paymentAPI.createPaymentIntent(amount, projectId);
-            return response.data.data;
+            const response = await paymentAPI.createPaymentIntent(quoteId);
+            return response.data.data; // { clientSecret, paymentId }
         } catch (err: any) {
-            throw new Error(err.message || 'Error al crear intención de pago');
+            throw new Error(err.response?.data?.message || 'Error al iniciar pago');
         }
     }, []);
 
-    // Cargar datos iniciales
     useEffect(() => {
-        const loadData = async () => {
-            await Promise.all([
-                fetchPayments(),
-                fetchPaymentMethods(),
-                fetchSummary()
-            ]);
-        };
-
-        loadData();
-    }, [fetchPayments, fetchPaymentMethods, fetchSummary]);
+        fetchPayments();
+        fetchPaymentMethods();
+        fetchSummary();
+    }, []);
 
     return {
         payments,
@@ -83,6 +76,6 @@ export function usePayments(): UsePaymentsReturn {
         fetchPayments,
         fetchPaymentMethods,
         fetchSummary,
-        createPaymentIntent
+        createPaymentIntent,
     };
 }

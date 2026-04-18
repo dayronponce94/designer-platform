@@ -702,9 +702,9 @@ const createDesignerQuote = asyncHandler(async (req, res) => {
         return res.status(404).json(ApiResponse.notFound('Cotización de cliente no encontrada').toJSON());
     }
 
-    // 2. Verificar que esté aceptada
-    if (clientQuote.status !== 'accepted') {
-        return res.status(400).json(ApiResponse.error('La cotización del cliente debe estar aceptada para asignar un diseñador', 400).toJSON());
+    // 2. Verificar que esté pagada
+    if (clientQuote.status !== 'paid') {
+        return res.status(400).json(ApiResponse.error('La cotización del cliente debe estar pagada para asignar un diseñador', 400).toJSON());
     }
 
     // 3. Verificar diseñador

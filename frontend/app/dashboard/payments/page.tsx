@@ -9,8 +9,8 @@ import PaymentModal from '@/components/modals/PaymentModal';
 import PaymentStatsChart from '@/components/payments/PaymentStatsChart';
 
 export default function PaymentsPage() {
-    const { payments, paymentMethods, summary, loading, error, fetchPayments } = usePayments();
-    const [selectedPayment, setSelectedPayment] = useState<any>(null);
+    const { payments, summary, loading, error, fetchPayments } = usePayments();
+    const [selectedQuote, setSelectedQuote] = useState<{ id: string, amount: number, description: string } | null>(null);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [filter, setFilter] = useState<string>('all');
 
@@ -24,8 +24,8 @@ export default function PaymentsPage() {
         }
     };
 
-    const formatCurrency = (amount: number, currency: string = 'USD') => {
-        return new Intl.NumberFormat('es-US', {
+    const formatCurrency = (amount: number, currency: string = 'EUR') => {
+        return new Intl.NumberFormat('pt-PT', {
             style: 'currency',
             currency: currency
         }).format(amount);
@@ -96,7 +96,11 @@ export default function PaymentsPage() {
     });
 
     const handlePayNow = (payment: any) => {
-        setSelectedPayment(payment);
+        setSelectedQuote({
+            id: payment.quoteId || payment._id,
+            amount: payment.amount,
+            description: payment.projectId?.title || payment.description || 'Pago de servicio de diseño'
+        });
         setShowPaymentModal(true);
     };
 
@@ -131,8 +135,8 @@ export default function PaymentsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-green-100 text-green-600 rounded-lg">
-                            <FiDollarSign className="w-6 h-6" />
+                        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                            <FiCreditCard className="w-6 h-6" />
                         </div>
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mis Pagos</h1>
@@ -141,16 +145,6 @@ export default function PaymentsPage() {
                             </p>
                         </div>
                     </div>
-                </div>
-
-                <div className="flex space-x-2">
-                    <button
-                        onClick={() => setShowPaymentModal(true)}
-                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        <FiPlus className="mr-2" />
-                        Realizar Pago
-                    </button>
                 </div>
             </div>
 
@@ -212,62 +206,6 @@ export default function PaymentsPage() {
 
             {/* Gráfico de estadísticas */}
             {summary && <PaymentStatsChart stats={summary.paymentStats} />}
-
-            {/* Métodos de Pago */}
-            <div className="bg-white rounded-xl shadow">
-                <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">Métodos de Pago</h2>
-                    <p className="text-gray-600 mt-1">Tarjetas y cuentas asociadas</p>
-                </div>
-                <div className="p-6">
-                    {paymentMethods.length > 0 ? (
-                        <div className="space-y-4">
-                            {paymentMethods.map((method) => (
-                                <div key={method.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                                    <div className="flex items-center">
-                                        <div className="p-3 bg-gray-100 rounded-lg mr-4">
-                                            <FiCreditCard className="w-6 h-6 text-gray-600" />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-gray-900">
-                                                {method.brand ? method.brand.toUpperCase() : 'Tarjeta'}
-                                                {method.last4 && ` **** ${method.last4}`}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                {method.expiryMonth && method.expiryYear &&
-                                                    `Expira ${method.expiryMonth}/${method.expiryYear}`}
-                                                {method.isDefault && (
-                                                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                                                        Predeterminado
-                                                    </span>
-                                                )}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex space-x-2">
-                                        {!method.isDefault && (
-                                            <button className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">
-                                                Usar como predeterminado
-                                            </button>
-                                        )}
-                                        <button className="px-4 py-2 text-sm text-red-600 hover:text-red-900">
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="text-center py-8">
-                            <FiCreditCard className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                            <p className="text-gray-500">No hay métodos de pago registrados</p>
-                            <button className="mt-4 px-4 py-2 text-blue-600 hover:text-blue-700">
-                                + Agregar método de pago
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
 
             {/* Historial de Pagos */}
             <div className="bg-white rounded-xl shadow">
@@ -397,42 +335,20 @@ export default function PaymentsPage() {
                 )}
             </div>
 
-            {/* Información de Stripe (modo simulación) */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                <div className="flex items-start">
-                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg mr-4">
-                        <FiCreditCard className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                        <h3 className="text-lg font-medium text-gray-900 mb-1">
-                            Sistema de Pagos en Modo Simulación
-                        </h3>
-                        <p className="text-gray-600 mb-3">
-                            Esta vista muestra datos de ejemplo. En producción, se integrará con Stripe
-                            para procesar pagos reales de forma segura.
-                        </p>
-                        <div className="text-sm text-gray-500 space-y-1">
-                            <p>✅ Procesamiento seguro con Stripe</p>
-                            <p>✅ Facturación automática</p>
-                            <p>✅ Múltiples métodos de pago</p>
-                            <p>✅ Historial detallado</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Modal de Pago */}
-            {showPaymentModal && (
+            {showPaymentModal && selectedQuote && (
                 <PaymentModal
-                    payment={selectedPayment}
+                    quoteId={selectedQuote.id}
+                    amount={selectedQuote.amount}
+                    description={selectedQuote.description}
                     onClose={() => {
                         setShowPaymentModal(false);
-                        setSelectedPayment(null);
+                        setSelectedQuote(null);
                     }}
                     onSuccess={() => {
                         fetchPayments();
                         setShowPaymentModal(false);
-                        setSelectedPayment(null);
+                        setSelectedQuote(null);
                     }}
                 />
             )}

@@ -52,7 +52,7 @@ export default function PaymentStatsChart({ stats }: PaymentStatsChartProps) {
 
             <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="text-sm text-gray-500">
-                    <p>Los montos mostrados son en USD. Los datos se actualizan automáticamente.</p>
+                    <p>Los montos mostrados son en EUR. Los datos se actualizan automáticamente.</p>
                 </div>
             </div>
         </div>
