@@ -275,8 +275,13 @@ export default function QuotesPage() {
                                 setSelectedQuote(null);
                             }}
                             onSuccess={() => {
+                                // 1. Refresca las cotizaciones para que el estado pase de 'accepted' a 'paid'
                                 fetchQuotes();
+
+                                // 2. Opcional: Refresca los pagos si tienes un resumen en la misma página
                                 fetchPayments();
+
+                                // 3. Cerramos el modal
                                 setShowPaymentModal(false);
                                 setSelectedQuote(null);
                             }}

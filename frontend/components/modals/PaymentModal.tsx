@@ -91,7 +91,6 @@ const PaymentForm = ({ quoteId, amount, description, onClose, onSuccess }: Payme
             setStep('details');
         }
     };
-
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
     };

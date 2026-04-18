@@ -8,6 +8,7 @@ const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 
 // Crear un PaymentIntent para que el cliente pague su cotización aceptada
+// 1. Evitar registros duplicados al crear el Intent
 const createClientPaymentIntent = asyncHandler(async (req, res) => {
     const { quoteId } = req.params;
     const userId = req.user.id;
@@ -74,6 +75,7 @@ const createClientPaymentIntent = asyncHandler(async (req, res) => {
         paymentId: payment._id,
     }).toJSON());
 });
+
 
 // Obtener todos los pagos del usuario autenticado
 const getUserPayments = asyncHandler(async (req, res) => {
@@ -192,6 +194,8 @@ const getPaymentMethods = asyncHandler(async (req, res) => {
 
         res.status(200).json(ApiResponse.success('Métodos de pago', formatted).toJSON());
     } catch (error) {
+        // Si Stripe da error porque el cliente no existe (ej. borraste datos de prueba)
+        // devolvemos lista vacía en lugar de un error 400
         console.error("Stripe Error:", error.message);
         res.status(200).json(ApiResponse.success('Métodos de pago', []).toJSON());
     }
