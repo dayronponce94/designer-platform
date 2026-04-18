@@ -8,7 +8,6 @@ const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 
 // Crear un PaymentIntent para que el cliente pague su cotización aceptada
-// 1. Evitar registros duplicados al crear el Intent
 const createClientPaymentIntent = asyncHandler(async (req, res) => {
     const { quoteId } = req.params;
     const userId = req.user.id;
@@ -59,18 +58,29 @@ const createClientPaymentIntent = asyncHandler(async (req, res) => {
         automatic_payment_methods: { enabled: true },
     });
 
-    const payment = await Payment.create({
-        user: userId,
-        quote: quoteId,
-        amount: quote.amount,
-        currency: 'eur',
-        type: 'client_payment',
-        status: 'pending',
-        stripePaymentIntentId: paymentIntent.id,
-        metadata: { clientSecret: paymentIntent.client_secret },
-    });
+    // USAMOS findOneAndUpdate con upsert para asegurar que si por alguna razón 
+    // entran dos hilos, solo se cree un documento en MongoDB.
+    const payment = await Payment.findOneAndUpdate(
+        { stripePaymentIntentId: paymentIntent.id }, // Buscamos por el ID de Stripe
+        {
+            $setOnInsert: { // Solo insertamos estos campos si el documento NO existe
+                user: userId,
+                quote: quoteId,
+                amount: quote.amount,
+                currency: 'eur',
+                type: 'client_payment',
+                status: 'pending',
+                metadata: { clientSecret: paymentIntent.client_secret },
+            }
+        },
+        {
+            upsert: true, // Si no existe, créalo
+            new: true,    // Devuelve el documento creado/encontrado
+            setDefaultsOnInsert: true
+        }
+    );
 
-    res.status(200).json(ApiResponse.success('PaymentIntent creado', {
+    res.status(200).json(ApiResponse.success('PaymentIntent listo', {
         clientSecret: paymentIntent.client_secret,
         paymentId: payment._id,
     }).toJSON());

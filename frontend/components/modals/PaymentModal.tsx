@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { FiX, FiCreditCard, FiLock, FiCheck } from 'react-icons/fi';
@@ -35,20 +35,27 @@ const PaymentForm = ({ quoteId, amount, description, onClose, onSuccess }: Payme
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [step, setStep] = useState<'details' | 'processing' | 'success'>('details');
+    const isInitialMount = useRef(true);
 
     useEffect(() => {
-        // Obtener el clientSecret al montar el modal
         const initPayment = async () => {
+            // Si no es la primera vez que este efecto corre en este montado, abortamos
+            if (!isInitialMount.current) return;
+
             try {
                 setLoading(true);
+                isInitialMount.current = false; // Marcamos que ya se disparó
+
                 const { clientSecret } = await createPaymentIntent(quoteId);
                 setClientSecret(clientSecret);
             } catch (err: any) {
                 setError(err.message);
+                isInitialMount.current = true; // Si falló, permitimos reintentar si el efecto vuelve a correr
             } finally {
                 setLoading(false);
             }
         };
+
         initPayment();
     }, [quoteId, createPaymentIntent]);
 
