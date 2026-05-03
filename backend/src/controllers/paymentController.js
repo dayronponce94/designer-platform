@@ -352,6 +352,77 @@ const getPlatformTransactions = asyncHandler(async (req, res) => {
     );
 });
 
+// @desc    Crear cuenta Express y generar enlace de onboarding
+// @route   POST /api/payments/designer/create-connect-link
+const createConnectAccountLink = asyncHandler(async (req, res) => {
+    try {
+        let user = await User.findById(req.user.id);
+
+        // 1. Si no tiene cuenta de Stripe Connect, la creamos
+        if (!user.stripeAccountId) {
+            const account = await stripe.accounts.create({
+                type: 'express',
+                country: 'ES', // Ajustar según tu país (ES = España)
+                email: user.email,
+                capabilities: {
+                    card_payments: { requested: true },
+                    transfers: { requested: true },
+                },
+                business_type: 'individual',
+                metadata: { userId: user._id.toString() }
+            });
+            user.stripeAccountId = account.id;
+            await user.save();
+        }
+
+        // 2. Crear el enlace de Stripe (donde el diseñador llena sus datos)
+        const accountLink = await stripe.accountLinks.create({
+            account: user.stripeAccountId,
+            refresh_url: `${process.env.FRONTEND_URL}/dashboard?stripe_callback=refresh`,
+            return_url: `${process.env.FRONTEND_URL}/dashboard?stripe_callback=success`,
+            type: 'account_onboarding',
+        });
+
+        res.status(200).json(ApiResponse.success('Enlace de onboarding listo', {
+            url: accountLink.url
+        }).toJSON());
+
+    } catch (error) {
+        console.log("Error detallado de Stripe:", error.message); // <--- Esto te dirá exactamente qué falta
+        res.status(400).json({ success: false, message: error.message });
+    }
+});
+
+// @desc    Verificar estado de la cuenta Connect y actualizar DB
+// @route   GET /api/payments/designer/account-status
+const getConnectAccountStatus = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user.id);
+
+    if (!user.stripeAccountId) {
+        return res.status(200).json(ApiResponse.success('No tiene cuenta', { status: 'pending' }).toJSON());
+    }
+
+    // 1. Consultamos a Stripe el estado real
+    const account = await stripe.accounts.retrieve(user.stripeAccountId);
+
+    // 2. Verificamos si ya puede hacer cargos
+    // account.details_submitted confirma que llenó el formulario
+    // account.charges_enabled confirma que Stripe lo habilitó
+    if (account.details_submitted && account.charges_enabled) {
+        user.stripeAccountStatus = 'active';
+        await user.save(); // ¡ESTA LÍNEA ES CLAVE!
+    }
+
+    res.status(200).json({
+        success: true,
+        status: user.stripeAccountStatus,
+        details: {
+            payouts_enabled: account.payouts_enabled,
+            charges_enabled: account.charges_enabled
+        }
+    });
+});
+
 module.exports = {
     createClientPaymentIntent,
     getUserPayments,
@@ -361,4 +432,6 @@ module.exports = {
     payDesigner,
     getAllPayments,
     getPlatformTransactions,
+    createConnectAccountLink,
+    getConnectAccountStatus,
 };

@@ -18,6 +18,8 @@ export interface User {
     skills?: string[];
     createdAt: string;
     updatedAt: string;
+    stripeAccountId?: string;
+    stripeAccountStatus?: string;
 }
 
 

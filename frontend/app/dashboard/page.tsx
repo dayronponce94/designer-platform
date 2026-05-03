@@ -16,7 +16,7 @@ import {
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
-import { portfolioAPI, projectAPI, requestAPI } from '@/app/lib/api/endpoints';
+import { paymentAPI, portfolioAPI, projectAPI, requestAPI } from '@/app/lib/api/endpoints';
 
 export default function DashboardPage() {
     const { user, isLoading: authLoading } = useAuthContext();
@@ -42,6 +42,21 @@ export default function DashboardPage() {
                 let portfolioItemsCount = 0;
 
                 if (user?.role === 'designer') {
+
+                    // --- NUEVA LÓGICA DE STRIPE ---
+                    // Solo consultamos si tiene una cuenta vinculada o está pendiente
+                    if (user.stripeAccountId || user.stripeAccountStatus === 'pending') {
+                        try {
+                            await paymentAPI.getConnectAccountStatus();
+                            // Nota: No necesitamos usar la 'data' aquí necesariamente porque 
+                            // el backend ya actualiza la BD. Pero podrías refrescar el 
+                            // estado del usuario global si lo necesitas.
+                        } catch (stripeErr) {
+                            console.error("Error verificando estado de Stripe:", stripeErr);
+                        }
+                    }
+                    // --- FIN LÓGICA DE STRIPE ---
+
                     const portResp = await portfolioAPI.getMyPortfolio({ limit: 1 });
                     portfolioItemsCount = portResp?.data?.message?.pagination?.total || portResp?.data?.data?.pagination?.total || 0;
                 }
@@ -173,26 +188,32 @@ export default function DashboardPage() {
 
     const stats = user?.role === 'designer' ? designerStats : clientStats;
 
+    const handleStripeConnect = async () => {
+        try {
+            const { data } = await paymentAPI.createConnectAccountLink();
+            if (data.data.url) {
+                window.location.href = data.data.url; // Redirige a Stripe
+            }
+        } catch (error) {
+            console.error("Error al conectar con Stripe:", error);
+            alert("No se pudo conectar con Stripe. Intenta de nuevo.");
+        }
+    };
+
     // Próximos pasos por rol
     // Dentro de tu componente DashboardPage, después de calcular statsData:
 
-    const clientNextSteps = [
-        {
-            title: 'Completa tu perfil',
-            description: 'Añade información de tu empresa para proyectos más personalizados',
-            completed: !!user?.company,
-            action: '/dashboard/profile'
-        },
-        {
-            title: 'Solicita tu primer proyecto',
-            description: 'Obtén un presupuesto detallado para tu primer proyecto',
-            completed: statsData.requestsSent > 0,
-            action: '/dashboard/requests'
-        },
-    ];
+    // 1. Define una interfaz para los pasos (esto quita los errores de un plumazo)
+    interface Step {
+        title: string;
+        description: string;
+        completed: boolean;
+        action?: string;    // Opcional si hay onClick
+        onClick?: () => void; // Opcional si hay action
+    }
 
-
-    const designerNextSteps = [
+    // 2. Ajusta los pasos del diseñador
+    const designerNextSteps: Step[] = [
         {
             title: 'Completa tu portafolio',
             description: 'Sube tus mejores trabajos para atraer más clientes',
@@ -201,9 +222,31 @@ export default function DashboardPage() {
         },
         {
             title: 'Especifica especialidades',
-            description: 'Define tus áreas de expertise para recibir proyectos relevantes',
-            completed: user?.skills && user.skills.length > 0,
+            description: 'Define tus áreas de expertise',
+            completed: (user?.skills?.length || 0) > 0,
             action: '/dashboard/profile'
+        },
+        {
+            title: 'Configura tus cobros',
+            description: 'Conecta tu cuenta de Stripe para recibir tus pagos',
+            completed: user?.stripeAccountStatus === 'active',
+            onClick: handleStripeConnect // Usamos la función que definimos antes
+        },
+    ];
+
+    // 3. Ajusta los pasos del cliente (para que tengan el mismo tipo Step[])
+    const clientNextSteps: Step[] = [
+        {
+            title: 'Completa tu perfil',
+            description: 'Añade información de tu empresa',
+            completed: !!user?.company,
+            action: '/dashboard/profile'
+        },
+        {
+            title: 'Solicita tu primer proyecto',
+            description: 'Obtén un presupuesto detallado',
+            completed: statsData.requestsSent > 0,
+            action: '/dashboard/requests'
         },
     ];
 
@@ -216,6 +259,8 @@ export default function DashboardPage() {
         illustration: 'Ilustración',
         other: 'Otra Especialidad'
     };
+
+
 
     const nextSteps = user?.role === 'designer' ? designerNextSteps : clientNextSteps;
 
@@ -446,15 +491,38 @@ export default function DashboardPage() {
                                 </p>
                                 <p className="text-sm text-gray-500 mt-1">{step.description}</p>
                             </div>
-                            <a
-                                href={step.action}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium ${step.completed
-                                    ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                                    }`}
-                            >
-                                {step.completed ? 'Ver' : 'Completar'}
-                            </a>
+
+                            {step.title === 'Configura tus cobros' ? (
+                                user?.stripeAccountStatus !== 'active' ? (
+                                    <button
+                                        onClick={handleStripeConnect}
+                                        className="bg-blue-600 text-white px-4 py-2 rounded shadow"
+                                    >
+                                        Completar Configuración de Cobros
+                                    </button>
+                                ) : (
+                                    <div className="text-green-900 font-medium flex items-center gap-2">
+                                        <span>Cuenta activa</span>
+                                    </div>
+                                )
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        if (step.onClick) {
+                                            step.onClick();
+                                        } else if (step.action) {
+                                            window.location.href = step.action;
+                                        }
+                                    }}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium ${step.completed
+                                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                                        }`}
+                                >
+                                    {step.completed ? 'Ver' : 'Completar'}
+                                </button>
+                            )}
+
                         </div>
                     ))}
                 </div>

@@ -41,6 +41,13 @@ export const paymentAPI = {
     getPaymentMethods: () =>
         apiClient.get('/payments/my-methods'),
 
+    createConnectAccountLink: () =>
+        apiClient.post('/payments/designer/create-connect-link'),
+
+    // Consultar estado de la cuenta de Stripe
+    getConnectAccountStatus: () =>
+        apiClient.get('/payments/designer/account-status'),
+
     // Admin: obtener todos los pagos
     adminGetAllPayments: (params?: any) =>
         apiClient.get('/payments/admin/all', { params }),
@@ -52,6 +59,7 @@ export const paymentAPI = {
     // Admin: pagar a diseñador
     adminPayDesigner: (designerQuoteId: string) =>
         apiClient.post(`/payments/admin/pay-designer/${designerQuoteId}`),
+
 };
 
 export const projectAPI = {

@@ -9,6 +9,8 @@ const {
     getAllPayments,
     getPlatformTransactions,
     handleStripeWebhook, // <--- Asegúrate de importar esto
+    createConnectAccountLink,
+    getConnectAccountStatus,
 } = require('../controllers/paymentController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -34,5 +36,9 @@ router.get('/my-methods', getPaymentMethods);
 router.get('/admin/all', authorize('admin'), getAllPayments);
 router.get('/admin/platform-stats', authorize('admin'), getPlatformTransactions);
 router.post('/admin/pay-designer/:designerQuoteId', authorize('admin'), payDesigner);
+
+// Rutas para diseñadores (Stripe Connect)
+router.post('/designer/create-connect-link', authorize('designer'), createConnectAccountLink); // Para que el diseñador inicie su registro
+router.get('/designer/account-status', authorize('designer'), getConnectAccountStatus); // Para verificar si ya terminó su registro en Stripe Connect
 
 module.exports = router;

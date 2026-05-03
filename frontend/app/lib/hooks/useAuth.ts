@@ -27,6 +27,9 @@ interface User {
 
     // Experiencia
     experience: number;
+
+    stripeAccountId?: string;
+    stripeAccountStatus?: string;
 }
 
 interface AuthState {
