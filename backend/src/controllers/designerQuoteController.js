@@ -56,6 +56,8 @@ const acceptDesignerQuote = asyncHandler(async (req, res) => {
             description: quote.description || 'Sin notas adicionales', // Notas de la cotización del diseñador
             earnings: quote.amount, // Lo que el diseñador cobra realmente
             internalDeadline: quote.deadline, // Su fecha límite (con colchón)
+            isPaidToDesigner: false, // Inicialmente falso, se actualizará cuando se pague al diseñador
+            paidAt: null, // Fecha en que se realizó el pago al diseñador
             attachments: quote.attachments || [] // Si el diseñador adjuntó algo en su quote
         },
 

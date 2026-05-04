@@ -60,6 +60,10 @@ export const paymentAPI = {
     adminPayDesigner: (designerQuoteId: string) =>
         apiClient.post(`/payments/admin/pay-designer/${designerQuoteId}`),
 
+    // Admin: obtener proyectos pendientes de pago a diseñadores (NUEVO)
+    adminGetPendingDesignerPayouts: () =>
+        apiClient.get('/payments/admin/pending-designer-payouts'), // Ajusta la ruta a como la nombraste en el backend
+
 };
 
 export const projectAPI = {

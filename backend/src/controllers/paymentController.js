@@ -246,43 +246,52 @@ const handleStripeWebhook = async (req, res) => {
 // ADMIN: Pagar a un diseñador (transferencia desde la cuenta de la plataforma)
 const payDesigner = asyncHandler(async (req, res) => {
     const { designerQuoteId } = req.params;
-    const adminId = req.user.id; // Verificar que sea admin en el middleware
 
-    const designerQuote = await DesignerQuote.findById(designerQuoteId).populate('designer');
-    if (!designerQuote) {
-        return res.status(404).json(ApiResponse.notFound('Cotización de diseñador no encontrada').toJSON());
+    // 1. Buscamos el PROYECTO asociado a esa cotización
+    // Es vital encontrar el proyecto porque ahí vive el nuevo flag de pago
+    const project = await Project.findOne({ designerQuote: designerQuoteId }).populate('designer');
+
+    if (!project) {
+        return res.status(404).json(ApiResponse.notFound('No se encontró un proyecto activo para esta cotización').toJSON());
     }
 
-    if (designerQuote.status !== 'accepted') {
-        return res.status(400).json(ApiResponse.error('El diseñador no ha aceptado la cotización', 400).toJSON());
+    // 2. Verificación de Seguridad con el nuevo flag
+    if (project.designerView.isPaidToDesigner) {
+        return res.status(400).json(ApiResponse.error('El pago ya ha sido procesado anteriormente para este proyecto', 400).toJSON());
     }
 
-    // Verificar si ya se pagó
-    const existingPayout = await Payment.findOne({ designerQuote: designerQuoteId, type: 'designer_payout', status: 'succeeded' });
-    if (existingPayout) {
-        return res.status(400).json(ApiResponse.error('Este diseñador ya fue pagado por este trabajo', 400).toJSON());
-    }
+    const designer = project.designer;
 
-    const designer = designerQuote.designer;
+    // 3. Validaciones de Stripe Connect
     if (!designer.stripeAccountId || designer.stripeAccountStatus !== 'active') {
-        return res.status(400).json(ApiResponse.error('El diseñador no tiene una cuenta de Stripe Connect activa', 400).toJSON());
+        return res.status(400).json(ApiResponse.error('El diseñador no tiene una cuenta de Stripe Connect activa o configurada', 400).toJSON());
     }
 
-    // Crear transferencia a la cuenta Connect del diseñador
+    // 4. Ejecutar Transferencia en Stripe
+    // Usamos project.designerView.earnings que es el snapshot oficial del pago
     const transfer = await stripe.transfers.create({
-        amount: Math.round(designerQuote.amount * 100),
+        amount: Math.round(project.designerView.earnings * 100),
         currency: 'eur',
         destination: designer.stripeAccountId,
         metadata: {
-            designerQuoteId: designerQuote._id.toString(),
-            projectId: designerQuote.project?.toString(),
+            projectId: project._id.toString(),
+            designerQuoteId: designerQuoteId,
+            action: 'designer_payout'
         },
     });
 
-    const payment = await Payment.create({
+    // 5. Actualización del Proyecto (El Trigger Maestro)
+    // Marcamos que el diseñador YA cobró en el snapshot del proyecto
+    project.designerView.isPaidToDesigner = true;
+    project.designerView.paidAt = new Date();
+    await project.save();
+
+    // 6. Registro en la tabla de Pagos (Para historial contable)
+    const paymentRecord = await Payment.create({
         user: designer._id,
+        project: project._id, // Vinculación directa con el proyecto
         designerQuote: designerQuoteId,
-        amount: designerQuote.amount,
+        amount: project.designerView.earnings,
         currency: 'eur',
         type: 'designer_payout',
         status: 'succeeded',
@@ -291,11 +300,15 @@ const payDesigner = asyncHandler(async (req, res) => {
         paidAt: new Date(),
     });
 
-    // Opcional: actualizar estado de la cotización del diseñador a 'paid'
-    designerQuote.status = 'paid';
-    await designerQuote.save();
+    // 7. Actualizar la cotización original (Opcional, por consistencia)
+    await DesignerQuote.findByIdAndUpdate(designerQuoteId, { status: 'paid' });
 
-    res.status(200).json(ApiResponse.success('Pago realizado al diseñador', { payment }).toJSON());
+    res.status(200).json(
+        ApiResponse.success('Pago transferido al diseñador con éxito', {
+            payment: paymentRecord,
+            isPaidToDesigner: project.designerView.isPaidToDesigner
+        }).toJSON()
+    );
 });
 
 // ADMIN: Obtener todos los pagos (para panel admin)
@@ -423,6 +436,21 @@ const getConnectAccountStatus = asyncHandler(async (req, res) => {
     });
 });
 
+const getPendingDesignerPayouts = asyncHandler(async (req, res) => {
+    // Buscamos proyectos donde el diseñador no ha cobrado
+    // Opcional: Podrías filtrar también por project.status === 'completed' 
+    // si solo quieres pagar al terminar, o dejarlo abierto para adelantos.
+    const projects = await Project.find({
+        'designerView.isPaidToDesigner': false
+    })
+        .populate('designer', 'name email stripeAccountStatus')
+        .sort({ createdAt: -1 });
+
+    res.status(200).json(
+        ApiResponse.success('Proyectos pendientes de liquidación obtenidos', { projects }).toJSON()
+    );
+});
+
 module.exports = {
     createClientPaymentIntent,
     getUserPayments,
@@ -434,4 +462,5 @@ module.exports = {
     getPlatformTransactions,
     createConnectAccountLink,
     getConnectAccountStatus,
+    getPendingDesignerPayouts
 };

@@ -57,6 +57,11 @@ const projectSchema = new mongoose.Schema(
             description: String, // Propuesta técnica o notas del diseñador
             earnings: Number,    // Lo que el diseñador recibirá netamente
             internalDeadline: Date, // Fecha de entrega con "colchón" (antes que la del cliente)
+            isPaidToDesigner: { // Indica si el diseñador ya recibió su pago (para control interno)
+                type: Boolean,
+                default: false
+            },
+            paidAt: Date, // Fecha en que se realizó el pago al diseñador
             attachments: [       // Archivos de referencia que el diseñador subió en su quote
                 {
                     url: String,

@@ -222,13 +222,13 @@ export default function DashboardPage() {
         },
         {
             title: 'Especifica especialidades',
-            description: 'Define tus áreas de expertise',
+            description: 'Define tus áreas de expertise para recibir proyectos relevantes',
             completed: (user?.skills?.length || 0) > 0,
             action: '/dashboard/profile'
         },
         {
             title: 'Configura tus cobros',
-            description: 'Conecta tu cuenta de Stripe para recibir tus pagos',
+            description: 'Conecta tu cuenta de Stripe a la plataforma para recibir tus pagos',
             completed: user?.stripeAccountStatus === 'active',
             onClick: handleStripeConnect // Usamos la función que definimos antes
         },
@@ -238,13 +238,13 @@ export default function DashboardPage() {
     const clientNextSteps: Step[] = [
         {
             title: 'Completa tu perfil',
-            description: 'Añade información de tu empresa',
+            description: 'Añade información de tu empresa para proyectos más personalizados',
             completed: !!user?.company,
             action: '/dashboard/profile'
         },
         {
             title: 'Solicita tu primer proyecto',
-            description: 'Obtén un presupuesto detallado',
+            description: 'Obtén un presupuesto detallado para tu primer proyecto',
             completed: statsData.requestsSent > 0,
             action: '/dashboard/requests'
         },
@@ -496,13 +496,13 @@ export default function DashboardPage() {
                                 user?.stripeAccountStatus !== 'active' ? (
                                     <button
                                         onClick={handleStripeConnect}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded shadow"
+                                        className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
                                     >
-                                        Completar Configuración de Cobros
+                                        Completar
                                     </button>
                                 ) : (
-                                    <div className="text-green-900 font-medium flex items-center gap-2">
-                                        <span>Cuenta activa</span>
+                                    <div className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">
+                                        <span>Completado</span>
                                     </div>
                                 )
                             ) : (
