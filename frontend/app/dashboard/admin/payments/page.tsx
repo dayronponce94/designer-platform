@@ -45,6 +45,7 @@ export default function AdminPaymentsPage() {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [projectToPay, setProjectToPay] = useState<PendingProject | null>(null);
 
     const fetchData = async () => {
         setLoading(true);
@@ -88,6 +89,37 @@ export default function AdminPaymentsPage() {
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
+    };
+
+    const executePayment = async () => {
+        if (!projectToPay) return;
+
+        const currentQuoteId = projectToPay.designerQuote;
+        setProcessingId(currentQuoteId);
+
+        try {
+            await paymentAPI.adminPayDesigner(currentQuoteId);
+            toast.success("Pago enviado con éxito");
+            setProjectToPay(null); // Cerramos si hay éxito
+            await fetchData();
+        } catch (error: any) {
+            // Extraemos el mensaje de error que viene del backend
+            const errorMessage = error.response?.data?.message || "Error inesperado al procesar el pago";
+
+            console.error("Error detallado:", error);
+
+            // Mostramos un mensaje amigable en lugar de romper la app
+            if (errorMessage.includes("insufficient available funds")) {
+                toast.error("La plataforma no tiene saldo disponible suficiente para pagar al diseñador.");
+            } else {
+                toast.error(`No se pudo realizar el pago: ${errorMessage}`);
+            }
+            // OPCIONAL: Cerrar el modal incluso si falla para que el admin 
+            // no se quede bloqueado viendo el error.
+            setProjectToPay(null);
+        } finally {
+            setProcessingId(null);
+        }
     };
 
     if (loading && !stats) return <div className="text-center py-10 italic">Cargando panel de control...</div>;
@@ -144,8 +176,8 @@ export default function AdminPaymentsPage() {
                     <button
                         onClick={() => setActiveTab('pending')}
                         className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === 'pending'
-                                ? 'border-blue-500 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-blue-500 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
                         <FiClock /> Pendientes de Liquidar
@@ -158,8 +190,8 @@ export default function AdminPaymentsPage() {
                     <button
                         onClick={() => setActiveTab('history')}
                         className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === 'history'
-                                ? 'border-blue-500 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            ? 'border-blue-500 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                             }`}
                     >
                         <FiList /> Historial de Transacciones
@@ -201,11 +233,11 @@ export default function AdminPaymentsPage() {
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <button
-                                                    onClick={() => handlePayDesigner(p.designerQuote)}
+                                                    onClick={() => setProjectToPay(p)}
                                                     disabled={processingId === p.designerQuote || p.designer.stripeAccountStatus !== 'active'}
                                                     className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${p.designer.stripeAccountStatus === 'active'
-                                                            ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300'
-                                                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                        ? 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300'
+                                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                                         }`}
                                                 >
                                                     {processingId === p.designerQuote ? 'Procesando...' : 'Pagar Ahora'}
@@ -268,6 +300,53 @@ export default function AdminPaymentsPage() {
                     </div>
                 )}
             </div>
+
+            {/* Modal de Confirmación */}
+            {projectToPay && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+                        <div className="flex items-center justify-center w-12 h-12 mx-auto bg-blue-100 rounded-full">
+                            <FiDollarSign className="w-6 h-6 text-blue-600" />
+                        </div>
+
+                        <div className="mt-4 text-center">
+                            <h3 className="text-xl font-bold text-gray-900">Confirmar Transferencia</h3>
+                            <p className="mt-2 text-sm text-gray-500">
+                                Estás a punto de enviar <span className="font-bold text-gray-900">{formatCurrency(projectToPay.designerView.earnings)}</span> a
+                                <span className="block font-medium text-blue-600">{projectToPay.designer.name}</span>
+                                por el proyecto: <span className="italic">"{projectToPay.title}"</span>
+                            </p>
+                        </div>
+
+                        <div className="mt-6 flex flex-col gap-3">
+                            <button
+                                onClick={executePayment}
+                                disabled={processingId !== null}
+                                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {processingId ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Procesando envío...
+                                    </>
+                                ) : 'Sí, confirmar pago'}
+                            </button>
+
+                            <button
+                                onClick={() => setProjectToPay(null)}
+                                disabled={processingId !== null}
+                                className="w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold rounded-xl transition-all"
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+
+                        <p className="mt-4 text-[10px] text-center text-gray-400 uppercase tracking-widest">
+                            Seguridad Stripe Connect activada
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

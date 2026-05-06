@@ -218,25 +218,42 @@ const handleStripeWebhook = async (req, res) => {
 
     let event;
     try {
+        // Vital: req.body debe ser el raw body
         event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err) {
+        console.error(`❌ Error de Firma Webhook: ${err.message}`);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object;
+        console.log(`✅ Pago exitoso detectado: ${paymentIntent.id}`);
 
-        // 1. Actualizar el registro de Pago
+        // 1. Actualizar el registro de Pago y obtener el documento actualizado
         const payment = await Payment.findOneAndUpdate(
             { stripePaymentIntentId: paymentIntent.id },
-            { status: 'succeeded', paidAt: new Date() },
+            {
+                status: 'succeeded',
+                paidAt: new Date(),
+                // Aseguramos que el status en metadata también sea coherente
+                'metadata.status': 'succeeded'
+            },
             { new: true }
         );
 
+        if (!payment) {
+            console.error(`⚠️ No se encontró el registro de pago para el intent: ${paymentIntent.id}`);
+            return res.json({ received: true });
+        }
+
         // 2. Actualizar la Cotización a 'paid'
-        if (payment && payment.quote) {
-            await Quote.findByIdAndUpdate(payment.quote, { status: 'paid' });
-            console.log(`Cotización ${payment.quote} marcada como PAGADA`);
+        if (payment.quote) {
+            const updatedQuote = await Quote.findByIdAndUpdate(
+                payment.quote,
+                { status: 'paid' },
+                { new: true }
+            );
+            console.log(`✨ Cotización ${payment.quote} marcada como PAGADA. Nuevo estado: ${updatedQuote.status}`);
         }
     }
 
@@ -269,16 +286,24 @@ const payDesigner = asyncHandler(async (req, res) => {
 
     // 4. Ejecutar Transferencia en Stripe
     // Usamos project.designerView.earnings que es el snapshot oficial del pago
-    const transfer = await stripe.transfers.create({
-        amount: Math.round(project.designerView.earnings * 100),
-        currency: 'eur',
-        destination: designer.stripeAccountId,
-        metadata: {
-            projectId: project._id.toString(),
-            designerQuoteId: designerQuoteId,
-            action: 'designer_payout'
-        },
-    });
+    let transfer;
+    try {
+        transfer = await stripe.transfers.create({
+            amount: Math.round(project.designerView.earnings * 100),
+            currency: 'eur',
+            destination: designer.stripeAccountId,
+            metadata: {
+                projectId: project._id.toString(),
+                designerQuoteId: designerQuoteId,
+                action: 'designer_payout'
+            },
+        });
+    } catch (stripeError) {
+        console.error("ERROR REAL DE STRIPE:", stripeError.message);
+        return res.status(400).json(
+            ApiResponse.error(`Error de Stripe: ${stripeError.message}`, 400).toJSON()
+        );
+    }
 
     // 5. Actualización del Proyecto (El Trigger Maestro)
     // Marcamos que el diseñador YA cobró en el snapshot del proyecto
