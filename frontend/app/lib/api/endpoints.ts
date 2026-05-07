@@ -64,6 +64,9 @@ export const paymentAPI = {
     adminGetPendingDesignerPayouts: () =>
         apiClient.get('/payments/admin/pending-designer-payouts'), // Ajusta la ruta a como la nombraste en el backend
 
+    // Admin: obtener proyectos COMPLETADOS que han sido liquidados al diseñador 
+    adminGetCompletedDesignerPayouts: () =>
+        apiClient.get('/payments/admin/completed-payouts'),
 };
 
 export const projectAPI = {

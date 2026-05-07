@@ -347,7 +347,13 @@ const getAllPayments = asyncHandler(async (req, res) => {
     const payments = await Payment.find(filter)
         .populate('user', 'name email')
         .populate('project', 'title')
-        .populate('quote')
+        .populate({
+            path: 'quote',
+            populate: {
+                path: 'request',
+                select: 'title'
+            }
+        })
         .populate('designerQuote')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -461,6 +467,7 @@ const getConnectAccountStatus = asyncHandler(async (req, res) => {
     });
 });
 
+// ADMIN: Obtener proyectos que AÚN NO han sido liquidados al diseñador
 const getPendingDesignerPayouts = asyncHandler(async (req, res) => {
     // Buscamos proyectos donde el diseñador no ha cobrado
     // Opcional: Podrías filtrar también por project.status === 'completed' 
@@ -476,6 +483,19 @@ const getPendingDesignerPayouts = asyncHandler(async (req, res) => {
     );
 });
 
+// ADMIN: Obtener proyectos que YA fueron liquidados al diseñador
+const getCompletedDesignerPayouts = asyncHandler(async (req, res) => {
+    const projects = await Project.find({
+        'designerView.isPaidToDesigner': true
+    })
+        .populate('designer', 'name email stripeAccountStatus')
+        .sort({ 'designerView.paidAt': -1 }); // Los más recientes primero
+
+    res.status(200).json(
+        ApiResponse.success('Historial de liquidaciones obtenido', { projects }).toJSON()
+    );
+});
+
 module.exports = {
     createClientPaymentIntent,
     getUserPayments,
@@ -487,5 +507,6 @@ module.exports = {
     getPlatformTransactions,
     createConnectAccountLink,
     getConnectAccountStatus,
-    getPendingDesignerPayouts
+    getPendingDesignerPayouts,
+    getCompletedDesignerPayouts
 };
