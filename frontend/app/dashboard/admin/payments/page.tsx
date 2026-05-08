@@ -169,7 +169,9 @@ export default function AdminPaymentsPage() {
                             <p className="text-sm text-gray-500">Total Recaudado</p>
                             <p className="text-3xl font-bold">{formatCurrency(stats?.totalCollected || 0)}</p>
                         </div>
-                        <FiDollarSign className="w-8 h-8 text-green-600" />
+                        <div className="p-3 bg-green-50 rounded-full">
+                            <FiDollarSign className="w-8 h-8 text-green-600" />
+                        </div>
                     </div>
                 </div>
                 <div className="bg-white rounded-xl shadow p-6">
@@ -178,7 +180,9 @@ export default function AdminPaymentsPage() {
                             <p className="text-sm text-gray-500">Pagado a Diseñadores</p>
                             <p className="text-3xl font-bold">{formatCurrency(stats?.totalPaidToDesigners || 0)}</p>
                         </div>
-                        <FiUsers className="w-8 h-8 text-blue-600" />
+                        <div className="p-3 bg-green-50 rounded-full">
+                            <FiUsers className="w-8 h-8 text-blue-600" />
+                        </div>
                     </div>
                 </div>
                 <div className="bg-white rounded-xl shadow p-6">
@@ -187,7 +191,9 @@ export default function AdminPaymentsPage() {
                             <p className="text-sm text-gray-500">Ganancias de la Plataforma</p>
                             <p className="text-3xl font-bold">{formatCurrency(stats?.platformEarnings || 0)}</p>
                         </div>
-                        <FiTrendingUp className="w-8 h-8 text-purple-600" />
+                        <div className="p-3 bg-green-50 rounded-full">
+                            <FiTrendingUp className="w-8 h-8 text-purple-600" />
+                        </div>
                     </div>
                     <p className="mt-2 text-[10px] text-gray-400 italic">
                         * No incluye comisiones de Stripe
@@ -290,7 +296,15 @@ export default function AdminPaymentsPage() {
                                     currentData.map((p: any) => (
                                         <tr key={p._id}>
                                             <td className="px-6 py-4 text-sm text-gray-600">
-                                                {new Date(p.designerView.paidAt!).toLocaleString('es-ES')}
+                                                {p.designerView.paidAt
+                                                    ? new Date(p.designerView.paidAt).toLocaleString('es-ES', {
+                                                        day: '2-digit',
+                                                        month: 'long',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                    })
+                                                    : '---'}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="text-sm font-medium text-gray-900">{p.designer.name}</div>
@@ -325,7 +339,14 @@ export default function AdminPaymentsPage() {
                             <tbody className="divide-y divide-gray-200">
                                 {currentData.map((payment: any) => (
                                     <tr key={payment._id}>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{new Date(payment.createdAt).toLocaleDateString('es-ES')}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{new Date(payment.createdAt).toLocaleString('es-ES', {
+                                            day: '2-digit',
+                                            month: 'long',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                        })}
+                                        </td>
                                         <td className="px-6 py-4">
                                             <div className="text-sm font-medium text-gray-900">{payment.user?.name}</div>
                                             <div className="text-xs text-gray-500">{payment.user?.email}</div>
