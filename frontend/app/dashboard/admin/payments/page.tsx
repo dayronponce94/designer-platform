@@ -45,7 +45,6 @@ interface PendingProject {
 }
 
 export default function AdminPaymentsPage() {
-    // 1. Actualizamos el tipo de la pestaña activa
     const [activeTab, setActiveTab] = useState<'pending' | 'history' | 'payouts'>('pending');
     const [payments, setPayments] = useState<Payment[]>([]);
     const [allProjects, setAllProjects] = useState<PendingProject[]>([]);
@@ -53,6 +52,12 @@ export default function AdminPaymentsPage() {
     const [loading, setLoading] = useState(true);
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [projectToPay, setProjectToPay] = useState<PendingProject | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    useEffect(() => {
+        fetchData();
+    }, []);
 
     const fetchData = async () => {
         setLoading(true);
@@ -63,22 +68,18 @@ export default function AdminPaymentsPage() {
                 paymentAPI.adminGetPendingDesignerPayouts(),
                 paymentAPI.adminGetCompletedDesignerPayouts()
             ]);
+
             setPayments(paymentsRes.data.data.payments);
             setStats(statsRes.data.data);
-            // Aquí guardamos todos los proyectos que vienen del endpoint
             setAllProjects([...pendingRes.data.data.projects, ...completedRes.data.data.projects]);
         } catch (error) {
             console.error("Error cargando datos:", error);
             toast.error("Error al cargar la información de pagos");
+            // Opcional: setStats({}) para evitar que se quede bloqueado
         } finally {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        fetchData();
-    }, []);
-
     const pendingPayouts = allProjects.filter(p =>
         p.designerView && p.designerView.isPaidToDesigner === false
     );
@@ -120,7 +121,30 @@ export default function AdminPaymentsPage() {
         }
     };
 
-    if (loading && !stats) return <div className="text-center py-10 italic">Cargando panel de control...</div>;
+    if (loading && !stats) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 italic text-gray-500">
+                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                Cargando panel de control...
+            </div>
+        );
+    }
+
+    // Obtener la lista correcta según la pestaña
+    const getActiveListData = () => {
+        if (activeTab === 'pending') return pendingPayouts;
+        if (activeTab === 'payouts') return completedPayouts;
+        // Para 'history', filtramos por tipo como hacías en el map
+        return payments.filter(p => p.type === "client_payment");
+    };
+
+    const activeList = getActiveListData();
+
+    // Cálculos de paginación
+    const totalItems = activeList.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentData = activeList.slice(startIndex, startIndex + itemsPerPage);
 
     return (
         <div className="space-y-6">
@@ -160,11 +184,14 @@ export default function AdminPaymentsPage() {
                 <div className="bg-white rounded-xl shadow p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-500">Comisiones (10%)</p>
-                            <p className="text-3xl font-bold">{formatCurrency(stats?.platformFees || 0)}</p>
+                            <p className="text-sm text-gray-500">Ganancias de la Plataforma</p>
+                            <p className="text-3xl font-bold">{formatCurrency(stats?.platformEarnings || 0)}</p>
                         </div>
                         <FiTrendingUp className="w-8 h-8 text-purple-600" />
                     </div>
+                    <p className="mt-2 text-[10px] text-gray-400 italic">
+                        * No incluye comisiones de Stripe
+                    </p>
                 </div>
             </div>
 
@@ -183,7 +210,6 @@ export default function AdminPaymentsPage() {
                         )}
                     </button>
 
-                    {/* NUEVA PESTAÑA */}
                     <button
                         onClick={() => setActiveTab('payouts')}
                         className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 ${activeTab === 'payouts' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:border-gray-300'}`}
@@ -214,10 +240,10 @@ export default function AdminPaymentsPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                                {pendingPayouts.length === 0 ? (
+                                {currentData.length === 0 ? (
                                     <tr><td colSpan={4} className="px-6 py-10 text-center text-gray-500 italic">No hay pagos pendientes.</td></tr>
                                 ) : (
-                                    pendingPayouts.map((p) => (
+                                    currentData.map((p: any) => (
                                         <tr key={p._id}>
                                             <td className="px-6 py-4">
                                                 <div className="text-sm font-bold text-gray-900">{p.title}</div>
@@ -258,10 +284,10 @@ export default function AdminPaymentsPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                                {completedPayouts.length === 0 ? (
+                                {currentData.length === 0 ? (
                                     <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-500 italic">Aún no se han registrado pagos a diseñadores.</td></tr>
                                 ) : (
-                                    completedPayouts.map((p) => (
+                                    currentData.map((p: any) => (
                                         <tr key={p._id}>
                                             <td className="px-6 py-4 text-sm text-gray-600">
                                                 {new Date(p.designerView.paidAt!).toLocaleString('es-ES')}
@@ -297,31 +323,57 @@ export default function AdminPaymentsPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
-                                {payments
-                                    .filter(payment => payment.type === "client_payment")
-                                    .map((payment) => (
-                                        <tr key={payment._id}>
-                                            <td className="px-6 py-4 text-sm text-gray-600">{new Date(payment.createdAt).toLocaleDateString('es-ES')}</td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm font-medium text-gray-900">{payment.user?.name}</div>
-                                                <div className="text-xs text-gray-500">{payment.user?.email}</div>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-gray-900">{payment.quote?.request?.title || '-'}
-                                            </td>
-                                            <td className="px-6 py-4 text-sm font-bold">{formatCurrency(payment.amount)}</td>
-                                            <td className="px-6 py-4">
-                                                <span className={`flex items-center gap-1 text-sm ${payment.status === 'succeeded' ? 'text-green-600' : 'text-yellow-600'}`}>
-                                                    {payment.status === 'succeeded' ? <FiCheckCircle /> : <FiClock />}
-                                                    {payment.status === 'succeeded' ? 'Completado' : 'Pendiente'}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                {currentData.map((payment: any) => (
+                                    <tr key={payment._id}>
+                                        <td className="px-6 py-4 text-sm text-gray-600">{new Date(payment.createdAt).toLocaleDateString('es-ES')}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm font-medium text-gray-900">{payment.user?.name}</div>
+                                            <div className="text-xs text-gray-500">{payment.user?.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-900">{payment.quote?.request?.title || '-'}
+                                        </td>
+                                        <td className="px-6 py-4 text-sm font-bold">{formatCurrency(payment.amount)}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`flex items-center gap-1 text-sm ${payment.status === 'succeeded' ? 'text-green-600' : 'text-yellow-600'}`}>
+                                                {payment.status === 'succeeded' ? <FiCheckCircle /> : <FiClock />}
+                                                {payment.status === 'succeeded' ? 'Completado' : 'Pendiente'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
                 )}
             </div>
+
+            {/* Paginación */}
+            {totalPages > 1 && (
+                <div className="mt-6 flex justify-between items-center bg-white p-4 rounded-xl shadow">
+                    <div className="text-sm text-gray-500">
+                        Mostrando {startIndex + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} resultados
+                    </div>
+                    <div className="flex space-x-2">
+                        <button
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(prev => prev - 1)}
+                        >
+                            Anterior
+                        </button>
+                        <span className="px-4 py-2 font-medium">
+                            Página {currentPage} de {totalPages}
+                        </span>
+                        <button
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Modal de Confirmación */}
             {projectToPay && (

@@ -381,17 +381,24 @@ const getPlatformTransactions = asyncHandler(async (req, res) => {
         { $match: { type: 'client_payment', status: 'succeeded' } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
+
+    // Suma de todos los pagos ya transferidos a diseñadores
     const designerPayouts = await Payment.aggregate([
         { $match: { type: 'designer_payout', status: 'succeeded' } },
         { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
-    const platformFees = clientPayments[0]?.total * 0.1 || 0; // Ejemplo 10% de comisión
+
+    const totalCollected = clientPayments[0]?.total || 0;
+    const totalPaid = designerPayouts[0]?.total || 0;
+
+    // La ganancia real de la plataforma es lo recaudado menos lo pagado
+    const platformEarnings = totalCollected - totalPaid;
 
     res.status(200).json(
         ApiResponse.success('Resumen de transacciones', {
-            totalCollected: clientPayments[0]?.total || 0,
-            totalPaidToDesigners: designerPayouts[0]?.total || 0,
-            platformFees,
+            totalCollected,
+            totalPaidToDesigners: totalPaid,
+            platformEarnings, // Enviamos el nuevo cálculo
         }).toJSON()
     );
 });
