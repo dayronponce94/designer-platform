@@ -1,18 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { usePayments } from '@/app/lib/hooks/usePayments';
-import { FiDollarSign, FiCreditCard, FiCalendar, FiCheckCircle, FiClock, FiAlertCircle, FiDownload, FiPlus, FiFilter } from 'react-icons/fi';
+import { FiCreditCard, FiCheckCircle, FiClock, FiAlertCircle, } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import PaymentModal from '@/components/modals/PaymentModal';
-import PaymentStatsChart from '@/components/payments/PaymentStatsChart';
+
+
 
 export default function PaymentsPage() {
     const { payments, summary, loading, error, fetchPayments } = usePayments();
-    const [selectedQuote, setSelectedQuote] = useState<{ id: string, amount: number, description: string } | null>(null);
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [filter, setFilter] = useState<string>('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+
+    // APLICANDO LA LÓGICA DE DISEÑADORES AQUÍ:
+    const stats = useMemo(() => {
+        // 1. Total Pagado (Suma simple como en la página de diseñadores)
+        // Filtramos por 'completed' que es el tipo que TS acepta en tu componente
+        const totalPaid = payments
+            .filter(p => p.status as string === 'succeeded') // Solo consideramos pagos exitosos
+            .reduce((sum, p) => sum + p.amount, 0);
+
+        // 2. Cantidad de pagos exitosos
+        const completedCount = payments.filter(p => p.status as string === 'succeeded').length;
+
+        // 3. Monto Pendiente (Sumamos lo que no está completado ni fallido)
+        const pendingAmount = payments
+            .filter(p => p.status as string === 'pending' || p.status as string === 'processing')
+            .reduce((sum, p) => sum + p.amount, 0);
+
+        return {
+            totalPaid,
+            completedCount,
+            pendingAmount
+        };
+    }, [payments]); // Se recalcula cada vez que 'payments' cambia
+
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return 'N/A';
@@ -33,7 +58,7 @@ export default function PaymentsPage() {
 
     const getStatusConfig = (status: string) => {
         switch (status) {
-            case 'completed':
+            case 'succeeded':
                 return {
                     icon: FiCheckCircle,
                     color: 'text-green-600 bg-green-100',
@@ -74,7 +99,7 @@ export default function PaymentsPage() {
 
     const getTypeLabel = (type: string) => {
         switch (type) {
-            case 'project_payment':
+            case 'client_payment':
                 return 'Pago de Proyecto';
             case 'subscription':
                 return 'Suscripción';
@@ -87,22 +112,19 @@ export default function PaymentsPage() {
         }
     };
 
+    // 1. Primero filtramos
     const filteredPayments = payments.filter(payment => {
         if (filter === 'all') return true;
-        if (filter === 'pending') return payment.status === 'pending';
-        if (filter === 'completed') return payment.status === 'completed';
-        if (filter === 'failed') return payment.status === 'failed';
-        return true;
+        return payment.status === filter;
     });
 
-    const handlePayNow = (payment: any) => {
-        setSelectedQuote({
-            id: payment.quoteId || payment._id,
-            amount: payment.amount,
-            description: payment.projectId?.title || payment.description || 'Pago de servicio de diseño'
-        });
-        setShowPaymentModal(true);
-    };
+    // 2. Luego calculamos la paginación basada en el resultado del filtro
+    const totalItems = filteredPayments.length; // Usar filteredPayments aquí
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+
+    // 3. Obtenemos solo el segmento de la página actual
+    const currentData = filteredPayments.slice(startIndex, startIndex + itemsPerPage);
 
     if (loading && payments.length === 0) {
         return (
@@ -141,7 +163,7 @@ export default function PaymentsPage() {
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Mis Pagos</h1>
                             <p className="text-gray-600 mt-1">
-                                Gestiona tus transacciones y métodos de pago
+                                Revisa el historial de tus transacciones y su estado actual.
                             </p>
                         </div>
                     </div>
@@ -149,63 +171,51 @@ export default function PaymentsPage() {
             </div>
 
             {/* Resumen de Pagos */}
-            {summary && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-xl shadow p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500">Total Pagado</p>
-                                <p className="text-3xl font-bold text-gray-900 mt-2">
-                                    {formatCurrency(summary.totalPaid)}
-                                </p>
-                                <p className="text-sm text-green-600 mt-1">
-                                    +12% vs mes anterior
-                                </p>
-                            </div>
-                            <div className="p-3 bg-green-100 text-green-600 rounded-xl">
-                                <FiCheckCircle className="w-6 h-6" />
-                            </div>
-                        </div>
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Tarjeta 1: Total Invertido / Pagado */}
+                <div className="bg-white rounded-xl shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500 font-medium">Total Pagado</p>
+                            <p className="text-3xl font-bold text-gray-900">{formatCurrency(stats.totalPaid)}</p>
 
-                    <div className="bg-white rounded-xl shadow p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500">Pendientes</p>
-                                <p className="text-3xl font-bold text-gray-900 mt-2">
-                                    {formatCurrency(summary.pendingAmount)}
-                                </p>
-                                <p className="text-sm text-yellow-600 mt-1">
-                                    {summary.upcomingPayments} pagos próximos
-                                </p>
-                            </div>
-                            <div className="p-3 bg-yellow-100 text-yellow-600 rounded-xl">
-                                <FiClock className="w-6 h-6" />
-                            </div>
+                            <p className="text-xs text-gray-400 mt-1">Histórico acumulado</p>
                         </div>
-                    </div>
-
-                    <div className="bg-white rounded-xl shadow p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-500">Próximo Pago</p>
-                                <p className="text-3xl font-bold text-gray-900 mt-2">
-                                    {summary.upcomingPayments > 0 ? formatCurrency(3200) : 'N/A'}
-                                </p>
-                                <p className="text-sm text-gray-500 mt-1">
-                                    Vence {summary.upcomingPayments > 0 ? '05 Mar' : 'No hay pagos'}
-                                </p>
-                            </div>
-                            <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
-                                <FiCalendar className="w-6 h-6" />
-                            </div>
+                        <div className="p-3 bg-green-100 text-green-600 rounded-xl">
+                            <FiCheckCircle className="w-6 h-6" />
                         </div>
                     </div>
                 </div>
-            )}
 
-            {/* Gráfico de estadísticas */}
-            {summary && <PaymentStatsChart stats={summary.paymentStats} />}
+                {/* Tarjeta 2: Cantidad de Proyectos */}
+                <div className="bg-white rounded-xl shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500 font-medium">Pagos Realizados</p>
+                            <p className="text-3xl font-bold text-gray-900">{stats.completedCount}</p>
+
+                            <p className="text-xs text-gray-400 mt-1">Transacciones liquidadas</p>
+                        </div>
+                        <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                            <FiCreditCard className="w-6 h-6" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Tarjeta 3: Propuesta - Monto por Pagar */}
+                <div className="bg-white rounded-xl shadow p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-gray-500 font-medium">Monto Pendiente</p>
+                            <p className="text-3xl font-bold text-gray-900">{formatCurrency(stats.pendingAmount)}</p>
+                            <p className="text-xs text-yellow-600 mt-1">En proceso de verificación</p>
+                        </div>
+                        <div className="p-3 bg-yellow-100 text-yellow-600 rounded-xl">
+                            <FiClock className="w-6 h-6" />
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Historial de Pagos */}
             <div className="bg-white rounded-xl shadow">
@@ -214,22 +224,6 @@ export default function PaymentsPage() {
                         <div>
                             <h2 className="text-xl font-bold text-gray-900">Historial de Pagos</h2>
                             <p className="text-gray-600 mt-1">Todas tus transacciones</p>
-                        </div>
-
-                        <div className="flex items-center space-x-2">
-                            <div className="relative">
-                                <FiFilter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                <select
-                                    value={filter}
-                                    onChange={(e) => setFilter(e.target.value)}
-                                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
-                                    <option value="all">Todos los pagos</option>
-                                    <option value="pending">Pendientes</option>
-                                    <option value="completed">Completados</option>
-                                    <option value="failed">Fallidos</option>
-                                </select>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -242,7 +236,7 @@ export default function PaymentsPage() {
                                     Fecha
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Descripción
+                                    Tipo
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Monto
@@ -250,13 +244,10 @@ export default function PaymentsPage() {
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Estado
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Acciones
-                                </th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredPayments.map((payment) => {
+                            {currentData.map((payment) => {
                                 const statusConfig = getStatusConfig(payment.status);
                                 const StatusIcon = statusConfig.icon;
 
@@ -266,51 +257,25 @@ export default function PaymentsPage() {
                                             <div className="text-sm text-gray-900">
                                                 {formatDate(payment.paidAt || payment.createdAt)}
                                             </div>
-                                            <div className="text-xs text-gray-500">
-                                                {payment.type && getTypeLabel(payment.type)}
+                                        </td>
+
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-bold text-blue-600">
+                                                {getTypeLabel(payment.type)}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {payment.projectId?.title || payment.description}
-                                            </div>
-                                            {payment.projectId && (
-                                                <div className="text-xs text-gray-500">
-                                                    {payment.description}
-                                                </div>
-                                            )}
-                                        </td>
+
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="text-sm font-bold text-gray-900">
                                                 {formatCurrency(payment.amount, payment.currency)}
                                             </div>
                                         </td>
+
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusConfig.color}`}>
                                                 <StatusIcon className="w-3 h-3 mr-1" />
                                                 {statusConfig.label}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div className="flex space-x-2">
-                                                {payment.invoiceUrl && (
-                                                    <a
-                                                        href={payment.invoiceUrl}
-                                                        className="text-blue-600 hover:text-blue-900 flex items-center"
-                                                    >
-                                                        <FiDownload className="mr-1" />
-                                                        Factura
-                                                    </a>
-                                                )}
-                                                {payment.status === 'pending' && (
-                                                    <button
-                                                        onClick={() => handlePayNow(payment)}
-                                                        className="text-green-600 hover:text-green-900"
-                                                    >
-                                                        Pagar ahora
-                                                    </button>
-                                                )}
-                                            </div>
                                         </td>
                                     </tr>
                                 );
@@ -318,39 +283,34 @@ export default function PaymentsPage() {
                         </tbody>
                     </table>
                 </div>
-
-                {filteredPayments.length === 0 && (
-                    <div className="text-center py-12">
-                        <FiDollarSign className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-xl font-medium text-gray-900 mb-2">
-                            No hay pagos {filter !== 'all' ? 'con este filtro' : ''}
-                        </h3>
-                        <p className="text-gray-500">
-                            {filter !== 'all'
-                                ? 'Intenta con otro filtro o crea un nuevo pago.'
-                                : 'Comienza realizando tu primer pago.'
-                            }
-                        </p>
-                    </div>
-                )}
             </div>
 
-            {/* Modal de Pago */}
-            {showPaymentModal && selectedQuote && (
-                <PaymentModal
-                    quoteId={selectedQuote.id}
-                    amount={selectedQuote.amount}
-                    description={selectedQuote.description}
-                    onClose={() => {
-                        setShowPaymentModal(false);
-                        setSelectedQuote(null);
-                    }}
-                    onSuccess={() => {
-                        fetchPayments();
-                        setShowPaymentModal(false);
-                        setSelectedQuote(null);
-                    }}
-                />
+            {/* Paginación */}
+            {totalPages > 1 && (
+                <div className="mt-6 flex justify-between items-center bg-white p-4 rounded-xl shadow">
+                    <div className="text-sm text-gray-500">
+                        Mostrando {startIndex + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} resultados
+                    </div>
+                    <div className="flex space-x-2">
+                        <button
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            disabled={currentPage === 1}
+                            onClick={() => setCurrentPage(prev => prev - 1)}
+                        >
+                            Anterior
+                        </button>
+                        <span className="px-4 py-2 font-medium">
+                            Página {currentPage} de {totalPages}
+                        </span>
+                        <button
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            disabled={currentPage === totalPages}
+                            onClick={() => setCurrentPage(prev => prev + 1)}
+                        >
+                            Siguiente
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );
