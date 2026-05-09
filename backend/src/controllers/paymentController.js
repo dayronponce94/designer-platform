@@ -325,8 +325,6 @@ const payDesigner = asyncHandler(async (req, res) => {
         paidAt: new Date(),
     });
 
-    // 7. Actualizar la cotización original (Opcional, por consistencia)
-    await DesignerQuote.findByIdAndUpdate(designerQuoteId, { status: 'paid' });
 
     res.status(200).json(
         ApiResponse.success('Pago transferido al diseñador con éxito', {
