@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAdmin } from '@/app/lib/hooks/useAdmin';
 import { FiUsers, FiBriefcase, FiDollarSign, FiCheckCircle, FiClock, FiAlertTriangle, FiTrendingUp, FiBarChart2, FiSettings, FiPieChart } from 'react-icons/fi';
 import Link from 'next/link';
@@ -30,7 +30,7 @@ export default function AdminDashboardPage() {
             setRecentUsers(usersData.data.data.users || []);
 
             // Obtener proyectos recientes
-            const projectsData = await adminAPI.getAllProjects({ limit: 3, sort: '-createdAt' });
+            const projectsData = await adminAPI.getAllProjects({ sort: '-createdAt' });
             setRecentProjects(projectsData.data.data.projects || []);
         } catch (error) {
             console.error('Error loading dashboard data:', error);
@@ -74,6 +74,29 @@ export default function AdminDashboardPage() {
         completed: { label: 'Completado', classes: 'bg-green-100 text-green-800' },
         cancelled: { label: 'Cancelado', classes: 'bg-red-100 text-red-800' }
     };
+
+    const totalAdminEarnings = useMemo(() => {
+        return recentProjects.reduce((acc, project) => {
+            const clientBudget = project.clientView?.budget || 0;
+            const designerEarnings = project.designerView?.earnings || 0;
+            return acc + (clientBudget - designerEarnings);
+        }, 0);
+    }, [recentProjects]);
+
+    const completionRate = useMemo(() => {
+        if (recentProjects.length === 0) return 0;
+
+        // Contamos cuántos proyectos tienen el estado 'completed'
+        const completedProjects = recentProjects.filter(
+            project => project.status === 'completed'
+        ).length;
+
+        // Calculamos el porcentaje: (completados / total) * 100
+        const rate = (completedProjects / recentProjects.length) * 100;
+
+        // Retornamos con un decimal para que se vea más profesional
+        return Math.round(rate * 10) / 10;
+    }, [recentProjects]);
 
     return (
         <div className="space-y-6">
@@ -144,11 +167,11 @@ export default function AdminDashboardPage() {
                         <div>
                             <p className="text-sm text-gray-500">Ingresos Totales</p>
                             <p className="text-2xl font-bold text-gray-900 mt-1">
-                                {formatCurrency(stats?.overview?.totalRevenue || 0)}
+                                {formatCurrency(totalAdminEarnings)}
                             </p>
                             <div className="flex items-center text-xs text-green-600 mt-2">
                                 <FiTrendingUp className="mr-1" />
-                                <span>+12% este mes</span>
+                                <span>No incluye comisiones de Stripe</span>
                             </div>
                         </div>
                         <div className="p-3 bg-purple-100 text-purple-600 rounded-lg">
@@ -161,10 +184,14 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500">Tasa de Completación</p>
-                            <p className="text-2xl font-bold text-gray-900 mt-1">94%</p>
+                            <p className="text-2xl font-bold text-gray-900 mt-1">
+                                {completionRate}%
+                            </p>
                             <div className="flex items-center text-xs text-gray-500 mt-2">
                                 <FiCheckCircle className="mr-1 text-green-600" />
-                                <span>Proyectos completados a tiempo</span>
+                                <span>
+                                    {recentProjects.filter(p => p.status === 'completed').length} de {recentProjects.length} proyectos
+                                </span>
                             </div>
                         </div>
                         <div className="p-3 bg-yellow-100 text-yellow-600 rounded-lg">
@@ -329,7 +356,7 @@ export default function AdminDashboardPage() {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {recentProjects.map((project) => (
+                                {recentProjects.slice(0, 3).map((project) => (
                                     <div key={project._id} className="p-3 hover:bg-gray-50 rounded-lg">
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="font-medium text-gray-900 truncate">{project.title}</h3>
