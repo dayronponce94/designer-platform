@@ -24,7 +24,6 @@ router.post(
     handleStripeWebhook
 );
 
-router.use(express.json());
 
 // Rutas protegidas para usuarios autenticados
 router.use(protect);

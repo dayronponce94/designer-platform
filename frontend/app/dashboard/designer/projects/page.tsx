@@ -465,7 +465,7 @@ export default function DesignerProjectsPage() {
 
                             <div className="bg-white p-4 rounded-lg">
                                 <div className="flex items-center mb-2">
-                                    <div className="w-8 h-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mr-2">
+                                    <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mr-2">
                                         2
                                     </div>
                                     <h4 className="font-medium text-gray-900">En Progreso</h4>
@@ -477,7 +477,7 @@ export default function DesignerProjectsPage() {
 
                             <div className="bg-white p-4 rounded-lg">
                                 <div className="flex items-center mb-2">
-                                    <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mr-2">
+                                    <div className="w-8 h-8 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mr-2">
                                         3
                                     </div>
                                     <h4 className="font-medium text-gray-900">En Revisión</h4>

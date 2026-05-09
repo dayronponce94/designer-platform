@@ -27,9 +27,6 @@ app.use(cors({
     credentials: true
 }));
 
-// Stripe webhook (necesita body raw, no JSON)
-const stripeWebhook = require('./controllers/paymentController').handleStripeWebhook;
-app.post('/api/webhooks/stripe', express.raw({ type: 'application/json' }), stripeWebhook);
 
 // Rutas de pagos
 const paymentRoutes = require('./routes/payments');

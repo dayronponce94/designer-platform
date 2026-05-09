@@ -211,52 +211,79 @@ const getPaymentMethods = asyncHandler(async (req, res) => {
     }
 });
 
-// Webhook de Stripe
+// Webhook de Stripe: Maneja la confirmación de pagos y actualización de estados
 const handleStripeWebhook = async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
     let event;
+
     try {
-        // Vital: req.body debe ser el raw body
+        // IMPORTANTE: req.body debe ser el raw body (Buffer) configurado en tu server.js/app.js
         event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err) {
         console.error(`❌ Error de Firma Webhook: ${err.message}`);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    if (event.type === 'payment_intent.succeeded') {
-        const paymentIntent = event.data.object;
-        console.log(`✅ Pago exitoso detectado: ${paymentIntent.id}`);
+    // Escuchamos los dos eventos principales de éxito
+    if (event.type === 'payment_intent.succeeded' || event.type === 'checkout.session.completed') {
+        const dataObject = event.data.object;
 
-        // 1. Actualizar el registro de Pago y obtener el documento actualizado
-        const payment = await Payment.findOneAndUpdate(
-            { stripePaymentIntentId: paymentIntent.id },
-            {
-                status: 'succeeded',
-                paidAt: new Date(),
-                // Aseguramos que el status en metadata también sea coherente
-                'metadata.status': 'succeeded'
-            },
-            { new: true }
-        );
+        // Obtenemos el ID del PaymentIntent de forma segura según el tipo de evento
+        const intentId = dataObject.payment_intent || dataObject.id;
 
-        if (!payment) {
-            console.error(`⚠️ No se encontró el registro de pago para el intent: ${paymentIntent.id}`);
-            return res.json({ received: true });
-        }
+        console.log(`\n🔔 Evento recibido: ${event.type}`);
+        console.log(`✅ Procesando pago exitoso en Stripe: ${intentId}`);
 
-        // 2. Actualizar la Cotización a 'paid'
-        if (payment.quote) {
-            const updatedQuote = await Quote.findByIdAndUpdate(
-                payment.quote,
-                { status: 'paid' },
+        try {
+            // 1. Actualizar el registro de Pago en nuestra base de datos
+            // Buscamos por el ID que guardamos al crear la sesión de Stripe
+            const payment = await Payment.findOneAndUpdate(
+                { stripePaymentIntentId: intentId },
+                {
+                    status: 'succeeded',
+                    paidAt: new Date(),
+                    'metadata.status': 'succeeded'
+                },
                 { new: true }
             );
-            console.log(`✨ Cotización ${payment.quote} marcada como PAGADA. Nuevo estado: ${updatedQuote.status}`);
+
+            if (!payment) {
+                console.error(`⚠️ No se encontró un registro de pago en DB con el ID: ${intentId}`);
+                // Respondemos 200 a Stripe para que no siga reintentando, pero logueamos el error
+                return res.json({ received: true });
+            }
+
+            console.log(`📝 Registro de pago actualizado a 'succeeded' para el usuario: ${payment.user}`);
+
+            // 2. Actualizar la Cotización del Cliente (Quote)
+            if (payment.quote) {
+                const updatedQuote = await Quote.findByIdAndUpdate(
+                    payment.quote,
+                    {
+                        status: 'paid',
+                        // Opcional: puedes guardar aquí también la fecha exacta del pago
+                    },
+                    { new: true }
+                );
+
+                if (updatedQuote) {
+                    console.log(`✨ ÉXITO: Cotización ${payment.quote} marcada como PAGADA.`);
+                } else {
+                    console.error(`❌ No se pudo encontrar la cotización ${payment.quote} para marcarla como pagada.`);
+                }
+            } else {
+                console.warn(`❓ El pago ${payment._id} no tiene una cotización (quote) asociada.`);
+            }
+
+        } catch (dbError) {
+            console.error(`❌ Error de base de datos en Webhook: ${dbError.message}`);
+            // No enviamos error 500 para evitar que Stripe sature el endpoint si es un error de lógica
         }
     }
 
+    // Siempre responder con 200 a Stripe
     res.json({ received: true });
 };
 
@@ -324,6 +351,7 @@ const payDesigner = asyncHandler(async (req, res) => {
         stripeDestinationAccount: designer.stripeAccountId,
         paidAt: new Date(),
     });
+
 
 
     res.status(200).json(
