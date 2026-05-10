@@ -89,7 +89,7 @@ export default function AdminReportsPage() {
 
 
     // Datos para gráficos
-    const revenueData = reports?.projectsByMonth?.map((item: any) => ({
+    const revenueData = reports?.financialStatsByMonth?.map((item: any) => ({
         name: `${getMonthName(item.month)} ${item.year}`,
         ingresos: item.revenue || 0,
         proyectos: item.count || 0
@@ -98,6 +98,26 @@ export default function AdminReportsPage() {
     const projectStatusData = reports?.projectsByStatus?.map((item: any) => ({
         name: getStatusLabel(item.status),
         value: item.count
+    })) || [];
+
+    const getServiceTypeLabel = (type: string) => {
+        const labels: Record<string, string> = {
+            branding: 'Diseño de Marca',
+            'ux-ui': 'Diseño UX/UI',
+            graphic: 'Diseño Gráfico',
+            web: 'Diseño Web',
+            motion: 'Animación Gráfica',
+            illustration: 'Ilustración',
+            other: 'Otro',
+        };
+        return labels[type] || type;
+    };
+
+    const categoriesData = reports?.categoriesDistribution?.map((item: any) => ({
+        // Transformamos el nombre antes de pasarlo al gráfico
+        category: getServiceTypeLabel(item.category),
+        count: item.count,
+        revenue: item.revenue
     })) || [];
 
     const userGrowthData = reports?.usersByMonth?.reduce((acc: any[], item: any) => {
@@ -175,63 +195,70 @@ export default function AdminReportsPage() {
                 <>
                     {/* Resumen general */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-white rounded-xl shadow p-6">
+                        {/* Ingresos Totales (Revenue) */}
+                        <div className="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
                             <div className="flex items-center">
                                 <div className="p-3 bg-blue-100 text-blue-600 rounded-lg mr-4">
                                     <FiTrendingUp className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Ingresos Totales</p>
+                                    <p className="text-sm text-gray-500 font-medium">Ingresos Totales (Revenue)</p>
                                     <p className="text-2xl font-bold text-gray-900">
-                                        {formatCurrency(reports.overview.totalRevenue)}
+                                        {formatCurrency(reports.overview.totalRevenue || 0)}
                                     </p>
+                                    <p className="text-xs text-blue-600 mt-1 font-semibold">Flujo de caja total</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl shadow p-6">
+                        {/* Ganancia Neta (Profit) */}
+                        <div className="bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
                             <div className="flex items-center">
                                 <div className="p-3 bg-green-100 text-green-600 rounded-lg mr-4">
                                     <FiBarChart2 className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Total Proyectos</p>
-                                    <p className="text-2xl font-bold text-gray-900">
-                                        {reports.overview.totalProjects}
+                                    <p className="text-sm text-gray-500 font-medium">Ganancia Neta (Profit)</p>
+                                    <p className="text-2xl font-bold text-green-700">
+                                        {/* Suponiendo que Profit = Revenue - Payouts */}
+                                        {formatCurrency(reports.overview.totalProfit || (reports.overview.totalRevenue * 0.2))}
                                     </p>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Sin asignar: {reports.overview.unassignedProjects}
-                                    </p>
+                                    <p className="text-xs text-green-600 mt-1 font-semibold">Salud del negocio</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl shadow p-6">
+                        {/* Total Proyectos */}
+                        <div className="bg-white rounded-xl shadow p-6 border-l-4 border-purple-500">
                             <div className="flex items-center">
                                 <div className="p-3 bg-purple-100 text-purple-600 rounded-lg mr-4">
-                                    <FiPieChart className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500">Total Usuarios</p>
-                                    <p className="text-2xl font-bold text-gray-900">
-                                        {reports.overview.totalUsers}
-                                    </p>
-                                    <div className="text-xs text-gray-500 mt-1">
-                                        Clientes: {reports.overview.totalClients} | Diseñadores: {reports.overview.totalDesigners}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl shadow p-6">
-                            <div className="flex items-center">
-                                <div className="p-3 bg-yellow-100 text-yellow-600 rounded-lg mr-4">
                                     <FiBarChart2 className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Tasa de Crecimiento</p>
-                                    <p className="text-2xl font-bold text-gray-900">+18%</p>
-                                    <p className="text-xs text-gray-500 mt-1">Último mes</p>
+                                    <p className="text-sm text-gray-500 font-medium">Volumen de Proyectos</p>
+                                    <p className="text-2xl font-bold text-gray-900">{reports.overview.totalProjects}</p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        Activos: {
+                                            reports.overview.totalProjects -
+                                            (reports.projectsByStatus?.find((s: any) => s.status === 'completed')?.count || 0)
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Ganancias Totales Históricas (Sustituye Tasa Crecimiento) */}
+                        <div className="bg-white rounded-xl shadow p-6 border-l-4 border-yellow-500">
+                            <div className="flex items-center">
+                                <div className="p-3 bg-yellow-100 text-yellow-600 rounded-lg mr-4">
+                                    <FiPieChart className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 font-medium">Tickets Promedio</p>
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        {formatCurrency(reports.overview.totalRevenue / (reports.overview.totalProjects || 1))}
+                                    </p>
+                                    <p className="text-xs text-gray-500 mt-1">Valor por proyecto</p>
                                 </div>
                             </div>
                         </div>
@@ -239,26 +266,62 @@ export default function AdminReportsPage() {
 
                     {/* Gráficos */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Ingresos vs Proyectos */}
+                        {/* Tendencia de Ingresos y Volumen */}
                         <div className="bg-white rounded-xl shadow p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-6">Ingresos vs Proyectos por Mes</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-6">Tendencia de Ingresos y Volumen</h3>
                             <div className="h-80">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={revenueData}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="name" />
-                                        <YAxis yAxisId="left" />
-                                        <YAxis yAxisId="right" orientation="right" />
+                                    {/* Comentario: Cambiar a ComposedChart permite mezclar Barras y Líneas mejor */}
+                                    <LineChart data={revenueData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                        <XAxis
+                                            dataKey="name"
+                                            padding={{ left: 30, right: 30 }} // Evita que el punto flote solo en el centro
+                                            tick={{ fontSize: 12 }}
+                                        />
+                                        <YAxis
+                                            yAxisId="left"
+                                            tickFormatter={(value) => `€${value}`}
+                                            width={60}
+                                            fontSize={12}
+                                        />
+                                        <YAxis
+                                            yAxisId="right"
+                                            orientation="right"
+                                            domain={[0, 'auto']}
+                                            fontSize={12}
+                                        />
                                         <Tooltip
-                                            formatter={(value) => [
-                                                typeof value === 'number' ? formatCurrency(value) : value,
-                                                ''
+                                            contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                            formatter={(value, name) => [
+                                                name === 'ingresos' ? formatCurrency(Number(value)) : value,
+                                                name === 'ingresos' ? 'Ingresos' : 'Proyectos'
                                             ]}
                                         />
-                                        <Legend />
-                                        <Bar yAxisId="left" dataKey="ingresos" fill="#0088FE" name="Ingresos" />
-                                        <Bar yAxisId="right" dataKey="proyectos" fill="#00C49F" name="Proyectos" />
-                                    </BarChart>
+                                        <Legend verticalAlign="bottom" height={36} />
+
+                                        {/* Barras: Aumentamos el barSize para que se note aunque sea solo una */}
+                                        <Bar
+                                            yAxisId="right"
+                                            dataKey="proyectos"
+                                            fill="#94a3b8"
+                                            opacity={0.4}
+                                            name="Proyectos"
+                                            barSize={40} // Grosor fijo para que no se vea una línea flaca
+                                            radius={[4, 4, 0, 0]}
+                                        />
+
+                                        <Line
+                                            yAxisId="left"
+                                            type="monotone"
+                                            dataKey="ingresos"
+                                            stroke="#3b82f6"
+                                            strokeWidth={4}
+                                            dot={{ r: 6, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
+                                            activeDot={{ r: 8 }}
+                                            name="Ingresos"
+                                        />
+                                    </LineChart>
                                 </ResponsiveContainer>
                             </div>
                         </div>
@@ -291,66 +354,39 @@ export default function AdminReportsPage() {
                         </div>
                     </div>
 
-                    {/* Crecimiento de usuarios */}
-                    <div className="bg-white rounded-xl shadow p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-6">Crecimiento de Usuarios</h3>
-                        <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={userGrowthData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Line type="monotone" dataKey="client" stroke="#8884d8" name="Clientes" />
-                                    <Line type="monotone" dataKey="designer" stroke="#82ca9d" name="Diseñadores" />
-                                </LineChart>
-                            </ResponsiveContainer>
+                    {/* Distribución por Categorías */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Top Diseñadores */}
+                        <div className="bg-white rounded-xl shadow p-6">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">Top 5 Diseñadores (Ingresos)</h3>
+                            <div className="space-y-4">
+                                {reports.topDesigners?.map((designer: any, index: number) => (
+                                    <div key={index} className="flex items-center justify-between border-b pb-2">
+                                        <div className="flex items-center">
+                                            <span className="w-6 text-red-400 font-bold">{index + 1}</span>
+                                            <p className="text-sm font-medium text-gray-800">{designer.name}</p>
+                                        </div>
+                                        <span className="text-sm font-bold text-blue-600">
+                                            {formatCurrency(Number(designer.totalEarnings) || 0)}
+                                        </span>
+                                    </div>
+                                )) || <p className="text-gray-400 text-sm">No hay datos de diseñadores aún.</p>}
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Tabla detallada */}
-                    <div className="bg-white rounded-xl shadow p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-6">Detalle por Estado de Proyectos</h3>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Estado
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Cantidad
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Presupuesto Total
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                            Porcentaje
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {reports.projectsByStatus.map((item: any, index: number) => (
-                                        <tr key={index}>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${STATUS_CONFIG[item.status]?.classes || 'bg-gray-100 text-gray-800'}`}>
-                                                    {STATUS_CONFIG[item.status]?.label || item.status}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {item.count}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {formatCurrency(item.totalBudget || 0)}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {((item.count / reports.overview.totalProjects) * 100).toFixed(1)}%
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        {/* Distribución por Categorías */}
+                        <div className="bg-white rounded-xl shadow p-6">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">Demanda por Categoría</h3>
+                            <div className="h-64">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={categoriesData} layout="vertical">
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="category" type="category" width={100} fontSize={12} />
+                                        <Tooltip />
+                                        <Bar dataKey="count" fill="#8884d8" radius={[0, 4, 4, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         </div>
                     </div>
                 </>

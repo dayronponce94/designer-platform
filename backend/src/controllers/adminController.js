@@ -334,33 +334,28 @@ const updateProjectStatus = asyncHandler(async (req, res) => {
     );
 });
 
-// @desc    Obtener reportes y estadísticas
+
+// @desc    Obtener reportes y estadísticas detalladas para el Dashboard
 // @route   GET /api/admin/reports
 // @access  Private/Admin
 const getReports = asyncHandler(async (req, res) => {
-    const { period = 'month' } = req.query; // month, quarter, year
+    const { startDate, endDate } = req.query;
 
-    // Proyectos por estado
-    const projectsByStatus = await Project.aggregate([
-        {
-            $group: {
-                _id: '$status',
-                count: { $sum: 1 },
-                totalBudget: { $sum: '$budget' }
-            }
-        }
-    ]);
+    // Configuración de filtro de fecha
+    let dateFilter = {};
+    if (startDate && endDate) {
+        dateFilter = {
+            createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) }
+        };
+    } else {
+        const twelveMonthsAgo = new Date();
+        twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+        dateFilter = { createdAt: { $gte: twelveMonthsAgo } };
+    }
 
-    // Proyectos por mes (últimos 12 meses)
-    const twelveMonthsAgo = new Date();
-    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
-
-    const projectsByMonth = await Project.aggregate([
-        {
-            $match: {
-                createdAt: { $gte: twelveMonthsAgo }
-            }
-        },
+    // 1. Métricas de Ingresos (Revenue), Ganancias (Profit) y Proyectos por Mes
+    const financialStatsByMonth = await Project.aggregate([
+        { $match: dateFilter },
         {
             $group: {
                 _id: {
@@ -368,80 +363,145 @@ const getReports = asyncHandler(async (req, res) => {
                     month: { $month: '$createdAt' }
                 },
                 count: { $sum: 1 },
-                revenue: { $sum: '$budget' }
+                revenue: { $sum: '$clientView.budget' },
+                designerPayout: { $sum: '$designerView.earnings' }
             }
         },
         {
-            $sort: { '_id.year': 1, '_id.month': 1 }
-        }
+            $project: {
+                _id: 0,
+                year: '$_id.year',
+                month: '$_id.month',
+                count: 1,
+                revenue: 1,
+                profit: { $subtract: ['$revenue', '$designerPayout'] }
+            }
+        },
+        { $sort: { year: 1, month: 1 } }
     ]);
 
-    // Usuarios por mes (últimos 12 meses)
-    const usersByMonth = await User.aggregate([
-        {
-            $match: {
-                createdAt: { $gte: twelveMonthsAgo },
-                role: { $ne: 'admin' } // Excluir admin
-            }
-        },
+    // 2. Distribución de Categorías (Service Type)
+    const categoriesDistribution = await Project.aggregate([
+        { $match: dateFilter },
         {
             $group: {
-                _id: {
-                    year: { $year: '$createdAt' },
-                    month: { $month: '$createdAt' },
-                    role: '$role'
-                },
-                count: { $sum: 1 }
+                _id: '$serviceType',
+                count: { $sum: 1 },
+                revenue: { $sum: '$clientView.budget' }
             }
         },
+        { $project: { _id: 0, category: '$_id', count: 1, revenue: 1 } },
+        { $sort: { count: -1 } }
+    ]);
+
+    // 3. Top 5 Diseñadores (por Ganancias Netas)
+    const topDesigners = await Project.aggregate([
+        { $match: { ...dateFilter, status: 'completed' } },
         {
-            $sort: { '_id.year': 1, '_id.month': 1 }
+            $group: {
+                _id: '$designer',
+                totalEarnings: { $sum: '$designerView.earnings' },
+                projectsCount: { $sum: 1 }
+            }
+        },
+        { $sort: { totalEarnings: -1 } },
+        { $limit: 5 },
+        {
+            $lookup: {
+                from: 'users',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'userInfo'
+            }
+        },
+        { $unwind: '$userInfo' },
+        {
+            $project: {
+                _id: 1,
+                name: '$userInfo.name',
+                email: '$userInfo.email',
+                totalEarnings: 1,
+                projectsCount: 1
+            }
         }
     ]);
 
-    // Estadísticas generales
-    const totalUsers = await User.countDocuments({ role: { $ne: 'admin' } });
-    const totalClients = await User.countDocuments({ role: 'client' });
-    const totalDesigners = await User.countDocuments({ role: 'designer' });
-    const totalProjects = await Project.countDocuments();
-    const totalRevenue = await Project.aggregate([
-        { $match: { status: 'completed' } },
-        { $group: { _id: null, total: { $sum: '$budget' } } }
+    // 4. Top 5 Clientes (por Inversión Total)
+    const topClients = await Project.aggregate([
+        { $match: dateFilter },
+        {
+            $group: {
+                _id: '$client',
+                totalSpent: { $sum: '$clientView.budget' },
+                projectsCount: { $sum: 1 }
+            }
+        },
+        { $sort: { totalSpent: -1 } },
+        { $limit: 5 },
+        {
+            $lookup: {
+                from: 'users',
+                localField: '_id',
+                foreignField: '_id',
+                as: 'userInfo'
+            }
+        },
+        { $unwind: '$userInfo' },
+        {
+            $project: {
+                _id: 1,
+                name: '$userInfo.name',
+                email: '$userInfo.email',
+                totalSpent: 1,
+                projectsCount: 1
+            }
+        }
     ]);
 
-    // Proyectos sin diseñador asignado
+    // 5. Estadísticas Generales (Overview Cards)
+    const totalRevenueResult = await Project.aggregate([
+        { $match: { ...dateFilter, status: { $ne: 'cancelled' } } },
+        {
+            $group: {
+                _id: null,
+                totalRev: { $sum: '$clientView.budget' },
+                totalExp: { $sum: '$designerView.earnings' }
+            }
+        }
+    ]);
+
+    const totalUsers = await User.countDocuments({ role: { $ne: 'admin' } });
+    const totalProjects = await Project.countDocuments(dateFilter);
     const unassignedProjects = await Project.countDocuments({
         designer: { $exists: false },
-        status: { $nin: ['cancelled', 'completed'] }
+        status: 'approved'
     });
 
+    // 6. Proyectos por Estado (Para el gráfico circular que ya te funciona)
+    const projectsByStatus = await Project.aggregate([
+        { $match: dateFilter },
+        {
+            $group: {
+                _id: '$status',
+                count: { $sum: 1 }
+            }
+        }
+    ]);
+
     res.status(200).json(
-        ApiResponse.success('Reportes obtenidos', {
+        ApiResponse.success('Reportes generados con éxito', {
             overview: {
-                totalUsers,
-                totalClients,
-                totalDesigners,
+                totalRevenue: totalRevenueResult[0]?.totalRev || 0,
+                totalProfit: (totalRevenueResult[0]?.totalRev || 0) - (totalRevenueResult[0]?.totalExp || 0),
                 totalProjects,
-                totalRevenue: totalRevenue[0]?.total || 0,
+                totalUsers,
                 unassignedProjects
             },
-            projectsByStatus: projectsByStatus.map(item => ({
-                status: item._id,
-                count: item.count,
-                totalBudget: item.totalBudget
-            })),
-            projectsByMonth: projectsByMonth.map(item => ({
-                year: item._id.year,
-                month: item._id.month,
-                count: item.count,
-                revenue: item.revenue
-            })),
-            usersByMonth: usersByMonth.map(item => ({
-                year: item._id.year,
-                month: item._id.month,
-                role: item._id.role,
-                count: item.count
-            }))
+            financialStatsByMonth,
+            categoriesDistribution,
+            topDesigners,
+            topClients,
+            projectsByStatus: projectsByStatus.map(s => ({ status: s._id, count: s.count }))
         }).toJSON()
     );
 });

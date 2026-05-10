@@ -262,7 +262,7 @@ export default function DesignerProjectsPage() {
 
             {/* Estadísticas rápidas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
                     <div className="flex items-center">
                         <div className="p-3 bg-blue-100 text-blue-600 rounded-lg mr-4">
                             <FiBriefcase className="w-6 h-6" />
@@ -274,7 +274,7 @@ export default function DesignerProjectsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
                     <div className="flex items-center">
                         <div className="p-3 bg-green-100 text-green-600 rounded-lg mr-4">
                             <FiCheckCircle className="w-6 h-6" />
@@ -286,7 +286,7 @@ export default function DesignerProjectsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-red-500">
                     <div className="flex items-center">
                         <div className="p-3 bg-red-100 text-red-600 rounded-lg mr-4">
                             <FiCalendar className="w-6 h-6" />

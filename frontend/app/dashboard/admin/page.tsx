@@ -127,7 +127,7 @@ export default function AdminDashboardPage() {
 
             {/* Tarjetas de estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500">Total Usuarios</p>
@@ -145,7 +145,7 @@ export default function AdminDashboardPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500">Total Proyectos</p>
@@ -162,7 +162,7 @@ export default function AdminDashboardPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-purple-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500">Ingresos Totales</p>
@@ -180,7 +180,7 @@ export default function AdminDashboardPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-yellow-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500">Tasa de Completación</p>

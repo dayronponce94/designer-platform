@@ -163,7 +163,7 @@ export default function AdminPaymentsPage() {
 
             {/* Tarjetas de Estadísticas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500">Total Recaudado</p>
@@ -174,7 +174,7 @@ export default function AdminPaymentsPage() {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500">Pagado a Diseñadores</p>
@@ -185,7 +185,7 @@ export default function AdminPaymentsPage() {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-purple-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500">Ganancias de la Plataforma</p>

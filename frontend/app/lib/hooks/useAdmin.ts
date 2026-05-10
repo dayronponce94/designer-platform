@@ -56,6 +56,11 @@ export interface ReportData {
     }>;
 }
 
+export interface ReportFilters {
+    startDate: string;
+    endDate: string;
+}
+
 export function useAdmin() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -153,14 +158,22 @@ export function useAdmin() {
         }
     }, []);
 
-    // Reportes
-    const fetchReports = useCallback(async (params?: any) => {
+    // Gestión de reportes
+    const fetchReports = useCallback(async (filters?: ReportFilters) => {
         try {
             setLoading(true);
-            const response = await adminAPI.getReports(params);
-            return response.data.data;
+            setError(null);
+
+            // USAMOS EL ENDPOINT QUE YA EXISTE EN endpoints.ts
+            const response = await adminAPI.getReports(filters);
+
+            // Axios (apiClient) guarda la respuesta en .data
+            // Dependiendo de cómo responda tu backend, puede ser response.data o response.data.data
+            return response.data.data || response.data;
+
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Error al cargar reportes');
+            const message = err.response?.data?.message || err.message || 'Error al cargar reportes';
+            setError(message);
             throw err;
         } finally {
             setLoading(false);

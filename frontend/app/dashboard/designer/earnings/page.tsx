@@ -87,7 +87,7 @@ export default function DesignerEarningsPage() {
 
             {/* Tarjetas de Estadísticas Mejoradas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between">
+                <div className="bg-white rounded-xl shadow-sm p-6 flex items-center justify-between border-l-4 border-green-500">
                     <div>
                         <p className="text-sm text-gray-500 font-medium">Total Ganado</p>
                         <p className="text-3xl font-bold text-gray-900">{formatCurrency(totalEarned)}</p>
@@ -97,7 +97,7 @@ export default function DesignerEarningsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between">
+                <div className="bg-white rounded-xl shadow-sm p-6 flex items-center justify-between border-l-4 border-blue-500">
                     <div>
                         <p className="text-sm text-gray-500 font-medium">Pagos Recibidos</p>
                         <p className="text-3xl font-bold text-gray-900">{payments.length}</p>
@@ -107,7 +107,7 @@ export default function DesignerEarningsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between">
+                <div className="bg-white rounded-xl shadow-sm p-6 flex items-center justify-between border-l-4 border-purple-500">
                     <div>
                         <p className="text-sm text-gray-500 font-medium">Promedio por Proyecto</p>
                         <p className="text-3xl font-bold text-gray-900">{formatCurrency(averageEarning)}</p>

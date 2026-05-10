@@ -157,7 +157,7 @@ export default function PaymentsPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg ">
                             <FiCreditCard className="w-6 h-6" />
                         </div>
                         <div>
@@ -173,7 +173,7 @@ export default function PaymentsPage() {
             {/* Resumen de Pagos */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Tarjeta 1: Total Invertido / Pagado */}
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-green-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500 font-medium">Total Pagado</p>
@@ -188,7 +188,7 @@ export default function PaymentsPage() {
                 </div>
 
                 {/* Tarjeta 2: Cantidad de Proyectos */}
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-blue-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500 font-medium">Pagos Realizados</p>
@@ -203,7 +203,7 @@ export default function PaymentsPage() {
                 </div>
 
                 {/* Tarjeta 3: Propuesta - Monto por Pagar */}
-                <div className="bg-white rounded-xl shadow p-6">
+                <div className="bg-white rounded-xl shadow p-6 border-l-4 border-yellow-500">
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-gray-500 font-medium">Monto Pendiente</p>
