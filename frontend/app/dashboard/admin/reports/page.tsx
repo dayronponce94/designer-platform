@@ -44,8 +44,57 @@ export default function AdminReportsPage() {
     };
 
     const exportToCSV = () => {
-        // Función para exportar datos a CSV
-        console.log('Exporting to CSV...');
+        if (!reports) return;
+
+        // 1. Definir las filas del CSV (Encabezados y Datos)
+        // Usamos el estado 'reports' que ya tiene la data del backend
+        const rows = [
+            ["Reporte de Dashboard - Resumen General"],
+            ["Fecha de exportacion", new Date().toLocaleDateString()],
+            [""],
+            ["Metrica", "Valor"],
+            ["Ingresos Totales", reports.overview.totalRevenue],
+            ["Ganancia Neta", reports.overview.totalProfit],
+            ["Total Proyectos", reports.overview.totalProjects],
+            [""],
+            ["Tendencia Mensual"],
+            ["Mes", "Año", "Ingresos", "Proyectos"]
+        ];
+
+        // 2. Agregar los datos de tendencia mensualmente
+        reports.financialStatsByMonth?.forEach((item: any) => {
+            rows.push([
+                getMonthName(item.month),
+                item.year,
+                item.revenue,
+                item.count
+            ]);
+        });
+
+        rows.push([""], ["Distribucion por Categoria"], ["Categoria", "Cantidad", "Ingresos"]);
+
+        // 3. Agregar los datos de categorias
+        reports.categoriesDistribution?.forEach((item: any) => {
+            rows.push([
+                getServiceTypeLabel(item.category),
+                item.count,
+                item.revenue
+            ]);
+        });
+
+        // 4. Convertir el array a formato CSV string
+        const csvContent = "data:text/csv;charset=utf-8,"
+            + rows.map(e => e.join(",")).join("\n");
+
+        // 5. Crear el link de descarga y dispararlo
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `reporte_dashboard_${new Date().getTime()}.csv`);
+        document.body.appendChild(link);
+
+        link.click();
+        document.body.removeChild(link);
     };
 
     const getMonthName = (month: number) => {
@@ -202,7 +251,7 @@ export default function AdminReportsPage() {
                                     <FiTrendingUp className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 font-medium">Ingresos Totales (Revenue)</p>
+                                    <p className="text-sm text-gray-500 font-medium">Ingresos Totales</p>
                                     <p className="text-2xl font-bold text-gray-900">
                                         {formatCurrency(reports.overview.totalRevenue || 0)}
                                     </p>
@@ -218,7 +267,7 @@ export default function AdminReportsPage() {
                                     <FiBarChart2 className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 font-medium">Ganancia Neta (Profit)</p>
+                                    <p className="text-sm text-gray-500 font-medium">Ganancia Neta</p>
                                     <p className="text-2xl font-bold text-green-700">
                                         {/* Suponiendo que Profit = Revenue - Payouts */}
                                         {formatCurrency(reports.overview.totalProfit || (reports.overview.totalRevenue * 0.2))}
@@ -268,7 +317,7 @@ export default function AdminReportsPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Tendencia de Ingresos y Volumen */}
                         <div className="bg-white rounded-xl shadow p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-6">Tendencia de Ingresos y Volumen</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-6"> Tendencia de Ingresos y Volumen</h3>
                             <div className="h-80">
                                 <ResponsiveContainer width="100%" height="100%">
                                     {/* Comentario: Cambiar a ComposedChart permite mezclar Barras y Líneas mejor */}
@@ -328,7 +377,7 @@ export default function AdminReportsPage() {
 
                         {/* Estado de Proyectos */}
                         <div className="bg-white rounded-xl shadow p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-6">Distribución por Estado</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-6">Distribución de Proyectos por Estado</h3>
                             <div className="h-80">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
@@ -338,7 +387,7 @@ export default function AdminReportsPage() {
                                             cy="50%"
                                             labelLine={false}
                                             label={(entry) => `${entry.name}: ${entry.value}`}
-                                            outerRadius={80}
+                                            outerRadius={75}
                                             fill="#8884d8"
                                             dataKey="value"
                                         >
@@ -358,7 +407,7 @@ export default function AdminReportsPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         {/* Top Diseñadores */}
                         <div className="bg-white rounded-xl shadow p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Top 5 Diseñadores (Ingresos)</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">Top 5 Diseñadores con más Ingresos</h3>
                             <div className="space-y-4">
                                 {reports.topDesigners?.map((designer: any, index: number) => (
                                     <div key={index} className="flex items-center justify-between border-b pb-2">
@@ -376,7 +425,7 @@ export default function AdminReportsPage() {
 
                         {/* Distribución por Categorías */}
                         <div className="bg-white rounded-xl shadow p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">Demanda por Categoría</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">Distribución de Proyectos por Categoría</h3>
                             <div className="h-64">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={categoriesData} layout="vertical">
