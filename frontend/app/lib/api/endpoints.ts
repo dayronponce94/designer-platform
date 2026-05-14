@@ -1,3 +1,4 @@
+
 import apiClient from './client';
 
 export const authAPI = {
@@ -5,6 +6,8 @@ export const authAPI = {
     login: (data: any) => apiClient.post('/auth/login', data),
     logout: () => apiClient.get('/auth/logout'),
     getMe: () => apiClient.get('/auth/me'),
+    forgotPassword: (email: string) => apiClient.post('/auth/forgot-password', { email }),
+    resetPassword: (token: string, password: string) => apiClient.put(`/auth/resetpassword/${token}`, { password }),
 };
 
 export const userAPI = {

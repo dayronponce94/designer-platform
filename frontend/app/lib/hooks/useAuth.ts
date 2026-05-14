@@ -212,6 +212,65 @@ export const useAuth = () => {
         setAuthState(prev => ({ ...prev, error: null }));
     }, []);
 
+
+    const forgotPassword = useCallback(async (formData: { email: string }) => {
+        try {
+            setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+
+            // Forzamos la captura de la respuesta incluso si es error
+            const response = await authAPI.forgotPassword(formData.email).catch((error) => {
+                if (error.response) {
+                    // El servidor respondió con un estatus (404, 500, etc.)
+                    return error.response;
+                }
+                throw error; // Si es un error de red (sin respuesta), lo lanzamos al catch de abajo
+            });
+
+            console.log("LOG FRONT: Respuesta procesada:", response.data);
+
+            if (response.status === 200 || response.data?.success) {
+                return {
+                    success: true,
+                    message: response.data.message || "Correo enviado"
+                };
+            } else {
+                // Aquí entra tu 404 amigablemente
+                return {
+                    success: false,
+                    message: response.data?.message || "Usuario no encontrado"
+                };
+            }
+
+        } catch (error: any) {
+            console.error("Error crítico de red:", error);
+            return {
+                success: false,
+                message: "Error de conexión con el servidor"
+            };
+        } finally {
+            setAuthState(prev => ({ ...prev, isLoading: false }));
+        }
+    }, []);
+
+    const resetPassword = useCallback(async (token: string, password: string) => {
+        try {
+            setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
+
+            // Llamada al endpoint que definimos en endpoints.ts
+            const response = await authAPI.resetPassword(token, password);
+
+            if (response.data.success) {
+                setAuthState(prev => ({ ...prev, isLoading: false }));
+                return { success: true, message: 'Contraseña actualizada con éxito' };
+            }
+            return { success: false, message: 'No se pudo restablecer la contraseña' };
+        } catch (error: any) {
+            const msg = error.response?.data?.message || 'Error al restablecer contraseña';
+            setAuthState(prev => ({ ...prev, isLoading: false, error: msg }));
+            return { success: false, message: msg };
+        }
+    }, []);
+
     return {
         user: authState.user,
         token: authState.token,
@@ -222,6 +281,8 @@ export const useAuth = () => {
         logout,
         updateUser,
         clearError,
-        isAuthenticated: !!authState.user
+        isAuthenticated: !!authState.user,
+        forgotPassword,
+        resetPassword
     };
 };

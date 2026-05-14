@@ -2,6 +2,8 @@ const User = require('../models/User');
 const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const logger = require('../utils/logger');
+const sendEmail = require('../utils/email');
+const crypto = require('crypto');
 
 // @desc    Registrar usuario
 // @route   POST /api/auth/register
@@ -134,9 +136,92 @@ const getMe = asyncHandler(async (req, res) => {
     );
 });
 
+
+// @desc    Enviar correo para recuperar contraseña
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = asyncHandler(async (req, res) => {
+    console.log("1. Intento de forgotPassword para el email:", req.body.email); // LOG
+
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+        console.log("2. Usuario no encontrado en la base de datos"); // LOG
+        return res.status(404).json(
+            ApiResponse.error('No hay un usuario registrado con ese email', 404).toJSON()
+        );
+    }
+
+    const resetToken = user.getResetPasswordToken();
+    console.log("3. Token generado:", resetToken); // LOG
+
+    await user.save({ validateBeforeSave: false });
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    console.log("4. URL de reset preparada:", resetUrl); // LOG
+
+    try {
+        console.log("5. Intentando enviar email con nodemailer..."); // LOG
+        await sendEmail({
+            email: user.email,
+            subject: 'Recuperación de contraseña',
+            resetUrl: resetUrl
+        });
+
+        console.log("6. ¡Email enviado exitosamente!"); // LOG
+        res.status(200).json(ApiResponse.success('Correo enviado').toJSON());
+    } catch (err) {
+        console.error("7. ERROR CRÍTICO EN SENDEMAIL:", err); // LOG DETALLADO
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return res.status(500).json(ApiResponse.error('Error al enviar', 500).toJSON());
+    }
+});
+
+// @desc    Restablecer contraseña
+// @route   PUT /api/auth/resetpassword/:resettoken
+// @access  Public
+const resetPassword = asyncHandler(async (req, res) => {
+    // 1. Hashear el token que viene en la URL para compararlo con el de la BD
+    const resetPasswordToken = crypto
+        .createHash('sha256')
+        .update(req.params.resettoken)
+        .digest('hex');
+
+    const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: { $gt: Date.now() }, // Verificar que no haya expirado
+    });
+
+    if (!user) {
+        return res.status(400).json(
+            ApiResponse.error('Token inválido o expirado', 400).toJSON()
+        );
+    }
+
+    // 2. Establecer la nueva contraseña
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    // 3. Generar nuevo JWT para que el usuario quede logueado de una vez
+    const token = user.getSignedJwtToken();
+
+    res.status(200).json(
+        ApiResponse.success('Contraseña actualizada correctamente', { token }).toJSON()
+    );
+});
+
+
+
 module.exports = {
     register,
     login,
     logout,
-    getMe
+    getMe,
+    forgotPassword,
+    resetPassword
 };

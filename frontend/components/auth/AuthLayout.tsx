@@ -12,6 +12,7 @@ interface AuthLayoutProps {
     linkUrl: string;
     showBackButton?: boolean;
     isLongForm?: boolean; // Nueva prop para formularios largos
+    onLinkClick?: () => void;
 }
 
 export default function AuthLayout({
@@ -21,7 +22,8 @@ export default function AuthLayout({
     linkText,
     linkUrl,
     showBackButton = false,
-    isLongForm = false // Por defecto falso, en Register lo ponemos true
+    isLongForm = false,  // Por defecto falso, en Register lo ponemos true
+    onLinkClick
 }: AuthLayoutProps) {
     const [contentHeight, setContentHeight] = useState(0);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -57,10 +59,20 @@ export default function AuthLayout({
                     {children}
 
                     {/* Enlace para cambiar entre Login/Register */}
-                    <div className="mt-8 text-center">
-                        <span className="text-gray-600">{linkText}</span>{' '}
-                        <Link href={linkUrl} className="font-semibold text-blue-600 hover:underline">
-                            {linkUrl === '/login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+                    <div className="mt-8 text-center flex flex-col items-center gap-2">
+                        <span className="text-gray-600">{linkText}</span>
+                        <Link
+                            href={linkUrl}
+                            onClick={(e) => {
+                                if (onLinkClick) {
+                                    e.preventDefault(); // Evitamos la navegación real si hay una acción personalizada
+                                    onLinkClick();
+                                }
+                            }}
+                            className="font-semibold text-blue-600 hover:underline"
+                        >
+                            {linkUrl === '/login' ? 'Iniciar Sesión' :
+                                linkUrl === '/forgot-password' ? 'Intentar de nuevo' : 'Crear Cuenta'}
                         </Link>
                     </div>
                 </div>

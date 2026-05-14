@@ -100,6 +100,9 @@ const userSchema = new mongoose.Schema(
             type: String,
             default: 'pending',
         },
+        resetPasswordToken: String,
+
+        resetPasswordExpire: Date,
     },
     {
         timestamps: true
@@ -146,6 +149,24 @@ userSchema.methods.toPublicJSON = function () {
     delete userObject.__v;
 
     return userObject;
+};
+
+// Generar y hashear token de contraseña
+userSchema.methods.getResetPasswordToken = function () {
+    const crypto = require('crypto');
+    // Generar token aleatorio
+    const resetToken = crypto.randomBytes(20).toString('hex');
+
+    // Hashear token y guardarlo en el campo del usuario
+    this.resetPasswordToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    // Establecer expiración (ej. 10 minutos)
+    this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+    return resetToken;
 };
 
 const User = mongoose.model('User', userSchema);

@@ -309,8 +309,17 @@ export default function DashboardPage() {
                         yellow: 'bg-yellow-100 text-yellow-600',
                     };
 
+                    const borderColorClasses = {
+                        blue: 'border-blue-500',
+                        green: 'border-green-500',
+                        purple: 'border-purple-500',
+                        orange: 'border-orange-500',
+                        yellow: 'border-yellow-500',
+                    };
+
                     return (
-                        <div key={stat.name} className="bg-white rounded-xl shadow p-6 hover:shadow-lg transition-shadow">
+                        <div key={stat.name}
+                            className={`bg-white rounded-xl shadow p-6 hover:shadow-lg transition-shadow border-l-4 ${borderColorClasses[stat.color as keyof typeof borderColorClasses]}`}>
                             <div className="flex items-center justify-between">
                                 <div className="flex-1">
                                     <p className="text-sm text-gray-500">{stat.name}</p>
