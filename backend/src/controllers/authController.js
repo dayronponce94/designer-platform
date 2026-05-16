@@ -84,6 +84,12 @@ const login = asyncHandler(async (req, res) => {
         );
     }
 
+    if (!user.isActive) {
+        return res.status(403).json(
+            ApiResponse.error('Su usuario está inactivo, por favor contacte con soporte técnico.', 403).toJSON()
+        );
+    }
+
     // Actualizar último login
     user.lastLogin = new Date();
     await user.save();
