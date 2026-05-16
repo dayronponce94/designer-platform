@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { FiUser, FiMail, FiPhone, FiBriefcase, FiMessageSquare } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiBriefcase, FiMessageSquare, FiLoader } from 'react-icons/fi';
+import Alert from '@/components/ui/Alert';
 
 export default function ContactForm() {
     const [formData, setFormData] = useState({
@@ -28,11 +29,11 @@ export default function ContactForm() {
     ];
 
     const budgets = [
-        'Menos de $1,000',
-        '$1,000 - $3,000',
-        '$3,000 - $5,000',
-        '$5,000 - $10,000',
-        'Más de $10,000',
+        'Menos de €1,000',
+        '€1,000 - €3,000',
+        '€3,000 - €5,000',
+        '€5,000 - €10,000',
+        'Más de €10,000',
         'Por definir'
     ];
 
@@ -43,22 +44,40 @@ export default function ContactForm() {
         'Flexible (más de 2 meses)'
     ];
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [errorMessage, setErrorMessage] = useState('');
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
-        // Aquí iría la lógica de envío real
-        alert('¡Mensaje enviado! Nos pondremos en contacto contigo en 24 horas.');
-        setFormData({
-            name: '',
-            email: '',
-            phone: '',
-            company: '',
-            service: '',
-            message: '',
-            budget: '',
-            timeline: '',
-            agreePrivacy: false
-        });
+        setStatus('loading');
+        setErrorMessage('');
+
+        try {
+            // CAMBIO: Aquí llamamos a tu API. Ajusta la URL según tu backend
+            const response = await fetch('http://192.168.1.75:5000/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setStatus('success');
+                setFormData({
+                    name: '', email: '', phone: '', company: '',
+                    service: '', message: '', budget: '', timeline: '',
+                    agreePrivacy: false
+                });
+            } else {
+                throw new Error(data.message || 'Error al enviar el mensaje');
+            }
+        } catch (err: any) {
+            setStatus('error');
+            setErrorMessage(err.message || 'No se pudo conectar con el servidor');
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -74,12 +93,15 @@ export default function ContactForm() {
 
     return (
         <div id="formulario" className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                Envíanos un mensaje
-            </h2>
-            <p className="text-gray-600 mb-8">
-                Completa el formulario y nos pondremos en contacto contigo en menos de 24 horas.
-            </p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-2"> Envíanos un mensaje</h2>
+
+            {/* Manejo de estados visuales */}
+            {status === 'success' && (
+                <Alert type="success" message="¡Mensaje enviado con éxito! Te contactaremos pronto." onClose={() => setStatus('idle')} className="mb-6" />
+            )}
+            {status === 'error' && (
+                <Alert type="error" message={errorMessage} onClose={() => setStatus('idle')} className="mb-6" />
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
@@ -270,9 +292,14 @@ export default function ContactForm() {
                 {/* Submit */}
                 <button
                     type="submit"
-                    className="w-full py-4 bg-linear-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                    disabled={status === 'loading'}
+                    className="w-full py-4 bg-linear-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:scale-100 flex justify-center items-center"
                 >
-                    Enviar Mensaje
+                    {status === 'loading' ? (
+                        <>
+                            <FiLoader className="animate-spin mr-2" /> Enviando...
+                        </>
+                    ) : 'Enviar Mensaje'}
                 </button>
             </form>
         </div>

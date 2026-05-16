@@ -2,7 +2,7 @@ const User = require('../models/User');
 const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const logger = require('../utils/logger');
-const sendEmail = require('../utils/email');
+const { sendEmail } = require('../utils/email');
 const crypto = require('crypto');
 
 // @desc    Registrar usuario

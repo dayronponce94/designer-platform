@@ -2,21 +2,21 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
-    const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
-        secure: true,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
-    });
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
 
-    const mailOptions = {
-        from: `"Llerandi Design" <${process.env.EMAIL_USER}>`, // Nombre actualizado
-        to: options.email,
-        subject: options.subject || 'Recuperación de Contraseña - Llerandi Design',
-        html: `
+  const mailOptions = {
+    from: `"Llerandi Design" <${process.env.EMAIL_USER}>`, // Nombre actualizado
+    to: options.email,
+    subject: options.subject || 'Recuperación de Contraseña - Llerandi Design',
+    html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
         <h2 style="color: #333; text-align: center;">Llerandi Design</h2>
         <hr />
@@ -31,9 +31,30 @@ const sendEmail = async (options) => {
         <p>Atentamente,<br />El equipo de Soporte de Llerandi Design</p>
       </div>
     `,
-    };
+  };
 
-    return await transporter.sendMail(mailOptions);
+  return await transporter.sendMail(mailOptions);
 };
 
-module.exports = sendEmail;
+const sendContactEmail = async (options) => {
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: `" Solicitud de Cotización" <${process.env.EMAIL_USER}>`,
+    to: process.env.EMAIL_USER, // Te llega a ti mismo
+    subject: options.subject,
+    html: options.html, // Aquí usamos el HTML que generaremos en el controlador de contacto
+  };
+
+  return await transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendEmail, sendContactEmail };
