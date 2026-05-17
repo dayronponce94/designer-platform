@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
+const NotificationHelper = require('../utils/notifications');
 
 // @desc    Obtener todos los usuarios (solo admin)
 // @route   GET /api/users
@@ -68,6 +69,20 @@ const updateUser = asyncHandler(async (req, res) => {
         return res.status(404).json(
             ApiResponse.notFound('Usuario no encontrado').toJSON()
         );
+    }
+
+    // NOTIFICACIÓN: Verificación de cuenta
+    // Si el admin es quien edita y el usuario ahora está activo
+    if (req.user.role === 'admin' && req.body.isVerified === true) {
+        try {
+            await NotificationHelper.createSystemNotification(
+                user._id,
+                'Cuenta Verificada',
+                'Tu información ha sido verificada. ¡Ya puedes empezar a crear proyectos en la plataforma!'
+            );
+        } catch (error) {
+            logger.error(`Error enviando notificación de verificación: ${error.message}`);
+        }
     }
 
     res.status(200).json(

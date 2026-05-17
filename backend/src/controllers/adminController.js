@@ -7,6 +7,7 @@ const Portfolio = require('../models/Portfolio');
 const Quote = require('../models/Quote');
 const DesignerQuote = require('../models/DesignerQuote');
 const Request = require('../models/Request');
+const NotificationHelper = require('../utils/notifications');
 
 
 // @desc    Obtener todos los usuarios
@@ -470,6 +471,8 @@ const getReports = asyncHandler(async (req, res) => {
         }
     ]);
 
+    const totalClients = await User.countDocuments({ role: 'client' });
+    const totalDesigners = await User.countDocuments({ role: 'designer' });
     const totalUsers = await User.countDocuments({ role: { $ne: 'admin' } });
     const totalProjects = await Project.countDocuments(dateFilter);
     const unassignedProjects = await Project.countDocuments({
@@ -495,6 +498,8 @@ const getReports = asyncHandler(async (req, res) => {
                 totalProfit: (totalRevenueResult[0]?.totalRev || 0) - (totalRevenueResult[0]?.totalExp || 0),
                 totalProjects,
                 totalUsers,
+                totalClients,
+                totalDesigners,
                 unassignedProjects
             },
             financialStatsByMonth,
@@ -665,8 +670,17 @@ const createQuote = asyncHandler(async (req, res) => {
         await request.save();
     }
 
-    // Opcional: enviar notificación al cliente
-    // (Implementar después con NotificationHelper)
+    // Notificar al cliente sobre la nueva cotización
+    try {
+        await NotificationHelper.createSystemNotification(
+            request.client, // El ID del cliente que viene de la solicitud
+            'Nueva Cotización Disponible',
+            `La solicitud "${request.title}" que realizó ha sido cotizada. Revise los detalles para proceder.`,
+            { quoteId: quote._id, requestId: request._id } // Pasamos IDs extras por si el front los necesita
+        );
+    } catch (error) {
+        logger.error(`Error enviando notificación al cliente: ${error.message}`);
+    }
 
     res.status(201).json(
         ApiResponse.success('Cotización creada exitosamente', { quote }, 201).toJSON()

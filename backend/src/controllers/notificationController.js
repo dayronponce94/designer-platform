@@ -33,6 +33,7 @@ exports.getNotifications = asyncHandler(async (req, res, next) => {
     });
 
     res.json(new ApiResponse(
+        true,
         'Notificaciones obtenidas exitosamente',
         {
             notifications,
@@ -57,16 +58,13 @@ exports.markAsRead = asyncHandler(async (req, res, next) => {
     });
 
     if (!notification) {
-        return res.status(404).json({
-            success: false,
-            message: 'Notificación no encontrada'
-        });
+        return res.status(404).json(ApiResponse.error('Notificación no encontrada', 404));
     }
 
     notification.read = true;
     await notification.save();
 
-    res.json(new ApiResponse('Notificación marcada como leída', notification));
+    res.json(new ApiResponse(true, 'Notificación marcada como leída', notification));
 });
 
 // @desc    Marcar todas las notificaciones como leídas
@@ -74,19 +72,13 @@ exports.markAsRead = asyncHandler(async (req, res, next) => {
 // @access  Privado
 exports.markAllAsRead = asyncHandler(async (req, res, next) => {
     const result = await Notification.updateMany(
-        {
-            userId: req.user.id,
-            read: false
-        },
-        {
-            read: true
-        }
+        { userId: req.user.id, read: false },
+        { read: true }
     );
 
-    res.json(new ApiResponse(
-        'Todas las notificaciones marcadas como leídas',
-        { modifiedCount: result.modifiedCount }
-    ));
+    res.json(new ApiResponse(true, 'Todas las notificaciones marcadas como leídas', {
+        modifiedCount: result.modifiedCount
+    }));
 });
 
 // @desc    Eliminar notificación
@@ -99,13 +91,10 @@ exports.deleteNotification = asyncHandler(async (req, res, next) => {
     });
 
     if (!notification) {
-        return res.status(404).json({
-            success: false,
-            message: 'Notificación no encontrada'
-        });
+        return res.status(404).json(ApiResponse.error('Notificación no encontrada', 404));
     }
 
-    res.json(new ApiResponse('Notificación eliminada exitosamente', null));
+    res.json(new ApiResponse(true, 'Notificación eliminada exitosamente', null));
 });
 
 // @desc    Eliminar todas las notificaciones leídas
@@ -117,20 +106,19 @@ exports.deleteAllRead = asyncHandler(async (req, res, next) => {
         read: true
     });
 
-    res.json(new ApiResponse(
-        'Notificaciones leídas eliminadas',
-        { deletedCount: result.deletedCount }
-    ));
+    res.json(new ApiResponse(true, 'Notificaciones leídas eliminadas', {
+        deletedCount: result.deletedCount
+    }));
 });
 
 // @desc    Obtener contador de notificaciones no leídas
 // @route   GET /api/notifications/unread-count
 // @access  Privado
 exports.getUnreadCount = asyncHandler(async (req, res, next) => {
-    const unreadCount = await Notification.getUnreadCount(req.user.id);
+    const unreadCount = await Notification.countDocuments({
+        userId: req.user.id,
+        read: false
+    });
 
-    res.json(new ApiResponse(
-        'Contador obtenido exitosamente',
-        { unreadCount }
-    ));
+    res.json(new ApiResponse(true, 'Contador obtenido exitosamente', { unreadCount }));
 });

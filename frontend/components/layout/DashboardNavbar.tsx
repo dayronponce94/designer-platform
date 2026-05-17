@@ -1,20 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuthContext } from '@/app/providers/AuthProvider';
-import { FiLogOut, FiUser, FiBell, FiMenu, FiX } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiBell, FiMenu, FiX, FiCheck } from 'react-icons/fi';
 import { useNotifications } from '@/app/lib/hooks/useNotifications';
 import Image from 'next/image';
 
 export default function DashboardNavbar() {
     const { user, logout } = useAuthContext();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const { unreadCount } = useNotifications();
+    const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const { notifications, unreadCount, markAsRead, fetchNotifications } = useNotifications();
     const isAdmin = user?.role === 'admin';
 
+    // Cerrar dropdown al hacer click fuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowNotifDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Cargar notificaciones cuando se abre el dropdown
+    const toggleNotifications = () => {
+        if (!showNotifDropdown) {
+            fetchNotifications(1, 5); // Solo traemos las 5 más recientes
+        }
+        setShowNotifDropdown(!showNotifDropdown);
+    };
+
+
     return (
-        <nav className="bg-white shadow-lg border-b border-gray-200">
+        <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo + botón hamburguesa (visible en móvil) */}
@@ -45,18 +67,67 @@ export default function DashboardNavbar() {
 
                     {/* Menú derecho (solo desktop) */}
                     <div className="hidden md:flex items-center space-x-4">
-                        {/* Notificaciones */}
-                        <Link
-                            href="/dashboard/notifications"
-                            className="relative p-2 text-gray-600 hover:text-gray-900 rounded-full hover:bg-gray-100"
-                        >
-                            <FiBell className="w-6 h-6" />
-                            {unreadCount > 0 && (
-                                <span className="absolute top-0 right-0 w-5 h-5 bg-red-600 text-white text-xs rounded-full flex items-center justify-center">
-                                    {unreadCount > 9 ? '9+' : unreadCount}
-                                </span>
+
+                        {/* CONTENEDOR DE NOTIFICACIONES */}
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                onClick={toggleNotifications}
+                                className={`relative p-2 rounded-full transition-colors ${showNotifDropdown ? 'bg-gray-100 text-blue-600' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                                    }`}
+                            >
+                                <FiBell className="w-6 h-6" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-0 right-0 w-5 h-5 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                                        {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            {/* DROPDOWN DE NOTIFICACIONES */}
+                            {showNotifDropdown && (
+                                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden ring-1 ring-black ring-opacity-5 animate-in fade-in zoom-in duration-200">
+                                    <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                                        <h3 className="text-sm font-bold text-gray-800">Notificaciones</h3>
+                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                                            {unreadCount} nuevas
+                                        </span>
+                                    </div>
+
+                                    <div className="max-h-96 overflow-y-auto">
+                                        {notifications.length > 0 ? (
+                                            notifications.map((notif) => (
+                                                <div
+                                                    key={notif._id}
+                                                    onClick={() => !notif.read && markAsRead(notif._id)}
+                                                    className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer relative ${!notif.read ? 'bg-blue-50/30' : ''}`}
+                                                >
+                                                    {!notif.read && (
+                                                        <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                                                    )}
+                                                    <p className="text-sm font-semibold text-gray-900 truncate">{notif.title}</p>
+                                                    <p className="text-xs text-gray-600 line-clamp-2 mt-1">{notif.message}</p>
+                                                    <p className="text-[10px] text-gray-400 mt-2">
+                                                        {new Date(notif.createdAt).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-8 text-center">
+                                                <p className="text-sm text-gray-500">No tienes notificaciones</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <Link
+                                        href="/dashboard/notifications"
+                                        onClick={() => setShowNotifDropdown(false)}
+                                        className="block p-3 text-center text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t border-gray-100"
+                                    >
+                                        Ver todas las notificaciones
+                                    </Link>
+                                </div>
                             )}
-                        </Link>
+                        </div>
 
                         {/* Perfil del usuario */}
                         <div className="flex items-center space-x-3">

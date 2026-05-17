@@ -5,6 +5,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const env = require('../config/env');
+const NotificationHelper = require('../utils/notifications');
+const User = require('../models/User');
 
 // Configurar almacenamiento para archivos
 const storage = multer.diskStorage({
@@ -164,6 +166,13 @@ const createRequest = asyncHandler(async (req, res) => {
             const populatedRequest = await Request.findById(request._id)
                 .populate('client', 'name email company phone');
 
+            // Notificar a los administradores sobre la nueva solicitud
+            await NotificationHelper.notifyAdmins(
+                User,
+                'Nueva Solicitud de Proyecto',
+                `El cliente ${req.user.name} ha creado una nueva solicitud: "${title}".`
+            );
+
             res.status(201).json(
                 ApiResponse.success('Solicitud creada exitosamente', {
                     request: populatedRequest
@@ -269,6 +278,15 @@ const updateRequest = asyncHandler(async (req, res) => {
                 { new: true, runValidators: true }
             ).populate('client', 'name email company phone');
 
+            // Notificar a los administradores sobre la actualización de la solicitud (solo si el cliente es quien edita)
+            if (req.user.role === 'client') {
+                await NotificationHelper.notifyAdmins(
+                    User,
+                    'Solicitud Actualizada',
+                    `El cliente ${req.user.name} ha modificado la solicitud: "${request.title}".`
+                );
+            }
+
             res.status(200).json(
                 ApiResponse.success('Solicitud actualizada', {
                     request
@@ -312,6 +330,13 @@ const deleteRequest = asyncHandler(async (req, res) => {
             ApiResponse.error('No puedes eliminar una solicitud que ya ha sido cotizada o cancelada', 400).toJSON()
         );
     }
+
+    // Notificar a los administradores sobre la eliminación de la solicitud
+    await NotificationHelper.notifyAdmins(
+        User,
+        'Solicitud Eliminada',
+        `El cliente ${req.user.name} ha eliminado su solicitud: "${request.title}".`
+    );
 
     await request.deleteOne();
 

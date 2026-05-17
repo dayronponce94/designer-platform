@@ -76,6 +76,19 @@ class NotificationHelper {
         );
     }
 
+    // Método genérico para disparar notificaciones rápidas sin crear métodos específicos
+    static async trigger(userId, { type, title, message, projectId = null, relatedUserId = null }) {
+        return await Notification.createNotification(
+            userId,
+            type,
+            title,
+            message,
+            {}, // data vacía por defecto
+            projectId,
+            relatedUserId
+        );
+    }
+
     // Crear notificación del sistema
     static async createSystemNotification(userId, title, message, data = {}) {
         return await Notification.createNotification(

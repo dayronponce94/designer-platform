@@ -4,6 +4,8 @@ const asyncHandler = require('../utils/asyncHandler');
 const logger = require('../utils/logger');
 const { sendEmail } = require('../utils/email');
 const crypto = require('crypto');
+const NotificationHelper = require('../utils/notifications');
+
 
 // @desc    Registrar usuario
 // @route   POST /api/auth/register
@@ -43,7 +45,20 @@ const register = asyncHandler(async (req, res) => {
         sameSite: 'strict'
     });
 
+    // Notificar a los administradores sobre el nuevo registro
     logger.info(`Nuevo usuario registrado: ${email}`);
+
+    // Usamos el helper que ya tienes implementado
+    try {
+        await NotificationHelper.notifyAdmins(
+            User, // Pasamos el modelo User para que el helper busque los admins
+            'Nuevo registro de usuario',
+            `Un nuevo ${user.role === 'designer' ? 'diseñador' : 'cliente'} llamado ${user.name} se ha unido. Por favor, verifica su perfil.`
+        );
+    } catch (error) {
+        logger.error(`Error enviando notificación de registro: ${error.message}`);
+        // No bloqueamos el registro si falla la notificación
+    }
 
     res.status(201).json(
         ApiResponse.success('Usuario registrado exitosamente', {

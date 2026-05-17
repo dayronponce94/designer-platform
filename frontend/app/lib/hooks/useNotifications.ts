@@ -45,6 +45,8 @@ export function useNotifications(pollingInterval = 30000) {
         pages: 0
     });
 
+    // C:\Users\dayri\Documents\DesignerProject\frontend\app\lib\hooks\useNotifications.ts
+
     const fetchNotifications = useCallback(async (page = 1, limit = 20, unreadOnly = false) => {
         try {
             setLoading(true);
@@ -54,10 +56,14 @@ export function useNotifications(pollingInterval = 30000) {
                 unreadOnly: unreadOnly ? 'true' : 'false'
             });
 
-            const data: NotificationsResponse = response.data.data ?? response.data;
-            setNotifications(data?.notifications ?? []);
-            setUnreadCount(data?.unreadCount ?? 0);
-            setPagination(data?.pagination ?? { page: 1, limit: 20, total: 0, pages: 0 });
+            const result = response.data.data;
+
+            if (result) {
+                setNotifications(result.notifications || []);
+                setUnreadCount(result.unreadCount || 0);
+                setPagination(result.pagination || { page: 1, limit: 20, total: 0, pages: 0 });
+            }
+
             setError(null);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Error al cargar notificaciones');
@@ -133,12 +139,17 @@ export function useNotifications(pollingInterval = 30000) {
     };
 
     // Polling para actualizar contador de no leídas
+    // 1. Efecto para el polling del CONTADOR 
     useEffect(() => {
         fetchUnreadCount();
-
         const interval = setInterval(fetchUnreadCount, pollingInterval);
         return () => clearInterval(interval);
     }, [fetchUnreadCount, pollingInterval]);
+
+    // 2. NUEVO: Efecto para la carga inicial de la LISTA de notificaciones
+    useEffect(() => {
+        fetchNotifications(pagination.page, pagination.limit);
+    }, [fetchNotifications, pagination.page, pagination.limit]);
 
     return {
         notifications,

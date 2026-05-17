@@ -3,6 +3,8 @@ const Request = require('../models/Request');
 const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const mongoose = require('mongoose');
+const NotificationHelper = require('../utils/notifications');
+const User = require('../models/User');
 
 // @desc    Obtener todas las cotizaciones del cliente autenticado
 // @route   GET /api/quotes
@@ -103,7 +105,12 @@ const acceptQuote = asyncHandler(async (req, res) => {
     quote.clientNotes = req.body.clientNotes || '';
     await quote.save();
 
-    // Aquí podrías crear una notificación para el admin (opcional)
+    // Notificar a los administradores sobre la aceptación de la cotización
+    await NotificationHelper.notifyAdmins(
+        User,
+        'Cotización Aceptada',
+        `El cliente ${req.user.name} ha aceptado la cotización para el proyecto "${request.title}".`
+    );
 
     res.status(200).json(
         ApiResponse.success('Cotización aceptada', { quote }).toJSON()
@@ -138,6 +145,13 @@ const rejectQuote = asyncHandler(async (req, res) => {
     await quote.save();
 
     // No cambiamos el estado de la solicitud, se queda en 'quoted' para permitir nuevas cotizaciones
+
+    // Notificar a los administradores sobre el rechazo de la cotización
+    await NotificationHelper.notifyAdmins(
+        User,
+        'Cotización Rechazada',
+        `El cliente ${req.user.name} ha rechazado la cotización de "${request.title}".`
+    );
 
     res.status(200).json(
         ApiResponse.success('Cotización rechazada', { quote }).toJSON()
