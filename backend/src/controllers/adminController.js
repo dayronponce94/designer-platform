@@ -159,6 +159,20 @@ const updateUser = asyncHandler(async (req, res) => {
         return res.status(404).json(ApiResponse.notFound('Usuario no encontrado').toJSON());
     }
 
+    // Si el admin envió isVerified: true en esta petición
+    if (isVerified === true) {
+        try {
+            await NotificationHelper.createSystemNotification(
+                updatedUser._id,
+                'Cuenta Verificada',
+                'Tu información ha sido verificada por los administradores. ¡Ya puedes empezar a crear proyectos en la plataforma!'
+            );
+        } catch (error) {
+            // Usamos logger si lo tienes importado, o console.error para no romper la ejecución
+            console.error(`Error enviando notificación: ${error.message}`);
+        }
+    }
+
     res.status(200).json(
         ApiResponse.success('Usuario actualizado correctamente', { user: updatedUser }).toJSON()
     );
@@ -979,6 +993,21 @@ const updateRequestStatus = asyncHandler(async (req, res) => {
         return res.status(404).json(
             ApiResponse.notFound('Solicitud no encontrada').toJSON()
         );
+    }
+
+    // --- NOTIFICACIÓN: Solicitud Cancelada ---
+    // Solo disparamos si el nuevo estado es 'cancelled'
+    if (status === 'cancelled') {
+        try {
+            await NotificationHelper.createSystemNotification(
+                request.client._id, // ID del cliente que hizo la solicitud
+                'Solicitud Cancelada',
+                `La solicitud "${request.title}" ha sido cancelada por los administradores.`,
+                { requestId: request._id } // Pasamos el ID por si el cliente quiere ver los detalles
+            );
+        } catch (error) {
+            console.error(`Error enviando notificación de cancelación: ${error.message}`);
+        }
     }
 
     res.status(200).json(

@@ -71,20 +71,6 @@ const updateUser = asyncHandler(async (req, res) => {
         );
     }
 
-    // NOTIFICACIÓN: Verificación de cuenta
-    // Si el admin es quien edita y el usuario ahora está activo
-    if (req.user.role === 'admin' && req.body.isVerified === true) {
-        try {
-            await NotificationHelper.createSystemNotification(
-                user._id,
-                'Cuenta Verificada',
-                'Tu información ha sido verificada. ¡Ya puedes empezar a crear proyectos en la plataforma!'
-            );
-        } catch (error) {
-            logger.error(`Error enviando notificación de verificación: ${error.message}`);
-        }
-    }
-
     res.status(200).json(
         ApiResponse.success('Usuario actualizado', {
             user

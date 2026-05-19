@@ -229,16 +229,26 @@ export default function NotificationsPage() {
                                                 {notification.message}
                                             </p>
 
-                                            {notification.data && Object.keys(notification.data).length > 0 && (
-                                                <div className="mt-2 p-2 bg-gray-50 rounded text-sm text-gray-500">
-                                                    {Object.entries(notification.data).map(([key, value]) => (
-                                                        <div key={key} className="flex">
-                                                            <span className="font-medium mr-2">{key}:</span>
-                                                            <span>{String(value)}</span>
+                                            {(() => {
+                                                const displayData = notification.data
+                                                    ? Object.entries(notification.data).filter(([key]) => !key.toLowerCase().includes('id'))
+                                                    : [];
+
+                                                // 2. Solo si hay datos que NO sean IDs, renderizamos el contenedor gris
+                                                if (displayData.length > 0) {
+                                                    return (
+                                                        <div className="mt-2 p-2 bg-gray-50 rounded text-sm text-gray-500">
+                                                            {displayData.map(([key, value]) => (
+                                                                <div key={key} className="flex">
+                                                                    <span className="font-medium mr-2">{key}:</span>
+                                                                    <span>{String(value)}</span>
+                                                                </div>
+                                                            ))}
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            )}
+                                                    );
+                                                }
+                                                return null;
+                                            })()}
 
                                             <div className="flex items-center space-x-4 mt-3 text-sm text-gray-400">
                                                 <span>{formatDate(notification.createdAt)}</span>
