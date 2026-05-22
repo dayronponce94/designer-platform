@@ -5,6 +5,9 @@ const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
 const Request = require('../models/Request');
 const mongoose = require('mongoose');
+const User = require('../models/User');
+const NotificationHelper = require('../utils/notifications');
+
 
 // @desc    Aceptar cotización de diseñador (Crea el Proyecto Único con Snapshots)
 // @route   POST /api/designer/quotes/:id/accept
@@ -81,6 +84,54 @@ const acceptDesignerQuote = asyncHandler(async (req, res) => {
         });
     } catch (error) {
         console.error('Error al actualizar la solicitud:', error);
+    }
+
+    // --- NUEVO: NOTIFICACIÓN Para los Administradores - Cotización Aceptada) ---
+    try {
+        // 1. Buscamos el nombre del diseñador usando los datos de su sesión
+        const designerUser = await User.findById(req.user.id).select('name');
+        const designerName = designerUser?.name || 'Un diseñador';
+        const projectTitle = requestOriginal.title || 'un proyecto';
+
+        // ENVIAR NOTIFICACIÓN AL ADMIN (Tus cambios unificados)
+        const admins = await User.find({ role: 'admin', isActive: true }).select('_id');
+        if (admins.length > 0) {
+            const adminTitle = 'Cotización Aceptada';
+            const adminMessage = `El diseñador ${designerName} ha aceptado la cotización: "${projectTitle}" y se ha creado un nuevo proyecto con el mismo título.`;
+
+            for (const admin of admins) {
+                await NotificationHelper.createSystemNotification(
+                    admin._id,
+                    adminTitle,
+                    adminMessage,
+                    {
+                        designerQuoteId: quote._id,
+                        projectId: project._id
+                    }
+                );
+            }
+            console.log(`🔔 Notificación de aceptación enviada a ${admins.length} admins.`);
+        }
+
+        // ENVIAR NOTIFICACIÓN AL CLIENTE (
+        if (requestOriginal.client) {
+            const clientTitle = '¡Tu proyecto ha comenzado!';
+            const clientMessage = `El diseñador ${designerName} ha sido asignado a tu solicitud "${projectTitle}". ¡El proyecto ya ha iniciado!`;
+
+            await NotificationHelper.createSystemNotification(
+                requestOriginal.client, // ID del cliente destinatario
+                clientTitle,
+                clientMessage,
+                {
+                    projectId: project._id,
+                    designerId: req.user.id
+                }
+            );
+            console.log(`🔔 Notificación de inicio de proyecto enviada al cliente: ${requestOriginal.client}`);
+        }
+
+    } catch (notifError) {
+        console.error(`❌ Error al procesar las notificaciones de aceptación: ${notifError.message}`);
     }
 
     res.status(200).json(
@@ -218,6 +269,9 @@ const rejectDesignerQuote = asyncHandler(async (req, res) => {
     const quote = await DesignerQuote.findOne({
         _id: req.params.id,
         designer: req.user.id
+    }).populate({
+        path: 'clientQuote',
+        populate: { path: 'request' }
     });
 
     if (!quote) {
@@ -232,6 +286,37 @@ const rejectDesignerQuote = asyncHandler(async (req, res) => {
     quote.rejectedAt = new Date();
     quote.designerNotes = req.body.designerNotes || '';
     await quote.save();
+
+    // --- NUEVO: NOTIFICACIÓN 4 (Para los Administradores - Cotización Cancelada/Rechazada) ---
+    try {
+        const admins = await User.find({ role: 'admin', isActive: true }).select('_id');
+
+        if (admins.length > 0) {
+            const designerUser = await User.findById(req.user.id).select('name');
+            const designerName = designerUser?.name || 'Un diseñador';
+
+            // Obtenemos el título navegando por el populate que acabamos de agregar
+            const projectTitle = quote.clientQuote?.request?.title || 'un proyecto';
+
+            const titleNotification = 'Cotización Rechazada';
+            const messageNotification = `El diseñador ${designerName} ha cancelado/rechazado la cotización para el proyecto: "${projectTitle}".`;
+
+            for (const admin of admins) {
+                await NotificationHelper.createSystemNotification(
+                    admin._id,
+                    titleNotification,
+                    messageNotification,
+                    {
+                        designerQuoteId: quote._id,
+                        quoteId: quote.clientQuote?._id
+                    }
+                );
+            }
+            console.log(`🔔 Notificación de rechazo enviada a ${admins.length} admins.`);
+        }
+    } catch (notifError) {
+        console.error(`❌ Error al procesar notificación de rechazo: ${notifError.message}`);
+    }
 
     res.status(200).json(
         ApiResponse.success('Cotización rechazada', { quote }).toJSON()
