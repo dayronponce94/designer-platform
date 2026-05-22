@@ -6,6 +6,7 @@ const Project = require('../models/Project');
 const DesignerQuote = require('../models/DesignerQuote');
 const ApiResponse = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
+const NotificationHelper = require('../utils/notifications');
 
 // Crear un PaymentIntent para que el cliente pague su cotización aceptada
 const createClientPaymentIntent = asyncHandler(async (req, res) => {
@@ -269,6 +270,35 @@ const handleStripeWebhook = async (req, res) => {
                 );
 
                 if (updatedQuote) {
+                    try {
+                        // 1. Buscamos a todos los usuarios administradores activos
+                        const admins = await User.find({ role: 'admin', isActive: true }).select('_id');
+
+                        if (admins.length > 0) {
+                            // 2. Buscamos el nombre del cliente usando el ID guardado en el pago
+                            const clientUser = await User.findById(payment.user).select('name');
+                            const clientName = clientUser?.name || 'Un cliente';
+
+                            const titleNotification = 'Pago Recibido';
+                            const messageNotification = `${clientName} ha realizado el pago de la cotización.`;
+
+                            // 3. Le enviamos la notificación a cada administrador encontrado
+                            for (const admin of admins) {
+                                await NotificationHelper.createSystemNotification(
+                                    admin._id,
+                                    titleNotification,
+                                    messageNotification,
+                                    {
+                                        quoteId: updatedQuote._id,
+                                        clientId: payment.user
+                                    }
+                                );
+                            }
+                            console.log(`🔔 Notificación de pago enviada a ${admins.length} administradores.`);
+                        }
+                    } catch (notifError) {
+                        console.error(`❌ Error al procesar notificaciones de pago: ${notifError.message}`);
+                    }
                     console.log(`✨ ÉXITO: Cotización ${payment.quote} marcada como PAGADA.`);
                 } else {
                     console.error(`❌ No se pudo encontrar la cotización ${payment.quote} para marcarla como pagada.`);
