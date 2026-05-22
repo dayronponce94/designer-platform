@@ -267,7 +267,7 @@ const handleStripeWebhook = async (req, res) => {
                         // Opcional: puedes guardar aquí también la fecha exacta del pago
                     },
                     { new: true }
-                );
+                ).populate('request', 'title');
 
                 if (updatedQuote) {
                     try {
@@ -279,8 +279,10 @@ const handleStripeWebhook = async (req, res) => {
                             const clientUser = await User.findById(payment.user).select('name');
                             const clientName = clientUser?.name || 'Un cliente';
 
+                            const projectTitle = updatedQuote.request?.title || 'un proyecto';
+
                             const titleNotification = 'Pago Recibido';
-                            const messageNotification = `${clientName} ha realizado el pago de la cotización.`;
+                            const messageNotification = `${clientName} ha realizado el pago de la cotización para el proyecto: "${projectTitle}".`;
 
                             // 3. Le enviamos la notificación a cada administrador encontrado
                             for (const admin of admins) {

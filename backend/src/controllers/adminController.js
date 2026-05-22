@@ -271,15 +271,6 @@ const assignDesignerToProject = asyncHandler(async (req, res) => {
 
     await project.save();
 
-    // Notificación para el diseñador (implementar después)
-    // await createNotification({
-    //     userId: designerId,
-    //     type: 'project_assigned',
-    //     title: 'Nuevo proyecto asignado',
-    //     message: `Se te ha asignado el proyecto "${project.title}"`,
-    //     projectId: project._id
-    // });
-
     const updatedProject = await Project.findById(project._id)
         .populate('client', 'name email')
         .populate('designer', 'name email specialty');
@@ -818,6 +809,26 @@ const createDesignerQuote = asyncHandler(async (req, res) => {
         assignedDesigner: designerId
         // Como dijiste, no tocamos el status, se queda en 'accepted'
     });
+
+    // --- NUEVO: NOTIFICACIÓN 2 (Para el Diseñador asignado) ---
+    try {
+        const projectTitle = clientQuote.request?.title || 'un nuevo proyecto';
+        const titleNotification = 'Nueva Oferta Asignada';
+        const messageNotification = `Se te ha asignado una propuesta de diseño para el proyecto: "${projectTitle}". Revisa los detalles para aceptar o declinar el trabajo.`;
+
+        await NotificationHelper.createSystemNotification(
+            designerId,              // ID del diseñador (destinatario)
+            titleNotification,
+            messageNotification,
+            {
+                designerQuoteId: designerQuote._id,
+                quoteId: clientQuote._id
+            }
+        );
+        console.log(`🔔 Notificación de asignación enviada con éxito al diseñador: ${designerId}`);
+    } catch (notifError) {
+        console.error(`❌ Error al enviar notificación al diseñador: ${notifError.message}`);
+    }
 
     res.status(201).json(
         ApiResponse.success('Cotización enviada al diseñador', { designerQuote }, 201).toJSON()
