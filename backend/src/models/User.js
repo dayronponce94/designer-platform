@@ -36,6 +36,18 @@ const userSchema = new mongoose.Schema(
             default: 'client'
         },
 
+        country: {
+            type: String,
+            // Obligatorio SÓLO si el rol es designer
+            required: [
+                function () { return this.role === 'designer'; },
+                'Por favor ingrese su país de residencia'
+            ],
+            trim: true,
+            uppercase: true, // Convierte 'mx' o 'es' automáticamente a 'MX' o 'ES'
+            maxlength: [2, 'El código de país debe tener exactamente 2 caracteres (ISO alpha-2)']
+        },
+
         isVerified: {
             type: Boolean,
             default: false

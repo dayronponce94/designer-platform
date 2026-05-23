@@ -11,7 +11,7 @@ const NotificationHelper = require('../utils/notifications');
 // @route   POST /api/auth/register
 // @access  Public
 const register = asyncHandler(async (req, res) => {
-    const { name, email, password, role, company, phone, specialty } = req.body;
+    const { name, email, password, role, company, phone, specialty, country } = req.body;
 
 
     // Verificar si el usuario ya existe
@@ -31,7 +31,8 @@ const register = asyncHandler(async (req, res) => {
         role: role || 'client',
         company,
         phone,
-        specialty
+        specialty,
+        country
     });
 
     // Generar token

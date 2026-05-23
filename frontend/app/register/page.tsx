@@ -6,7 +6,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
     FiUser, FiMail, FiLock, FiEye, FiEyeOff,
-    FiBriefcase, FiPhone, FiCheck
+    FiBriefcase, FiPhone, FiCheck,
+    FiGlobe,
+    FiTool
 } from 'react-icons/fi';
 import AuthLayout from '@/components/auth/AuthLayout';
 
@@ -24,6 +26,7 @@ export default function RegisterPage() {
         phone: '',
         company: '',
         specialty: '',
+        country: '',
         agreeTerms: false,
         receiveUpdates: true
     });
@@ -42,6 +45,18 @@ export default function RegisterPage() {
             return;
         }
 
+        // Validación de negocio del diseñador
+        if (selectedRole === 'designer') {
+            if (!formData.specialty) {
+                alert('Debes seleccionar una especialidad');
+                return;
+            }
+            if (!formData.country) {
+                alert('Debes seleccionar tu país de residencia');
+                return;
+            }
+        }
+
         const userData = {
             name: formData.name,
             email: formData.email,
@@ -50,6 +65,7 @@ export default function RegisterPage() {
             phone: formData.phone || undefined,
             company: selectedRole === 'client' ? formData.company || undefined : undefined,
             specialty: selectedRole === 'designer' ? formData.specialty : undefined,
+            country: selectedRole === 'designer' ? formData.country : undefined,
         };
 
         if (selectedRole === 'designer' && !formData.specialty) {
@@ -86,6 +102,56 @@ export default function RegisterPage() {
         { value: 'illustration', label: 'Ilustración' },
         { value: 'other', label: 'Otro' }
     ];
+
+    const countries = [
+        // América
+        { value: 'US', label: 'Estados Unidos' },
+        { value: 'CA', label: 'Canadá' },
+        { value: 'BR', label: 'Brasil' },
+        { value: 'MX', label: 'México' },
+
+        // Europa
+        { value: 'DE', label: 'Alemania' },
+        { value: 'AT', label: 'Austria' },
+        { value: 'BE', label: 'Bélgica' },
+        { value: 'BG', label: 'Bulgaria' },
+        { value: 'CY', label: 'Chipre' },
+        { value: 'HR', label: 'Croacia' },
+        { value: 'DK', label: 'Dinamarca' },
+        { value: 'SK', label: 'Eslovaquia' },
+        { value: 'SI', label: 'Eslovenia' },
+        { value: 'ES', label: 'España' },
+        { value: 'EE', label: 'Estonia' },
+        { value: 'FI', label: 'Finlandia' },
+        { value: 'FR', label: 'Francia' },
+        { value: 'GR', label: 'Grecia' },
+        { value: 'HU', label: 'Hungría' },
+        { value: 'IE', label: 'Irlanda' },
+        { value: 'IT', label: 'Italia' },
+        { value: 'LV', label: 'Letonia' },
+        { value: 'LT', label: 'Lituania' },
+        { value: 'LU', label: 'Luxemburgo' },
+        { value: 'MT', label: 'Malta' },
+        { value: 'NO', label: 'Noruega' },
+        { value: 'NL', label: 'Países Bajos' },
+        { value: 'PL', label: 'Polonia' },
+        { value: 'PT', label: 'Portugal' },
+        { value: 'GB', label: 'Reino Unido' },
+        { value: 'CZ', label: 'República Checa' },
+        { value: 'RO', label: 'Rumania' },
+        { value: 'SE', label: 'Suecia' },
+        { value: 'CH', label: 'Suiza' },
+
+        // Asia-Pacífico y Medio Oriente
+        { value: 'AU', label: 'Australia' },
+        { value: 'HK', label: 'Hong Kong' },
+        { value: 'JP', label: 'Japón' },
+        { value: 'NZ', label: 'Nueva Zelanda' },
+        { value: 'SG', label: 'Singapur' },
+        { value: 'TH', label: 'Tailandia' },
+        { value: 'AE', label: 'Emiratos Árabes Unidos' },
+    ];
+
 
     return (
         <AuthLayout
@@ -245,24 +311,54 @@ export default function RegisterPage() {
                             </div>
                         </div>
                     ) : (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Especialidad Principal
-                            </label>
-                            <select
-                                name="specialty"
-                                value={formData.specialty}
-                                onChange={handleChange}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition appearance-none bg-white"
-                                required
-                            >
-                                <option value="">Selecciona tu especialidad</option>
-                                {designerSpecialties.map(spec => (
-                                    <option key={spec.value} value={spec.value}>
-                                        {spec.label}
-                                    </option>
-                                ))}
-                            </select>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Especialidad Principal */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Especialidad Principal
+                                </label>
+                                <div className="relative">
+                                    <FiTool className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
+                                    <select
+                                        name="specialty"
+                                        value={formData.specialty}
+                                        onChange={handleChange}
+                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition appearance-none bg-white"
+                                        required={selectedRole === 'designer'}
+                                    >
+                                        <option value="">Elige una opción</option>
+                                        {designerSpecialties.map(spec => (
+                                            <option key={spec.value} value={spec.value}>
+                                                {spec.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* 3. Selección de País (Solo para Diseñadores) */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    País de Residencia (Stripe)
+                                </label>
+                                <div className="relative">
+                                    <FiGlobe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 z-10" />
+                                    <select
+                                        name="country"
+                                        value={formData.country}
+                                        onChange={handleChange}
+                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-600/30 focus:border-purple-600 outline-none transition appearance-none bg-white"
+                                        required={selectedRole === 'designer'}
+                                    >
+                                        <option value="">Elige una opción</option>
+                                        {countries.map(c => (
+                                            <option key={c.value} value={c.value}>
+                                                {c.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

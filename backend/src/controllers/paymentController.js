@@ -489,9 +489,11 @@ const createConnectAccountLink = asyncHandler(async (req, res) => {
 
         // 1. Si no tiene cuenta de Stripe Connect, la creamos
         if (!user.stripeAccountId) {
+            const userCountry = user.country || 'ES';
+
             const account = await stripe.accounts.create({
                 type: 'express',
-                country: 'ES', // Ajustar según tu país (ES = España)
+                country: userCountry,
                 email: user.email,
                 capabilities: {
                     card_payments: { requested: true },
