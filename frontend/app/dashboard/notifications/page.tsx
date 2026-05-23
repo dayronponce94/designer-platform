@@ -2,7 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useNotifications } from '@/app/lib/hooks/useNotifications';
-import { FiBell, FiCheck, FiTrash2, FiFilter, FiRefreshCw, FiEye, FiEyeOff } from 'react-icons/fi';
+import {
+    FiBell,
+    FiCheck,
+    FiTrash2,
+    FiFilter,
+    FiRefreshCw,
+    FiEye,
+    FiEyeOff,
+    FiUpload,
+    FiCheckCircle,
+    FiDollarSign,
+    FiMessageSquare,
+    FiLayers,
+} from 'react-icons/fi';
+
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -25,7 +39,8 @@ export default function NotificationsPage() {
     // Cargar notificaciones cuando cambie el filtro o la página
     useEffect(() => {
         fetchNotifications(page, 5, filter === 'unread');
-    }, [filter, page, fetchNotifications]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filter, page]);
 
     const formatDate = (dateString: string) => {
         try {
@@ -47,22 +62,34 @@ export default function NotificationsPage() {
 
     const getNotificationIcon = (type: string) => {
         switch (type) {
-            case 'project_assigned':
-                return '🎨';
-            case 'project_status_changed':
-                return '🔄';
-            case 'project_created':
-                return '📋';
             case 'project_delivered':
-                return '📤';
+                return {
+                    icon: <FiUpload className="w-5 h-5 text-purple-600" />,
+                    bgColor: 'bg-purple-100'
+                };
             case 'payment_confirmed':
-                return '💰';
+            case 'designer_payout':
+                return {
+                    icon: <FiDollarSign className="w-5 h-5 text-emerald-600" />,
+                    bgColor: 'bg-emerald-100'
+                };
+            case 'project_status_changed':
+            case 'project_assigned':
+                return {
+                    icon: <FiLayers className="w-5 h-5 text-blue-600" />,
+                    bgColor: 'bg-blue-100'
+                };
             case 'new_message':
-                return '✉️';
+                return {
+                    icon: <FiMessageSquare className="w-5 h-5 text-amber-600" />,
+                    bgColor: 'bg-amber-100'
+                };
             case 'system':
-                return '🔔';
             default:
-                return '📢';
+                return {
+                    icon: <FiBell className="w-5 h-5 text-indigo-600" />,
+                    bgColor: 'bg-indigo-100'
+                };
         }
     };
 
@@ -103,6 +130,8 @@ export default function NotificationsPage() {
             console.error('Error:', error);
         }
     };
+
+
 
     if (loading && notifications.length === 0) {
         return (
@@ -151,7 +180,7 @@ export default function NotificationsPage() {
                         </select>
 
                         <button
-                            onClick={() => fetchNotifications(1, 20, filter === 'unread')}
+                            onClick={() => fetchNotifications(1, 5, filter === 'unread')}
                             className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                             title="Actualizar"
                         >
@@ -212,7 +241,15 @@ export default function NotificationsPage() {
                                 <div className="flex items-start justify-between">
                                     <div className="flex items-start space-x-4">
                                         <div className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl border ${getNotificationColor(notification.type, notification.read)}`}>
-                                            {getNotificationIcon(notification.type)}
+                                            {(() => {
+                                                // Extraemos de forma limpia el icono y el fondo que configuraste arriba
+                                                const { icon, bgColor } = getNotificationIcon(notification.type);
+                                                return (
+                                                    <div className={`shrink-0 w-12 h-12 rounded-full flex items-center justify-center border ${bgColor}`}>
+                                                        {icon}
+                                                    </div>
+                                                );
+                                            })()}
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center space-x-2 mb-1">

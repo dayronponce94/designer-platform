@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuthContext } from '@/app/providers/AuthProvider';
-import { FiLogOut, FiUser, FiBell, FiMenu, FiX, FiCheck } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiBell, FiMenu, FiX, FiCheck, FiUpload, FiDollarSign, FiLayers, FiMessageSquare } from 'react-icons/fi';
 import { useNotifications } from '@/app/lib/hooks/useNotifications';
 import Image from 'next/image';
+
 
 export default function DashboardNavbar() {
     const { user, logout } = useAuthContext();
@@ -14,6 +15,39 @@ export default function DashboardNavbar() {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const { notifications, unreadCount, markAsRead, fetchNotifications } = useNotifications();
     const isAdmin = user?.role === 'admin';
+
+    const getNotificationIcon = (type: string) => {
+        switch (type) {
+            case 'project_delivered':
+                return {
+                    icon: <FiUpload className="w-4 h-4 text-purple-600" />,
+                    bgColor: 'bg-purple-100'
+                };
+            case 'payment_confirmed':
+            case 'designer_payout':
+                return {
+                    icon: <FiDollarSign className="w-4 h-4 text-emerald-600" />,
+                    bgColor: 'bg-emerald-100'
+                };
+            case 'project_status_changed':
+            case 'project_assigned':
+                return {
+                    icon: <FiLayers className="w-4 h-4 text-blue-600" />,
+                    bgColor: 'bg-blue-100'
+                };
+            case 'new_message':
+                return {
+                    icon: <FiMessageSquare className="w-4 h-4 text-amber-600" />,
+                    bgColor: 'bg-amber-100'
+                };
+            case 'system':
+            default:
+                return {
+                    icon: <FiBell className="w-4 h-4 text-indigo-600" />,
+                    bgColor: 'bg-indigo-100'
+                };
+        }
+    };
 
     // Cerrar dropdown al hacer click fuera
     useEffect(() => {
@@ -94,23 +128,37 @@ export default function DashboardNavbar() {
                                     </div>
 
                                     <div className="max-h-96 overflow-y-auto">
+                                        {/* REEMPLAZA POR ESTE BLOQUE CORREGIDO: */}
                                         {notifications.length > 0 ? (
-                                            notifications.map((notif) => (
-                                                <div
-                                                    key={notif._id}
-                                                    onClick={() => !notif.read && markAsRead(notif._id)}
-                                                    className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer relative ${!notif.read ? 'bg-blue-50/30' : ''}`}
-                                                >
-                                                    {!notif.read && (
-                                                        <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
-                                                    )}
-                                                    <p className="text-sm font-semibold text-gray-900 truncate">{notif.title}</p>
-                                                    <p className="text-xs text-gray-600 line-clamp-2 mt-1">{notif.message}</p>
-                                                    <p className="text-[10px] text-gray-400 mt-2">
-                                                        {new Date(notif.createdAt).toLocaleDateString()}
-                                                    </p>
-                                                </div>
-                                            ))
+                                            notifications.map((notif) => {
+                                                const { icon, bgColor } = getNotificationIcon(notif.type);
+                                                return (
+                                                    <div
+                                                        key={notif._id}
+                                                        onClick={() => !notif.read && markAsRead(notif._id)}
+                                                        className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer relative flex items-start space-x-3 ${!notif.read ? 'bg-blue-50/30' : ''}`}
+                                                    >
+                                                        {/* Indicador de no leído */}
+                                                        {!notif.read && (
+                                                            <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                                                        )}
+
+                                                        {/* Círculo con Icono Dinámico */}
+                                                        <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center border border-transparent ${bgColor}`}>
+                                                            {icon}
+                                                        </div>
+
+                                                        {/* Contenido de la Notificación */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-semibold text-gray-900 truncate">{notif.title}</p>
+                                                            <p className="text-xs text-gray-600 line-clamp-2 mt-0.5">{notif.message}</p>
+                                                            <p className="text-[10px] text-gray-400 mt-1">
+                                                                {new Date(notif.createdAt).toLocaleDateString()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
                                         ) : (
                                             <div className="p-8 text-center">
                                                 <p className="text-sm text-gray-500">No tienes notificaciones</p>

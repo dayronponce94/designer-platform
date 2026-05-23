@@ -94,7 +94,7 @@ class NotificationHelper {
         return await Notification.createNotification(
             userId,
             'system',
-            `🔔 ${title}`,
+            title,
             message,
             data,
             null,

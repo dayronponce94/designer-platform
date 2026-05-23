@@ -40,14 +40,13 @@ export function useNotifications(pollingInterval = 30000) {
     const [error, setError] = useState<string | null>(null);
     const [pagination, setPagination] = useState({
         page: 1,
-        limit: 20,
+        limit: 5,
         total: 0,
         pages: 0
     });
 
-    // C:\Users\dayri\Documents\DesignerProject\frontend\app\lib\hooks\useNotifications.ts
 
-    const fetchNotifications = useCallback(async (page = 1, limit = 20, unreadOnly = false) => {
+    const fetchNotifications = useCallback(async (page = 1, limit = 5, unreadOnly = false) => {
         try {
             setLoading(true);
             const response = await notificationAPI.getNotifications({
@@ -61,7 +60,7 @@ export function useNotifications(pollingInterval = 30000) {
             if (result) {
                 setNotifications(result.notifications || []);
                 setUnreadCount(result.unreadCount || 0);
-                setPagination(result.pagination || { page: 1, limit: 20, total: 0, pages: 0 });
+                setPagination(result.pagination || { page: 1, limit: 5, total: 0, pages: 0 });
             }
 
             setError(null);
