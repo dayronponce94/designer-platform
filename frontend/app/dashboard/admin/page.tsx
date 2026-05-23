@@ -165,7 +165,7 @@ export default function AdminDashboardPage() {
                 <div className="bg-white rounded-xl shadow p-6 border-l-4 border-purple-500">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm text-gray-500">Ingresos Totales</p>
+                            <p className="text-sm text-gray-500">Ganancia Neta</p>
                             <p className="text-2xl font-bold text-gray-900 mt-1">
                                 {formatCurrency(totalAdminEarnings)}
                             </p>

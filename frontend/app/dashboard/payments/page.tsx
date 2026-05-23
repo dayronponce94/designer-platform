@@ -287,7 +287,7 @@ export default function PaymentsPage() {
 
             {/* Paginación */}
             {totalPages > 1 && (
-                <div className="mt-6 flex justify-between items-center bg-white p-4 rounded-xl shadow">
+                <div className="mt-6 flex justify-between items-center">
                     <div className="text-sm text-gray-500">
                         Mostrando {startIndex + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} de {totalItems} resultados
                     </div>

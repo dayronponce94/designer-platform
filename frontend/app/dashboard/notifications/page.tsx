@@ -24,7 +24,7 @@ export default function NotificationsPage() {
 
     // Cargar notificaciones cuando cambie el filtro o la página
     useEffect(() => {
-        fetchNotifications(page, 20, filter === 'unread');
+        fetchNotifications(page, 5, filter === 'unread');
     }, [filter, page, fetchNotifications]);
 
     const formatDate = (dateString: string) => {
@@ -230,11 +230,17 @@ export default function NotificationsPage() {
                                             </p>
 
                                             {(() => {
+                                                // 1. Filtramos las llaves que contienen 'id' o que son campos puramente técnicos/operativos
+                                                const keysToIgnore = ['id', 'status', 'newstatus'];
+
                                                 const displayData = notification.data
-                                                    ? Object.entries(notification.data).filter(([key]) => !key.toLowerCase().includes('id'))
+                                                    ? Object.entries(notification.data).filter(([key]) => {
+                                                        const lowerKey = key.toLowerCase();
+                                                        return !keysToIgnore.some(ignored => lowerKey.includes(ignored));
+                                                    })
                                                     : [];
 
-                                                // 2. Solo si hay datos que NO sean IDs, renderizamos el contenedor gris
+                                                // 2. Solo si hay datos que aporten valor real al usuario, renderizamos el contenedor gris
                                                 if (displayData.length > 0) {
                                                     return (
                                                         <div className="mt-2 p-2 bg-gray-50 rounded text-sm text-gray-500">
@@ -289,88 +295,38 @@ export default function NotificationsPage() {
 
             {/* Paginación */}
             {pagination.pages > 1 && (
-                <div className="flex items-center justify-between bg-white px-4 py-3 sm:px-6 rounded-lg shadow">
-                    <div className="flex flex-1 justify-between sm:hidden">
+                <div className="mt-6 flex justify-between items-center">
+                    {/* Texto de resultados */}
+                    <div className="text-sm text-gray-500">
+                        <div className="text-sm text-gray-500">
+                            Mostrando {(page - 1) * 5 + 1} - {Math.min(page * 5, pagination.total)} de {pagination.total} resultados
+                        </div>
+
+                    </div>
+
+                    {/* Controles de navegación */}
+                    <div className="flex space-x-2">
                         <button
                             onClick={() => setPage(prev => Math.max(1, prev - 1))}
                             disabled={page === 1}
-                            className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${page === 1
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-white text-gray-700 hover:bg-gray-50'
-                                }`}
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                         >
                             Anterior
                         </button>
+                        <span className="px-4 py-2">
+                            Página {page} de {pagination.pages}
+                        </span>
                         <button
                             onClick={() => setPage(prev => Math.min(pagination.pages, prev + 1))}
                             disabled={page === pagination.pages}
-                            className={`relative ml-3 inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${page === pagination.pages
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-white text-gray-700 hover:bg-gray-50'
-                                }`}
+                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
                         >
                             Siguiente
                         </button>
                     </div>
-                    <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-sm text-gray-700">
-                                Mostrando página <span className="font-medium">{page}</span> de{' '}
-                                <span className="font-medium">{pagination.pages}</span>
-                            </p>
-                        </div>
-                        <div>
-                            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                <button
-                                    onClick={() => setPage(prev => Math.max(1, prev - 1))}
-                                    disabled={page === 1}
-                                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${page === 1
-                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        : 'bg-white text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    Anterior
-                                </button>
-                                {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-                                    let pageNum;
-                                    if (pagination.pages <= 5) {
-                                        pageNum = i + 1;
-                                    } else if (page <= 3) {
-                                        pageNum = i + 1;
-                                    } else if (page >= pagination.pages - 2) {
-                                        pageNum = pagination.pages - 4 + i;
-                                    } else {
-                                        pageNum = page - 2 + i;
-                                    }
-
-                                    return (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => setPage(pageNum)}
-                                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${page === pageNum
-                                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            {pageNum}
-                                        </button>
-                                    );
-                                })}
-                                <button
-                                    onClick={() => setPage(prev => Math.min(pagination.pages, prev + 1))}
-                                    disabled={page === pagination.pages}
-                                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 text-sm font-medium ${page === pagination.pages
-                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        : 'bg-white text-gray-500 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    Siguiente
-                                </button>
-                            </nav>
-                        </div>
-                    </div>
                 </div>
             )}
+
         </div>
     );
 }

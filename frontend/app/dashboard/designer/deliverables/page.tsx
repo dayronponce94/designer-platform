@@ -12,7 +12,8 @@ import {
     FiCheckCircle,
     FiX,
     FiSearch,
-    FiFilter
+    FiFilter,
+    FiXCircle
 } from 'react-icons/fi';
 
 interface Project {
@@ -139,6 +140,7 @@ export default function DesignerDeliverablesPage() {
             'in-progress': { color: 'bg-purple-100 text-purple-800', icon: <FiClock />, text: 'En progreso' },
             review: { color: 'bg-orange-100 text-orange-800', icon: <FiEye />, text: 'En revisión' },
             completed: { color: 'bg-green-100 text-green-800', icon: <FiCheckCircle />, text: 'Completado' },
+            cancelled: { color: 'bg-red-100 text-red-800', icon: <FiXCircle />, text: 'Cancelado' },
         };
 
         // Si el status no existe en config, usamos un estilo gris por defecto en lugar de mentir diciendo "En progreso"
@@ -269,13 +271,26 @@ export default function DesignerDeliverablesPage() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div className="flex space-x-2">
-                                                <button
-                                                    onClick={() => handleOpenModal(project)}
-                                                    className="text-purple-600 hover:text-purple-900 transition-colors"
-                                                    title="Subir entregable"
-                                                >
-                                                    <FiUpload className="w-4 h-4" />
-                                                </button>
+                                                {/* Botón de Subir Entregable: Bloqueado SOLO si está cancelado */}
+                                                {project.status !== 'cancelled' ? (
+                                                    <button
+                                                        onClick={() => handleOpenModal(project)}
+                                                        className="text-purple-600 hover:text-purple-900 transition-colors"
+                                                        title="Subir entregable"
+                                                    >
+                                                        <FiUpload className="w-4 h-4" />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        className="text-gray-300 cursor-not-allowed"
+                                                        disabled={true}
+                                                        title="Proyecto cancelado - No se admiten entregables"
+                                                    >
+                                                        <FiUpload className="w-4 h-4" />
+                                                    </button>
+                                                )}
+
+                                                {/* Botón de Detalles (Siempre Activo) */}
                                                 <Link
                                                     href={`/dashboard/projects/${project._id}`}
                                                     className="text-blue-600 hover:text-blue-900 transition-colors"

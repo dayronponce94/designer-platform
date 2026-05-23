@@ -4,6 +4,9 @@ const asyncHandler = require('../utils/asyncHandler');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const NotificationHelper = require('../utils/notifications');
+const User = require('../models/User');
+
 
 // Configurar almacenamiento para archivos
 const storage = multer.diskStorage({
@@ -321,7 +324,54 @@ const updateProject = asyncHandler(async (req, res) => {
                 { new: true, runValidators: true }
             ).populate('client designer', 'name email');
 
-            // ... (El bloque de notificaciones que ya teníamos se mantiene igual) ...
+            try {
+                // Verificamos si el estado realmente cambió en la petición
+                if (status && status !== oldStatus) {
+                    const projectTitle = project.title || 'Tu proyecto';
+
+                    // Mapeo amigable de los estados para los mensajes
+                    const statusLabels = {
+                        'approved': 'Aprobado',
+                        'in-progress': 'En Progreso',
+                        'review': 'En Revisión',
+                        'completed': 'Completado',
+                        'cancelled': 'Cancelado'
+                    };
+
+                    const newStatusLabel = statusLabels[status] || status;
+                    const oldStatusLabel = statusLabels[oldStatus] || oldStatus;
+
+                    const titleNotification = 'Estado del Proyecto Actualizado';
+                    const messageNotification = `El proyecto "${projectTitle}" ha cambiado su estado de ${oldStatusLabel} a ${newStatusLabel}.`;
+
+                    // 1. Notificar al Cliente (siempre que el cambio no lo haga el cliente mismo)
+                    if (project.client) {
+                        await NotificationHelper.createSystemNotification(
+                            project.client._id || project.client,
+                            titleNotification,
+                            messageNotification,
+                            { projectId: project._id, newStatus: status }
+                        );
+                        console.log(`🔔 Notificación de cambio de estado enviada al cliente.`);
+                    }
+
+                    // 2. Notificar a todos los Administradores activos
+                    const admins = await User.find({ role: 'admin', isActive: true }).select('_id');
+                    if (admins.length > 0) {
+                        for (const admin of admins) {
+                            await NotificationHelper.createSystemNotification(
+                                admin._id,
+                                titleNotification,
+                                messageNotification,
+                                { projectId: project._id, newStatus: status }
+                            );
+                        }
+                        console.log(`🔔 Notificación de cambio de estado enviada a ${admins.length} administradores.`);
+                    }
+                }
+            } catch (notifError) {
+                console.error(`❌ Error al procesar notificaciones en updateProject: ${notifError.message}`);
+            }
 
             res.status(200).json(ApiResponse.success('Proyecto actualizado', { project }).toJSON());
         } catch (error) {
@@ -514,6 +564,42 @@ const uploadDeliverable = asyncHandler(async (req, res) => {
         }
 
         await project.save();
+
+        // --- NUEVO: NOTIFICACIONES DE ENTREGA ---
+        try {
+            const projectTitle = project.title || 'Tu proyecto';
+            const titleNotification = 'Nuevo Entregable Subido';
+
+            // CORRECCIÓN AQUÍ: Apuntamos a deliverable.version que sí existe
+            const messageNotification = `Se ha subido la versión v${deliverable.version} del entregable para el proyecto "${projectTitle}".`;
+
+            // 1. Notificar al Cliente
+            if (project.client) {
+                await NotificationHelper.createSystemNotification(
+                    project.client,
+                    titleNotification,
+                    messageNotification,
+                    { projectId: project._id, status: 'review' }
+                );
+                console.log(`🔔 Notificación de entregable enviada al cliente.`);
+            }
+
+            // 2. Notificar a todos los Administradores activos
+            const admins = await User.find({ role: 'admin', isActive: true }).select('_id');
+            if (admins.length > 0) {
+                for (const admin of admins) {
+                    await NotificationHelper.createSystemNotification(
+                        admin._id,
+                        titleNotification,
+                        messageNotification,
+                        { projectId: project._id, status: 'review' }
+                    );
+                }
+                console.log(`🔔 Notificación de entregable enviada a ${admins.length} administradores.`);
+            }
+        } catch (notifError) {
+            console.error(`❌ Error al procesar notificaciones de entregable: ${notifError.message}`);
+        }
 
         res.status(201).json(
             ApiResponse.success('Entregable subido correctamente', { deliverable }).toJSON()

@@ -321,14 +321,38 @@ const updateProjectStatus = asyncHandler(async (req, res) => {
 
     await project.save();
 
-    // Notificación al cliente (implementar después)
-    // await createNotification({
-    //     userId: project.client,
-    //     type: 'project_status_changed',
-    //     title: `Proyecto ${status === 'approved' ? 'aprobado' : 'cancelado'}`,
-    //     message: `Tu proyecto "${project.title}" ha sido ${status === 'approved' ? 'aprobado' : 'cancelado'}`,
-    //     projectId: project._id
-    // });
+    // --- NUEVO: NOTIFICACIÓN DE CANCELACIÓN (Para Cliente y Diseñador) ---
+    try {
+        if (status === 'cancelled') {
+            const projectTitle = project.title || 'Tu proyecto';
+            const titleNotification = 'Proyecto Cancelado por el Administrador';
+            const messageNotification = `El proyecto "${projectTitle}" ha sido cancelado por el administrador del sistema.`;
+
+            // 1. Notificar al Cliente afectado
+            if (project.client) {
+                await NotificationHelper.createSystemNotification(
+                    project.client,
+                    titleNotification,
+                    messageNotification,
+                    { projectId: project._id, status: 'cancelled' }
+                );
+                console.log(`🔔 Alerta de cancelación enviada al cliente: ${project.client}`);
+            }
+
+            // 2. Notificar al Diseñador asignado
+            if (project.designer) {
+                await NotificationHelper.createSystemNotification(
+                    project.designer,
+                    titleNotification,
+                    messageNotification,
+                    { projectId: project._id, status: 'cancelled' }
+                );
+                console.log(`🔔 Alerta de cancelación enviada al diseñador: ${project.designer}`);
+            }
+        }
+    } catch (notifError) {
+        console.error(`❌ Error al procesar notificaciones de cancelación: ${notifError.message}`);
+    }
 
     res.status(200).json(
         ApiResponse.success(`Proyecto ${status === 'approved' ? 'aprobado' : 'cancelado'}`, {
@@ -359,9 +383,11 @@ const getReports = asyncHandler(async (req, res) => {
         dateFilter = { createdAt: { $gte: twelveMonthsAgo } };
     }
 
+    const financialMatchFilter = { ...dateFilter, status: { $ne: 'cancelled' } };
+
     // 1. Métricas de Ingresos (Revenue), Ganancias (Profit) y Proyectos por Mes
     const financialStatsByMonth = await Project.aggregate([
-        { $match: dateFilter },
+        { $match: financialMatchFilter },
         {
             $group: {
                 _id: {
@@ -388,7 +414,7 @@ const getReports = asyncHandler(async (req, res) => {
 
     // 2. Distribución de Categorías (Service Type)
     const categoriesDistribution = await Project.aggregate([
-        { $match: dateFilter },
+        { $match: financialMatchFilter },
         {
             $group: {
                 _id: '$serviceType',
@@ -434,7 +460,7 @@ const getReports = asyncHandler(async (req, res) => {
 
     // 4. Top 5 Clientes (por Inversión Total)
     const topClients = await Project.aggregate([
-        { $match: dateFilter },
+        { $match: financialMatchFilter },
         {
             $group: {
                 _id: '$client',
@@ -466,7 +492,7 @@ const getReports = asyncHandler(async (req, res) => {
 
     // 5. Estadísticas Generales (Overview Cards)
     const totalRevenueResult = await Project.aggregate([
-        { $match: { ...dateFilter, status: { $ne: 'cancelled' } } },
+        { $match: financialMatchFilter },
         {
             $group: {
                 _id: null,

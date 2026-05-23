@@ -256,27 +256,34 @@ export default function AdminProjectsPage() {
                                         </td>
                                         <td className="px-6 py-4 text-sm font-medium">
                                             <div className="flex space-x-2">
+                                                {/* Botón de Ver Detalles */}
                                                 <Link
                                                     href={`/dashboard/projects/${project._id}`}
-                                                    className="text-blue-600 hover:text-blue-900"
+                                                    className="text-blue-600 hover:text-blue-900 transition-colors"
                                                     title="Detalles"
                                                 >
                                                     <FiEye className="w-4 h-4" />
                                                 </Link>
 
-                                                <button
-                                                    className="text-red-600 hover:text-red-900"
-                                                    onClick={() =>
-                                                        handleUpdateStatus(project._id, 'cancelled')
-                                                    }
-                                                    disabled={
-                                                        project.status === 'completed' ||
-                                                        project.status === 'cancelled'
-                                                    }
-                                                    title="Cancelar"
-                                                >
-                                                    <FiX className="w-4 h-4" />
-                                                </button>
+                                                {/* Botón de Cancelar con UI/UX Condicional */}
+                                                {project.status !== 'completed' && project.status !== 'cancelled' ? (
+                                                    <button
+                                                        className="text-red-600 hover:text-red-900 transition-colors"
+                                                        onClick={() => handleUpdateStatus(project._id, 'cancelled')}
+                                                        title="Cancelar Proyecto"
+                                                    >
+                                                        <FiX className="w-4 h-4" />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        className="text-gray-300 cursor-not-allowed"
+                                                        disabled={true}
+                                                        title={`No se puede cancelar un proyecto ${project.status === 'completed' ? 'completado' : 'ya cancelado'
+                                                            }`}
+                                                    >
+                                                        <FiX className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
