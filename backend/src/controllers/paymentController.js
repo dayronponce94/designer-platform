@@ -384,7 +384,27 @@ const payDesigner = asyncHandler(async (req, res) => {
         paidAt: new Date(),
     });
 
+    // 7. NOTIFICACIÓN AL DISEÑADOR (Nueva funcionalidad utilizando el Helper)
+    try {
+        const titleNotification = '¡Pago Abonado!';
+        const messageNotification = `El pago del proyecto "${project.title}" ya te fue abonado.`;
 
+        // Llamamos directamente al helper con los parámetros correctos
+        await NotificationHelper.createSystemNotification(
+            designer._id,        // 1. Destinatario (ID del Diseñador)
+            titleNotification,   // 2. Título de la alerta
+            messageNotification, // 3. El cuerpo del mensaje personalizado
+            {                    // 4. Metadatos del evento
+                projectId: project._id,
+                paymentId: paymentRecord._id
+            }
+        );
+
+        console.log(`🔔 Notificación de abono de pago enviada con éxito al diseñador: ${designer._id}`);
+    } catch (notificationError) {
+        // Catch pasivo para proteger el flujo principal de Stripe
+        console.error("❌ Error al generar la notificación del pago para el diseñador:", notificationError.message);
+    }
 
     res.status(200).json(
         ApiResponse.success('Pago transferido al diseñador con éxito', {
