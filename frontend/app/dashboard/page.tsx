@@ -260,9 +260,56 @@ export default function DashboardPage() {
         other: 'Otra Especialidad'
     };
 
-
-
     const nextSteps = user?.role === 'designer' ? designerNextSteps : clientNextSteps;
+
+    const countries = [
+        // América
+        { value: 'US', label: 'Estados Unidos' },
+        { value: 'CA', label: 'Canadá' },
+        { value: 'BR', label: 'Brasil' },
+        { value: 'MX', label: 'México' },
+
+        // Europa
+        { value: 'DE', label: 'Alemania' },
+        { value: 'AT', label: 'Austria' },
+        { value: 'BE', label: 'Bélgica' },
+        { value: 'BG', label: 'Bulgaria' },
+        { value: 'CY', label: 'Chipre' },
+        { value: 'HR', label: 'Croacia' },
+        { value: 'DK', label: 'Dinamarca' },
+        { value: 'SK', label: 'Eslovaquia' },
+        { value: 'SI', label: 'Eslovenia' },
+        { value: 'ES', label: 'España' },
+        { value: 'EE', label: 'Estonia' },
+        { value: 'FI', label: 'Finlandia' },
+        { value: 'FR', label: 'Francia' },
+        { value: 'GR', label: 'Grecia' },
+        { value: 'HU', label: 'Hungría' },
+        { value: 'IE', label: 'Irlanda' },
+        { value: 'IT', label: 'Italia' },
+        { value: 'LV', label: 'Letonia' },
+        { value: 'LT', label: 'Lituania' },
+        { value: 'LU', label: 'Luxemburgo' },
+        { value: 'MT', label: 'Malta' },
+        { value: 'NO', label: 'Noruega' },
+        { value: 'NL', label: 'Países Bajos' },
+        { value: 'PL', label: 'Polonia' },
+        { value: 'PT', label: 'Portugal' },
+        { value: 'GB', label: 'Reino Unido' },
+        { value: 'CZ', label: 'República Checa' },
+        { value: 'RO', label: 'Rumania' },
+        { value: 'SE', label: 'Suecia' },
+        { value: 'CH', label: 'Suiza' },
+
+        // Asia-Pacífico y Medio Oriente
+        { value: 'AU', label: 'Australia' },
+        { value: 'HK', label: 'Hong Kong' },
+        { value: 'JP', label: 'Japón' },
+        { value: 'NZ', label: 'Nueva Zelanda' },
+        { value: 'SG', label: 'Singapur' },
+        { value: 'TH', label: 'Tailandia' },
+        { value: 'AE', label: 'Emiratos Árabes Unidos' },
+    ];
 
     return (
         <div className="space-y-6">
@@ -387,6 +434,15 @@ export default function DashboardPage() {
                                 </div>
                             )}
 
+                            {/* Solo diseñadores muestran país de residencia */}
+                            {user?.role === 'designer' && user?.country && (
+                                <div>
+                                    <p className="text-sm text-gray-500">País</p>
+                                    <p className="font-medium">
+                                        {countries.find(c => c.value === user.country)?.label || user.country}
+                                    </p>
+                                </div>
+                            )}
                             <div>
                                 <p className="text-sm text-gray-500">Miembro desde</p>
                                 <p className="font-medium">

@@ -48,7 +48,8 @@ const updateUser = asyncHandler(async (req, res) => {
         specialty: req.body.specialty,
         experience: req.body.experience,
         skills: req.body.skills,
-        portfolio: req.body.portfolio
+        portfolio: req.body.portfolio,
+        country: req.body.country
     };
 
     // Solo administradores pueden cambiar el rol

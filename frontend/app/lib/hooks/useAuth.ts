@@ -30,6 +30,8 @@ interface User {
 
     stripeAccountId?: string;
     stripeAccountStatus?: string;
+
+    country?: string;
 }
 
 interface AuthState {

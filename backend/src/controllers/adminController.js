@@ -126,7 +126,7 @@ const getUserStats = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const updateUser = asyncHandler(async (req, res) => {
     const { name, company, phone, bio, specialty, experience, skills, portfolio,
-        isActive, isVerified, role } = req.body;
+        isActive, isVerified, role, country } = req.body;
 
     // No permitir modificar rol o estado del admin principal
     if (req.params.id === req.user.id && (isActive === false || (role && role !== 'admin'))) {
@@ -144,6 +144,7 @@ const updateUser = asyncHandler(async (req, res) => {
     if (experience !== undefined) updates.experience = experience;
     if (skills !== undefined) updates.skills = skills;
     if (portfolio !== undefined) updates.portfolio = portfolio;
+    if (country !== undefined) updates.country = country;
 
     if (isActive !== undefined) updates.isActive = isActive;
     if (isVerified !== undefined) updates.isVerified = isVerified;

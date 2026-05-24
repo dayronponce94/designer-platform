@@ -11,6 +11,7 @@ import {
     FiTool
 } from 'react-icons/fi';
 import AuthLayout from '@/components/auth/AuthLayout';
+import Swal from 'sweetalert2';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -36,27 +37,46 @@ export default function RegisterPage() {
 
         // Validación básica
         if (formData.password !== formData.confirmPassword) {
-            alert('Las contraseñas no coinciden');
+            Swal.fire({
+                icon: 'error',
+                title: '¡Oops!',
+                text: 'Las contraseñas no coinciden',
+                confirmButtonColor: '#3b82f6', // Color azul Tailwind
+            });
             return;
         }
 
         if (!formData.agreeTerms) {
-            alert('Debes aceptar los términos y condiciones');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Términos requeridos',
+                text: 'Debes aceptar los términos y condiciones para continuar',
+                confirmButtonColor: '#3b82f6',
+            });
             return;
         }
 
         // Validación de negocio del diseñador
         if (selectedRole === 'designer') {
             if (!formData.specialty) {
-                alert('Debes seleccionar una especialidad');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campo incompleto',
+                    text: 'Debes seleccionar una especialidad',
+                    confirmButtonColor: '#3b82f6',
+                });
                 return;
             }
             if (!formData.country) {
-                alert('Debes seleccionar tu país de residencia');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'País requerido',
+                    text: 'Debes seleccionar tu país de residencia',
+                    confirmButtonColor: '#3b82f6',
+                });
                 return;
             }
         }
-
         const userData = {
             name: formData.name,
             email: formData.email,
@@ -69,7 +89,12 @@ export default function RegisterPage() {
         };
 
         if (selectedRole === 'designer' && !formData.specialty) {
-            alert('Debes seleccionar una especialidad');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Campo incompleto',
+                text: 'Debes seleccionar una especialidad',
+                confirmButtonColor: '#3b82f6',
+            });
             return;
         }
 

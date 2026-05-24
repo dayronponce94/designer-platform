@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 import { adminAPI } from '@/app/lib/api/endpoints';
-import { FiArrowLeft, FiUser, FiMail, FiBriefcase, FiPhone, FiCalendar, FiEdit } from 'react-icons/fi';
+import { FiArrowLeft, FiUser, FiMail, FiBriefcase, FiPhone, FiCalendar, FiEdit, FiGlobe } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -53,6 +53,55 @@ export default function UserDetailsPage() {
         illustration: 'Ilustración',
         other: 'Otra Especialidad'
     };
+
+    const countries = [
+        // América
+        { value: 'US', label: 'Estados Unidos' },
+        { value: 'CA', label: 'Canadá' },
+        { value: 'BR', label: 'Brasil' },
+        { value: 'MX', label: 'México' },
+
+        // Europa
+        { value: 'DE', label: 'Alemania' },
+        { value: 'AT', label: 'Austria' },
+        { value: 'BE', label: 'Bélgica' },
+        { value: 'BG', label: 'Bulgaria' },
+        { value: 'CY', label: 'Chipre' },
+        { value: 'HR', label: 'Croacia' },
+        { value: 'DK', label: 'Dinamarca' },
+        { value: 'SK', label: 'Eslovaquia' },
+        { value: 'SI', label: 'Eslovenia' },
+        { value: 'ES', label: 'España' },
+        { value: 'EE', label: 'Estonia' },
+        { value: 'FI', label: 'Finlandia' },
+        { value: 'FR', label: 'Francia' },
+        { value: 'GR', label: 'Grecia' },
+        { value: 'HU', label: 'Hungría' },
+        { value: 'IE', label: 'Irlanda' },
+        { value: 'IT', label: 'Italia' },
+        { value: 'LV', label: 'Letonia' },
+        { value: 'LT', label: 'Lituania' },
+        { value: 'LU', label: 'Luxemburgo' },
+        { value: 'MT', label: 'Malta' },
+        { value: 'NO', label: 'Noruega' },
+        { value: 'NL', label: 'Países Bajos' },
+        { value: 'PL', label: 'Polonia' },
+        { value: 'PT', label: 'Portugal' },
+        { value: 'GB', label: 'Reino Unido' },
+        { value: 'CZ', label: 'República Checa' },
+        { value: 'RO', label: 'Rumania' },
+        { value: 'SE', label: 'Suecia' },
+        { value: 'CH', label: 'Suiza' },
+
+        // Asia-Pacífico y Medio Oriente
+        { value: 'AU', label: 'Australia' },
+        { value: 'HK', label: 'Hong Kong' },
+        { value: 'JP', label: 'Japón' },
+        { value: 'NZ', label: 'Nueva Zelanda' },
+        { value: 'SG', label: 'Singapur' },
+        { value: 'TH', label: 'Tailandia' },
+        { value: 'AE', label: 'Emiratos Árabes Unidos' },
+    ];
 
 
     if (loading) {
@@ -172,7 +221,7 @@ export default function UserDetailsPage() {
                         {user.role === 'designer' && (
                             <div className="p-4 bg-purple-50 rounded-lg">
                                 <h3 className="font-medium text-gray-900 mb-2">Información de Diseñador</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {user.specialty && (
                                         <div>
                                             <span className="text-gray-600">Especialidad:</span>
@@ -185,8 +234,17 @@ export default function UserDetailsPage() {
                                             <p className="font-medium">{user.experience} años</p>
                                         </div>
                                     )}
+                                    {user.country && (
+                                        <div>
+                                            <span className="text-gray-600">País:</span>
+                                            <p className="font-medium">
+                                                {countries.find(c => c.value === user.country)?.label || user.country}
+                                            </p>
+                                        </div>
+                                    )}
+
                                     {user.skills && user.skills.length > 0 && (
-                                        <div className="md:col-span-2">
+                                        <div className="md:col-span-3">
                                             <span className="text-gray-600">Habilidades:</span>
                                             <div className="flex flex-wrap gap-2 mt-1">
                                                 {user.skills.map((skill: string, index: number) => (

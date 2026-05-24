@@ -42,6 +42,7 @@ export default function ProfilePage() {
         bio: '',
         skills: [] as string[],
         portfolioUrl: '',
+        country: '',
     });
     const [newSkill, setNewSkill] = useState('');
 
@@ -58,6 +59,7 @@ export default function ProfilePage() {
                 bio: user.bio || '',
                 skills: user.skills || [],
                 portfolioUrl: user.portfolio || '',
+                country: user.country || '',
             });
         }
     }, [user]);
@@ -100,6 +102,7 @@ export default function ProfilePage() {
                 bio: formData.bio,
                 skills: formData.skills,
                 portfolio: formData.portfolioUrl,
+                country: formData.country,
             };
 
             const response = await userAPI.updateUser(user?._id || '', updateData);
@@ -288,6 +291,74 @@ export default function ProfilePage() {
                                     placeholder="https://behance.net/tuportafolio"
                                 />
                             </div>
+                        </div>
+
+                        <div className="mt-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                País de Residencia (Stripe Connect)
+                            </label>
+                            <div className="flex items-center">
+                                <FiGlobe className="text-gray-400 mr-2" />
+                                <select
+                                    name="country"
+                                    value={formData.country}
+                                    onChange={handleInputChange}
+                                    disabled={!!user.stripeAccountId}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white text-gray-900 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
+                                    required
+                                >
+                                    <option value="">Selecciona tu país</option>
+                                    {/* América */}
+                                    <option value="US">Estados Unidos</option>
+                                    <option value="CA">Canadá</option>
+                                    <option value="BR">Brasil</option>
+                                    <option value="MX">México</option>
+
+                                    {/* Europa */}
+                                    <option value="DE">Alemania</option>
+                                    <option value="AT">Austria</option>
+                                    <option value="BE">Bélgica</option>
+                                    <option value="BG">Bulgaria</option>
+                                    <option value="CY">Chipre</option>
+                                    <option value="HR">Croacia</option>
+                                    <option value="DK">Dinamarca</option>
+                                    <option value="SK">Eslovaquia</option>
+                                    <option value="SI">Eslovenia</option>
+                                    <option value="ES">España</option>
+                                    <option value="EE">Estonia</option>
+                                    <option value="FI">Finlandia</option>
+                                    <option value="FR">Francia</option>
+                                    <option value="GR">Grecia</option>
+                                    <option value="HU">Hungría</option>
+                                    <option value="IE">Irlanda</option>
+                                    <option value="IT">Italia</option>
+                                    <option value="LV">Letonia</option>
+                                    <option value="LT">Lituania</option>
+                                    <option value="LU">Luxemburgo</option>
+                                    <option value="MT">Malta</option>
+                                    <option value="NO">Noruega</option>
+                                    <option value="NL">Países Bajos</option>
+                                    <option value="PL">Polonia</option>
+                                    <option value="PT">Portugal</option>
+                                    <option value="GB">Reino Unido</option>
+                                    <option value="CZ">República Checa</option>
+                                    <option value="RO">Rumania</option>
+                                    <option value="SE">Suecia</option>
+                                    <option value="CH">Suiza</option>
+
+                                    {/* Asia-Pacífico y Medio Oriente */}
+                                    <option value="AU">Australia</option>
+                                    <option value="HK">Hong Kong</option>
+                                    <option value="JP">Japón</option>
+                                    <option value="NZ">Nueva Zelanda</option>
+                                    <option value="SG">Singapur</option>
+                                    <option value="TH">Tailandia</option>
+                                    <option value="AE">Emiratos Árabes Unidos</option>
+                                </select>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 pl-6">
+                                * Este país debe coincidir con la procedencia de tu cuenta bancaria para las transferencias.
+                            </p>
                         </div>
 
                         <div className="mt-6">

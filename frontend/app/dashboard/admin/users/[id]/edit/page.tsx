@@ -43,6 +43,7 @@ export default function AdminEditUserPage() {
         bio: '',
         skills: [] as string[],
         portfolioUrl: '',
+        country: '',
     });
 
     const [newSkill, setNewSkill] = useState('');
@@ -67,6 +68,7 @@ export default function AdminEditUserPage() {
                     bio: data.bio || '',
                     skills: data.skills || [],
                     portfolioUrl: data.portfolio || '',
+                    country: data.country || '',
                 });
             } catch (err: any) {
                 setError(err.response?.data?.message || 'Error al cargar usuario');
@@ -91,6 +93,7 @@ export default function AdminEditUserPage() {
                 bio: formData.bio,
                 skills: formData.skills,
                 portfolio: formData.portfolioUrl,
+                country: formData.country,
             };
 
             const response = await adminAPI.updateUser(userId, updateData);
@@ -132,6 +135,55 @@ export default function AdminEditUserPage() {
         }));
     };
 
+    const countries = [
+        // América
+        { value: 'US', label: 'Estados Unidos' },
+        { value: 'CA', label: 'Canadá' },
+        { value: 'BR', label: 'Brasil' },
+        { value: 'MX', label: 'México' },
+
+        // Europa
+        { value: 'DE', label: 'Alemania' },
+        { value: 'AT', label: 'Austria' },
+        { value: 'BE', label: 'Bélgica' },
+        { value: 'BG', label: 'Bulgaria' },
+        { value: 'CY', label: 'Chipre' },
+        { value: 'HR', label: 'Croacia' },
+        { value: 'DK', label: 'Dinamarca' },
+        { value: 'SK', label: 'Eslovaquia' },
+        { value: 'SI', label: 'Eslovenia' },
+        { value: 'ES', label: 'España' },
+        { value: 'EE', label: 'Estonia' },
+        { value: 'FI', label: 'Finlandia' },
+        { value: 'FR', label: 'Francia' },
+        { value: 'GR', label: 'Grecia' },
+        { value: 'HU', label: 'Hungría' },
+        { value: 'IE', label: 'Irlanda' },
+        { value: 'IT', label: 'Italia' },
+        { value: 'LV', label: 'Letonia' },
+        { value: 'LT', label: 'Lituania' },
+        { value: 'LU', label: 'Luxemburgo' },
+        { value: 'MT', label: 'Malta' },
+        { value: 'NO', label: 'Noruega' },
+        { value: 'NL', label: 'Países Bajos' },
+        { value: 'PL', label: 'Polonia' },
+        { value: 'PT', label: 'Portugal' },
+        { value: 'GB', label: 'Reino Unido' },
+        { value: 'CZ', label: 'República Checa' },
+        { value: 'RO', label: 'Rumania' },
+        { value: 'SE', label: 'Suecia' },
+        { value: 'CH', label: 'Suiza' },
+
+        // Asia-Pacífico y Medio Oriente
+        { value: 'AU', label: 'Australia' },
+        { value: 'HK', label: 'Hong Kong' },
+        { value: 'JP', label: 'Japón' },
+        { value: 'NZ', label: 'Nueva Zelanda' },
+        { value: 'SG', label: 'Singapur' },
+        { value: 'TH', label: 'Tailandia' },
+        { value: 'AE', label: 'Emiratos Árabes Unidos' },
+    ];
+
 
     if (!user) {
         return (
@@ -146,7 +198,7 @@ export default function AdminEditUserPage() {
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Configuración de Perfil</h1>
                 <p className="text-gray-600 mt-2">
-                    Actualiza tu información personal y profesional
+                    Actualiza la información personal y profesional
                 </p>
             </div>
 
@@ -263,6 +315,26 @@ export default function AdminEditUserPage() {
                                     {SPECIALTIES.map(spec => (
                                         <option key={spec.value} value={spec.value}>
                                             {spec.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    País
+                                </label>
+                                <select
+                                    name="country"
+                                    value={formData.country}
+                                    onChange={handleInputChange}
+                                    disabled={!!user.stripeAccountId}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white text-gray-900 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
+                                >
+                                    <option value="" disabled>Selecciona un país...</option>
+                                    {countries.map((country) => (
+                                        <option key={country.value} value={country.value}>
+                                            {country.label}
                                         </option>
                                     ))}
                                 </select>
