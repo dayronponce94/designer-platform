@@ -236,7 +236,7 @@ export default function NewRequestPage() {
                                     placeholder="Ej: 3000"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">
-                                    Ingresa el monto en dólares (ejemplo: 3000).
+                                    Ingresa el monto en euros (ejemplo: 3000).
                                 </p>
                             </div>
 

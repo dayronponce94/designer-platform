@@ -174,6 +174,12 @@ export default function QuoteDetailPage() {
                     label: 'Rechazada',
                     desc: `Cotización rechazada por ${quote?.request?.client?.name || 'el cliente'}.`
                 },
+                expired: {
+                    color: 'bg-gray-100 text-gray-800 border-gray-200',
+                    icon: <FiClock className="w-4 h-4" />,
+                    label: 'Expirada',
+                    desc: `Cotización expirada por ${quote?.request?.client?.name || 'el cliente'}.`
+                },
                 paid: {
                     color: 'bg-blue-100 text-blue-800 border-blue-200',
                     icon: <FiDollarSign className="w-4 h-4" />,
@@ -201,6 +207,12 @@ export default function QuoteDetailPage() {
                     icon: <FiXCircle className="w-4 h-4" />,
                     label: 'Rechazada',
                     desc: 'Rechazaste esta cotización.'
+                },
+                expired: {
+                    color: 'bg-gray-100 text-gray-800 border-gray-200',
+                    icon: <FiClock className="w-4 h-4" />,
+                    label: 'Expirada',
+                    desc: `Cotización expirada por por no responder en el tiempo establecido.`
                 },
                 paid: {
                     color: 'bg-blue-100 text-blue-800 border-blue-200',

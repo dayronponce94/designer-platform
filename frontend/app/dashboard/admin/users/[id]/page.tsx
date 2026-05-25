@@ -228,12 +228,36 @@ export default function UserDetailsPage() {
                                             <p className="font-medium"> {SPECIALTY_LABELS[user.specialty] || user.specialty}</p>
                                         </div>
                                     )}
-                                    {user.experience && (
-                                        <div>
-                                            <span className="text-gray-600">Experiencia:</span>
+                                    <div>
+                                        <span className="text-gray-600">Experiencia:</span>
+                                        {user.experience ? (
                                             <p className="font-medium">{user.experience} años</p>
-                                        </div>
-                                    )}
+                                        ) : (
+                                            <p className="text-gray-400 text-sm italic">No especificada</p>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-600 block mb-1">Portafolio:</span>
+                                        {user.portfolio ? (
+                                            <a
+                                                href={user.portfolio.startsWith('http') ? user.portfolio : `https://${user.portfolio}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-600 hover:text-blue-800 hover:underline font-medium break-all text-sm inline-flex items-center gap-1"
+                                                title={user.portfolio}
+                                            >
+                                                {user.portfolio.length > 25
+                                                    ? `${user.portfolio.substring(0, 25)}...`
+                                                    : user.portfolio
+                                                }
+                                                <svg className="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                            </a>
+                                        ) : (
+                                            <p className="text-gray-400 text-sm italic">No especificado</p>
+                                        )}
+                                    </div>
                                     {user.country && (
                                         <div>
                                             <span className="text-gray-600">País:</span>
@@ -243,9 +267,9 @@ export default function UserDetailsPage() {
                                         </div>
                                     )}
 
-                                    {user.skills && user.skills.length > 0 && (
-                                        <div className="md:col-span-3">
-                                            <span className="text-gray-600">Habilidades:</span>
+                                    <div>
+                                        <span className="text-gray-600">Habilidades:</span>
+                                        {user.skills && user.skills.length > 0 ? (
                                             <div className="flex flex-wrap gap-2 mt-1">
                                                 {user.skills.map((skill: string, index: number) => (
                                                     <span key={index} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
@@ -253,8 +277,10 @@ export default function UserDetailsPage() {
                                                     </span>
                                                 ))}
                                             </div>
-                                        </div>
-                                    )}
+                                        ) : (
+                                            <p className="text-gray-400 text-sm italic mt-1">El diseñador aún no ha añadido habilidades.</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}

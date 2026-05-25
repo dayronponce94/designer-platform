@@ -189,7 +189,7 @@ export default function ProfilePage() {
                                 type="email"
                                 value={formData.email}
                                 disabled
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg disabled:cursor-not-allowed bg-gray-50 text-gray-600"
                             />
                             <p className="text-xs text-gray-500 mt-1">El email no se puede modificar</p>
                         </div>
@@ -357,7 +357,7 @@ export default function ProfilePage() {
                                 </select>
                             </div>
                             <p className="text-xs text-gray-500 mt-1 pl-6">
-                                * Este país debe coincidir con la procedencia de tu cuenta bancaria para las transferencias.
+                                * Este país debe coincidir con la procedencia de tu cuenta bancaria para las transferencias. Despues de conectar tu cuenta Stripe, esta opción se bloqueará para evitar inconsistencias.
                             </p>
                         </div>
 

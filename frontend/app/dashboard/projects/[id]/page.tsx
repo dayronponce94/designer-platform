@@ -153,7 +153,7 @@ export default function ProjectDetailPage() {
             },
             'in-progress': {
                 color: 'bg-purple-100 text-purple-800 border-purple-200',
-                icon: <FiBriefcase className="w-4 h-4" />,
+                icon: <FiClock className="w-4 h-4" />,
                 label: 'En Progreso',
                 desc: 'El diseñador está trabajando actualmente en los entregables.'
             },
@@ -306,17 +306,6 @@ export default function ProjectDetailPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        {/* Botón Editar: Solo Admin */}
-                        {isAdmin && (
-                            <button
-                                onClick={() => router.push(`/dashboard/projects/${projectId}/edit`)}
-                                className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                            >
-                                <FiEdit className="mr-2" />
-                                Editar
-                            </button>
-                        )}
-
                         <button
                             onClick={() => window.print()}
                             className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"

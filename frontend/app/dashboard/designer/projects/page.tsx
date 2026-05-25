@@ -119,28 +119,28 @@ export default function DesignerProjectsPage() {
             case 'approved':
                 return {
                     icon: FiCheckCircle,
-                    color: 'text-blue-600 bg-blue-100',
+                    color: 'bg-blue-100 text-blue-800',
                     label: 'Aprobado',
                     nextAction: 'Iniciar trabajo'
                 };
             case 'in-progress':
                 return {
                     icon: FiClock,
-                    color: 'text-purple-600 bg-purple-100',
+                    color: 'bg-purple-100 text-purple-800',
                     label: 'En Progreso',
                     nextAction: 'Marcar para revisión'
                 };
             case 'review':
                 return {
-                    icon: FiAlertCircle,
-                    color: 'text-orange-600 bg-orange-100',
+                    icon: FiEye,
+                    color: 'bg-orange-100 text-orange-800',
                     label: 'En Revisión',
                     nextAction: 'Esperando feedback'
                 };
             case 'completed':
                 return {
                     icon: FiCheckCircle,
-                    color: 'text-green-600 bg-green-100',
+                    color: 'bg-green-100 text-green-800',
                     label: 'Completado',
                     nextAction: 'Proyecto finalizado'
                 };

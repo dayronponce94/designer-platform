@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useProjects } from '@/app/lib/hooks/useProjects';
-import { FiCalendar, FiClock, FiAlertCircle, FiCheckCircle, FiActivity, FiPackage, FiAlertTriangle, FiTrendingUp } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiAlertCircle, FiCheckCircle, FiActivity, FiAlertTriangle, FiTrendingUp, FiEye } from 'react-icons/fi';
 import { format, differenceInDays, isPast, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
@@ -135,19 +135,19 @@ export default function DeliveriesPage() {
                 };
             case 'in-progress':
                 return {
-                    icon: FiActivity,
-                    color: 'text-yellow-600 bg-yellow-100',
-                    borderColor: 'border-yellow-200',
+                    icon: FiClock,
+                    color: 'text-purple-600 bg-purple-100',
+                    borderColor: 'border-purple-200',
                     label: 'En Progreso',
-                    bgColor: 'bg-yellow-50'
+                    bgColor: 'bg-purple-50'
                 };
             case 'review':
                 return {
-                    icon: FiPackage,
-                    color: 'text-purple-600 bg-purple-100',
-                    borderColor: 'border-purple-200',
+                    icon: FiEye,
+                    color: 'text-orange-600 bg-orange-100',
+                    borderColor: 'border-orange-200',
                     label: 'En Revisión',
-                    bgColor: 'bg-purple-50'
+                    bgColor: 'bg-orange-50'
                 };
             case 'completed':
                 return {

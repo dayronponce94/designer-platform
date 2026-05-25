@@ -144,6 +144,11 @@ export default function NotificationsPage() {
         );
     }
 
+    // Cálculos dinámicos locales basados en la respuesta real de la API
+    const totalResults = pagination?.total || 0;
+    const currentFrom = totalResults === 0 ? 0 : (page - 1) * 5 + 1;
+    const currentTo = Math.min(page * 5, totalResults);
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -330,40 +335,37 @@ export default function NotificationsPage() {
                 )}
             </div>
 
-            {/* Paginación */}
-            {pagination.pages > 1 && (
-                <div className="mt-6 flex justify-between items-center">
-                    {/* Texto de resultados */}
+            {totalResults > 0 && (
+                <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    {/* Texto de resultados con protección matemática */}
                     <div className="text-sm text-gray-500">
-                        <div className="text-sm text-gray-500">
-                            Mostrando {(page - 1) * 5 + 1} - {Math.min(page * 5, pagination.total)} de {pagination.total} resultados
+                        Mostrando {currentFrom} - {currentTo} de {totalResults} resultados
+                    </div>
+
+                    {/* Controles de navegación condicionales */}
+                    {pagination?.pages > 1 && (
+                        <div className="flex space-x-2">
+                            <button
+                                onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                                disabled={page === 1}
+                                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            >
+                                Anterior
+                            </button>
+                            <span className="px-4 py-2 text-gray-700 font-medium">
+                                Página {page} de {pagination.pages}
+                            </span>
+                            <button
+                                onClick={() => setPage(prev => Math.min(pagination.pages, prev + 1))}
+                                disabled={page === pagination.pages}
+                                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                            >
+                                Siguiente
+                            </button>
                         </div>
-
-                    </div>
-
-                    {/* Controles de navegación */}
-                    <div className="flex space-x-2">
-                        <button
-                            onClick={() => setPage(prev => Math.max(1, prev - 1))}
-                            disabled={page === 1}
-                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                        >
-                            Anterior
-                        </button>
-                        <span className="px-4 py-2">
-                            Página {page} de {pagination.pages}
-                        </span>
-                        <button
-                            onClick={() => setPage(prev => Math.min(pagination.pages, prev + 1))}
-                            disabled={page === pagination.pages}
-                            className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                        >
-                            Siguiente
-                        </button>
-                    </div>
+                    )}
                 </div>
             )}
-
         </div>
     );
 }

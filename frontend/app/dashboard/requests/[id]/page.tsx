@@ -41,26 +41,6 @@ interface Request {
         uploadedAt: string;
     }>;
 }
-const STATUS_CONFIG: Record<string, { color: string; icon: React.ReactNode; label: string; desc: string }> = {
-    'requested': {
-        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        icon: <FiClock className="w-4 h-4" />,
-        label: 'Solicitado',
-        desc: 'Tu solicitud está pendiente de revisión. Pronto recibirás una cotización.'
-    },
-    'quoted': {
-        color: 'bg-blue-100 text-blue-800 border-blue-200',
-        icon: <FiFileText className="w-4 h-4" />,
-        label: 'Cotizado',
-        desc: 'Ya tienes una cotización disponible. Revisa los detalles y decide si deseas continuar.'
-    },
-    'cancelled': {
-        color: 'bg-red-100 text-red-800 border-red-200',
-        icon: <FiAlertCircle className="w-4 h-4" />,
-        label: 'Cancelado',
-        desc: 'Esta solicitud ha sido cancelada.'
-    }
-};
 
 export default function RequestDetailPage() {
     const params = useParams();

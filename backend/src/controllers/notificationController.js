@@ -11,13 +11,13 @@ exports.getNotifications = asyncHandler(async (req, res, next) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Construir query
+    // Construir query dinámica
     const query = { userId };
     if (unreadOnly === 'true') {
         query.read = false;
     }
 
-    // Obtener notificaciones
+    // Obtener notificaciones aplicando la query
     const notifications = await Notification.find(query)
         .populate('projectId', 'title')
         .populate('relatedUserId', 'name email')
@@ -25,8 +25,10 @@ exports.getNotifications = asyncHandler(async (req, res, next) => {
         .skip(skip)
         .limit(parseInt(limit));
 
-    // Contar total y no leídas
-    const total = await Notification.countDocuments({ userId });
+    // SOLUCIÓN: Usamos 'query' en vez de '{ userId }' para contar según el filtro actual
+    const total = await Notification.countDocuments(query);
+
+    // El contador global de no leídas se queda igual (este siempre debe ser el total real)
     const unreadCount = await Notification.countDocuments({
         userId,
         read: false
