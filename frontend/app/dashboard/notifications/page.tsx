@@ -115,6 +115,7 @@ export default function NotificationsPage() {
 
         try {
             await markAllAsRead();
+            fetchNotifications(page, 5, filter === 'unread');
         } catch (error) {
             console.error('Error:', error);
         }
@@ -126,6 +127,8 @@ export default function NotificationsPage() {
 
         try {
             await deleteAllRead();
+            setPage(1); // Reiniciamos a la página 1 ya que borramos registros
+            fetchNotifications(1, 5, filter === 'unread');
         } catch (error) {
             console.error('Error:', error);
         }
@@ -335,7 +338,7 @@ export default function NotificationsPage() {
                 )}
             </div>
 
-            {totalResults > 0 && (
+            {totalResults > 5 && (
                 <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                     {/* Texto de resultados con protección matemática */}
                     <div className="text-sm text-gray-500">

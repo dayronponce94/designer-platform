@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 import { projectAPI } from '@/app/lib/api/endpoints';
-import { FiBriefcase, FiFilter, FiUpload, FiCheckCircle, FiClock, FiAlertCircle, FiEye, FiMessageSquare, FiCalendar } from 'react-icons/fi';
+import { FiBriefcase, FiFilter, FiUpload, FiCheckCircle, FiClock, FiAlertCircle, FiEye, FiMessageSquare, FiCalendar, FiXCircle } from 'react-icons/fi';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
@@ -143,6 +143,13 @@ export default function DesignerProjectsPage() {
                     color: 'bg-green-100 text-green-800',
                     label: 'Completado',
                     nextAction: 'Proyecto finalizado'
+                };
+            case 'cancelled':
+                return {
+                    icon: FiXCircle,
+                    color: 'bg-red-100 text-red-800',
+                    label: 'Cancelado',
+                    nextAction: 'Proyecto cancelado'
                 };
             default:
                 return {
