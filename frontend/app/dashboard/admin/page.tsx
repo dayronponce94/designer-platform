@@ -235,6 +235,7 @@ export default function AdminDashboardPage() {
                             </div>
                         </div>
                     </div>
+                    {/*
                     <div className="mt-6 pt-6 border-t border-gray-200">
                         <a
                             href="/dashboard/profile"
@@ -243,7 +244,7 @@ export default function AdminDashboardPage() {
                             <FiSettings className="mr-2" />
                             Editar información del perfil
                         </a>
-                    </div>
+                    </div> */}
                 </div>
 
                 {/* Estado de la Cuenta */}
@@ -431,7 +432,7 @@ export default function AdminDashboardPage() {
                     </Link>
 
                     <Link
-                        href="/dashboard/admin/settings"
+                        href="/dashboard/settings"
                         className="p-4 bg-gray-50 border border-gray-100 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                         <div className="flex items-center">

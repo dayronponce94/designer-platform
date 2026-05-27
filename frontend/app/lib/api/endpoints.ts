@@ -8,6 +8,7 @@ export const authAPI = {
     getMe: () => apiClient.get('/auth/me'),
     forgotPassword: (email: string) => apiClient.post('/auth/forgot-password', { email }),
     resetPassword: (token: string, password: string) => apiClient.put(`/auth/resetpassword/${token}`, { password }),
+    updatePassword: (data: { currentPassword: string; newPassword: string }) => apiClient.put('/auth/update-password', data),
 };
 
 export const userAPI = {

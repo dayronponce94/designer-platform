@@ -237,7 +237,40 @@ const resetPassword = asyncHandler(async (req, res) => {
     );
 });
 
+// @desc    Actualizar contraseña (Usuario Autenticado)
+// @route   PUT /api/auth/update-password
+// @access  Private
+const updatePassword = asyncHandler(async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
 
+    // 1. Validar que vengan ambos campos
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json(
+            ApiResponse.error('Por favor ingrese la contraseña actual y la nueva', 400).toJSON()
+        );
+    }
+
+    // 2. Buscar al usuario autenticado e incluir la contraseña explícitamente (ya que tiene select: false)
+    const user = await User.findById(req.user.id).select('+password');
+
+    // 3. Verificar que la contraseña actual sea la correcta
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+        return res.status(401).json(
+            ApiResponse.error('La contraseña actual es incorrecta', 401).toJSON()
+        );
+    }
+
+    // 4. Asignar la nueva contraseña (el hook 'pre-save' del modelo User la encriptará automáticamente)
+    user.password = newPassword;
+    await user.save();
+
+    logger.info(`Contraseña actualizada para el usuario: ${user.email}`);
+
+    res.status(200).json(
+        ApiResponse.success('Contraseña actualizada exitosamente').toJSON()
+    );
+});
 
 module.exports = {
     register,
@@ -245,5 +278,6 @@ module.exports = {
     logout,
     getMe,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    updatePassword,
 };

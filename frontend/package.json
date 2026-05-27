@@ -33,6 +33,7 @@
     "@types/node": "^20.19.27",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "baseline-browser-mapping": "^2.10.32",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

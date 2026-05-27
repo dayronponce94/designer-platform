@@ -451,6 +451,8 @@ export default function DashboardPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* 
                     <div className="mt-6 pt-6 border-t border-gray-200">
                         <a
                             href="/dashboard/profile"
@@ -460,6 +462,7 @@ export default function DashboardPage() {
                             Editar información del perfil
                         </a>
                     </div>
+                    */}
                 </div>
 
                 {/* Estado de la Cuenta */}
