@@ -77,14 +77,6 @@ export default function ChangePasswordPage() {
 
     return (
         <div className="max-w-2xl mx-auto p-6">
-            {/* Botón para regresar al panel de Settings */}
-            <Link
-                href="/dashboard/settings"
-                className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
-            >
-                <FiArrowLeft className="mr-2" /> Volver a Ajustes
-            </Link>
-
             <div className="bg-white rounded-xl shadow p-6">
                 <div className="flex items-center mb-6">
                     <div className="p-3 bg-purple-50 rounded-lg mr-4">
@@ -172,7 +164,17 @@ export default function ChangePasswordPage() {
                         </div>
                     </div>
 
-                    <div className="flex justify-end pt-4">
+                    {/* Reemplaza tu div final de botones por este bloque */}
+                    <div className="flex justify-between items-center pt-4 border-t border-gray-100 mt-6">
+                        {/* Botón Gris de Volver / Cancelar */}
+                        <Link
+                            href="/dashboard/settings"
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-md text-sm transition-colors text-center shadow-xs"
+                        >
+                            Volver a Ajustes
+                        </Link>
+
+                        {/* Botón de Acción Principal (Manteniendo tus estilos) */}
                         <button
                             type="submit"
                             disabled={isLoading}
