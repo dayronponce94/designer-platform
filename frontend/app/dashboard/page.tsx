@@ -31,6 +31,8 @@ export default function DashboardPage() {
     });
     const [loadingStats, setLoadingStats] = useState(true);
 
+    const [isConnectingStripe, setIsConnectingStripe] = useState(false);
+
     useEffect(() => {
         const fetchDashboardStats = async () => {
             try {
@@ -189,7 +191,10 @@ export default function DashboardPage() {
     const stats = user?.role === 'designer' ? designerStats : clientStats;
 
     const handleStripeConnect = async () => {
+        if (isConnectingStripe) return;
+
         try {
+            setIsConnectingStripe(true);
             const { data } = await paymentAPI.createConnectAccountLink();
             if (data.data.url) {
                 window.location.href = data.data.url; // Redirige a Stripe
@@ -197,6 +202,11 @@ export default function DashboardPage() {
         } catch (error) {
             console.error("Error al conectar con Stripe:", error);
             alert("No se pudo conectar con Stripe. Intenta de nuevo.");
+        }
+        finally {
+            // Nota: Al cambiar de página con window.location.href, el estado morirá aquí,
+            // pero por seguridad si la petición falla, liberamos el botón.
+            setIsConnectingStripe(false);
         }
     };
 
@@ -563,10 +573,15 @@ export default function DashboardPage() {
                             {step.title === 'Configura tus cobros' ? (
                                 user?.stripeAccountStatus !== 'active' ? (
                                     <button
+                                        type="button"
+                                        disabled={isConnectingStripe} // 🚫 Deshabilita el botón
                                         onClick={handleStripeConnect}
-                                        className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${isConnectingStripe
+                                                ? 'bg-blue-400 text-white cursor-not-allowed opacity-70'
+                                                : 'bg-blue-600 text-white hover:bg-blue-700'
+                                            }`}
                                     >
-                                        Completar
+                                        {isConnectingStripe ? 'Cargando...' : 'Completar'}
                                     </button>
                                 ) : (
                                     <div className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">

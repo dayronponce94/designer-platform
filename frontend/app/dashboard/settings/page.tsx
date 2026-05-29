@@ -57,17 +57,24 @@ export default function SettingsPage() {
                         </div>
                     </Link>
 
-                    {/* Tarjeta 3: Configuración de Stripe (Exclusiva para Diseñadores) */}
-                    {user?.role === 'designer' && (
+                    {/* Tarjeta 3: Configuración de Stripe (Exclusiva para Diseñadores y Administradores) */}
+                    {(user?.role === 'designer' || user?.role === 'admin') && (
                         <Link
-                            href="/dashboard/settings/stripe"
+                            href="https://dashboard.stripe.com/login"
+                            target="_blank" // Abre Stripe en una pestaña nueva para no sacar al usuario de tu plataforma
+                            rel="noopener noreferrer" // Buenas prácticas de seguridad para enlaces externos
                             className="p-4 bg-emerald-50 border border-emerald-100 rounded-lg hover:bg-emerald-100 transition-colors"
                         >
                             <div className="flex items-center">
                                 <FiCreditCard className="text-emerald-600 mr-3 text-xl shrink-0" />
                                 <div>
-                                    <h3 className="font-medium text-gray-900">Pagos y Stripe</h3>
-                                    <p className="text-sm text-gray-500">Vincula tu cuenta para recibir tus ingresos</p>
+                                    <h3 className="font-medium text-gray-900">Ir a mi Stripe</h3>
+                                    <p className="text-sm text-gray-500">
+                                        {user?.role === 'admin'
+                                            ? 'Gestiona los ingresos e historial de la plataforma'
+                                            : 'Configura tu cuenta bancaria, país y transferencias'
+                                        }
+                                    </p>
                                 </div>
                             </div>
                         </Link>
