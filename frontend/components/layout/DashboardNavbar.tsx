@@ -70,11 +70,11 @@ export default function DashboardNavbar() {
 
 
     return (
-        <nav className="bg-white shadow-lg border-b border-gray-200">
+        <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo + botón hamburguesa (visible en móvil) */}
-                    <div className="flex items-center">
+                    <div className="flex items-center h-full max-w-60 md:max-w-70">
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
@@ -83,20 +83,23 @@ export default function DashboardNavbar() {
                             {mobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
                         </button>
 
-                        <Link href="/dashboard" className="flex items-center">
-                            <Image
-                                src="/projects/full-logo.png"
-                                alt="DesignerPlatform Logo"
-                                width={200}
-                                height={40}
-                                priority
-                            />
-                            {!isAdmin && (
-                                <span className="ml-2 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                    Dashboard
-                                </span>
-                            )}
-                        </Link>
+                        <div className="flex items-center h-12 w-auto overflow-hidden">
+                            <Link href="/dashboard" className="flex items-center">
+                                <Image
+                                    src="/projects/full-logo.png"
+                                    alt="DesignerPlatform Logo"
+                                    width={170}
+                                    height={40}
+                                    priority
+                                    className="object-contain h-full w-auto"
+                                />
+                                {!isAdmin && (
+                                    <span className="ml-2 text-sm text-gray-500 bg-gray-100 px-1 py-1 rounded">
+                                        Dashboard
+                                    </span>
+                                )}
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Menú derecho (solo desktop) */}
