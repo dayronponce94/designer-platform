@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { FiCheckCircle, FiEye, FiEyeOff, FiLock } from 'react-icons/fi';
 import Alert from '@/components/ui/Alert';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
     const router = useRouter();
@@ -166,5 +166,19 @@ export default function ResetPasswordPage() {
                 </button>
             </form>
         </AuthLayout>
+    );
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center p-4 text-gray-600 font-medium">
+                    Cargando formulario...
+                </div>
+            </div>
+        }>
+            <ResetPasswordContent />
+        </Suspense>
     );
 }
