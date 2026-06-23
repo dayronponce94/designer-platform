@@ -71,8 +71,8 @@ export default function RequestsPage() {
             setIsLoading(true);
             const token = localStorage.getItem('token');
 
-            // CONSTRUCCIÓN DE LA URL: Añadimos el parámetro &search
-            const url = `/api/requests?page=${currentPage}&status=${statusFilter}&limit=3&search=${filters.search}`;
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const url = `${apiUrl}/requests?page=${currentPage}&status=${statusFilter}&limit=3&search=${filters.search}`;
 
             const response = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -104,7 +104,8 @@ export default function RequestsPage() {
         setDeleteLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`/api/requests/${requestToDelete}`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const response = await fetch(`${apiUrl}/requests/${requestToDelete}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
