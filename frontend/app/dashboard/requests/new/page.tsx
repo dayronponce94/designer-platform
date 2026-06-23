@@ -107,7 +107,10 @@ export default function NewRequestPage() {
             });
 
             const token = localStorage.getItem('token');
-            const response = await fetch('/api/requests', {
+
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+            const response = await fetch(`${apiUrl}/requests`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formDataToSend
