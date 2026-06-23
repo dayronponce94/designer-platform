@@ -99,7 +99,6 @@ export const useAuth = () => {
                     isLoading: false,
                     error: null
                 });
-                router.push('/login');
             }
         } catch (error: any) {
             console.error('Error checking auth:', error);
@@ -110,9 +109,8 @@ export const useAuth = () => {
                 isLoading: false,
                 error: error.response?.data?.message || 'Error de autenticación'
             });
-            router.push('/login?expired=true');
         }
-    }, [router]);
+    }, []);
 
     const login = useCallback(async (loginData: LoginData): Promise<{ success: boolean; message: string }> => {
         try {
