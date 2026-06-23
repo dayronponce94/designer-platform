@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
@@ -8,7 +8,7 @@ import AuthLayout from '@/components/auth/AuthLayout';
 import { useAuthContext } from '@/app/providers/AuthProvider';
 import Alert from '@/components/ui/Alert';
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const isRegistered = searchParams.get('registered') === 'true';
@@ -159,5 +159,17 @@ export default function LoginPage() {
                 </button>
             </form>
         </AuthLayout>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        }>
+            <LoginForm />
+        </Suspense>
     );
 }
