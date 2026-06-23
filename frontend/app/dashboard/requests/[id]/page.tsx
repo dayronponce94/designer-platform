@@ -401,7 +401,7 @@ export default function RequestDetailPage() {
                                                     </div>
                                                     <div className="flex items-center space-x-2">
                                                         <a
-                                                            href={file.url}
+                                                            href={file.url.startsWith('http') ? file.url : `${process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000'}/${file.url}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
@@ -410,7 +410,7 @@ export default function RequestDetailPage() {
                                                             <FiEye />
                                                         </a>
                                                         <a
-                                                            href={file.url}
+                                                            href={file.url.startsWith('http') ? file.url : `${process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000'}/${file.url}`}
                                                             download
                                                             className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition"
                                                             title="Descargar"
