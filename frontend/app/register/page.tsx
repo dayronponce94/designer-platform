@@ -508,7 +508,7 @@ export default function RegisterPage() {
                 {/* Mensaje de bienvenida */}
                 <div className="mt-8 p-4 bg-linear-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
                     <p className="text-sm text-gray-700 text-center">
-                        <span className="font-semibold">¡Bienvenido a LLerandi Design! </span>
+                        <span className="font-semibold">¡Bienvenido a Llerandi Design! </span>
                         Al registrarte, obtienes acceso inmediato a nuestra comunidad de diseñadores y herramientas profesionales.
                     </p>
                 </div>

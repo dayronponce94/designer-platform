@@ -29,9 +29,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Solo activamos el temporizador si hay un usuario logueado
         if (auth.isAuthenticated) {
-            timeoutRef.current = setTimeout(() => {
+            timeoutRef.current = setTimeout(async () => {
                 console.log("Sesión expirada por inactividad");
-                auth.logout();
+                await auth.logout();
+                // Forzar un reemplazo de URL limpia el estado colgado de las cookies de Next.js
+                window.location.href = '/login?reason=inactivity';
             }, INACTIVITY_TIME);
         }
     }, [auth.isAuthenticated, auth.logout]);
