@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import AuthLayout from '@/components/auth/AuthLayout';
@@ -10,6 +10,8 @@ import Alert from '@/components/ui/Alert';
 
 export default function LoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const isRegistered = searchParams.get('registered') === 'true';
     const { login, isLoading, error, clearError } = useAuthContext();
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -52,6 +54,15 @@ export default function LoginPage() {
             showBackButton={true}
             isLongForm={false}
         >
+            {/* Mensaje de Registro Exitoso */}
+            {isRegistered && !error && (
+                <Alert
+                    type="success"
+                    message="¡Cuenta creada con éxito! Por favor introduce tus credenciales para ingresar."
+                    className="mb-4"
+                />
+            )}
+
             {error && (
                 <Alert
                     type="error"

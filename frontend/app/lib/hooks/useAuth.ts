@@ -161,8 +161,6 @@ export const useAuth = () => {
             if (response.data.success) {
                 const { user, token } = response.data.data;
 
-                // Guardar token en localStorage
-                localStorage.setItem('token', token);
 
                 setAuthState({
                     user,
@@ -171,10 +169,10 @@ export const useAuth = () => {
                     error: null
                 });
 
-                // Redirigir al dashboard
-                router.push('/dashboard');
+                // Redirigir al login con un mensaje de éxito
+                router.push('/login?registered=true');
 
-                return { success: true, message: 'Registro exitoso' };
+                return { success: true, message: 'Registro exitoso. Por favor, inicia sesión.' };
             } else {
                 throw new Error(response.data.message);
             }
