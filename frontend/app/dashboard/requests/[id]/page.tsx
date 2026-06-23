@@ -67,7 +67,8 @@ export default function RequestDetailPage() {
         try {
             setIsLoading(true);
             const token = localStorage.getItem('token');
-            const response = await fetch(`/api/requests/${requestId}`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const response = await fetch(`${apiUrl}/requests/${requestId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -199,7 +200,8 @@ export default function RequestDetailPage() {
         setDeleteLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`/api/requests/${requestId}`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const response = await fetch(`${apiUrl}/requests/${requestId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
