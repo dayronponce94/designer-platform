@@ -222,20 +222,27 @@ export default function RequestDetailPage() {
     };
 
     // Función auxiliar para resolver la URL correcta del archivo adjunto
-    const getAttachmentUrl = (url: string) => {
+    const getAttachmentUrl = (url: string, isDownload = false) => {
         if (!url) return '#';
 
-        // Si ya viene con http:// o https://, se usa tal cual
+        if (url.includes('res.cloudinary.com')) {
+            if (isDownload) {
+                // Si es para descargar, inyectamos las flags de descarga correctas para tipo image/auto
+                return url.replace('/upload/', '/upload/fl_attachment/');
+            } else {
+                // Si es para ver (el ojo), nos aseguramos de que no tenga flags que fuercen descargas
+                return url.replace('/fl_attachment/', '/');
+            }
+        }
+
         if (url.startsWith('http://') || url.startsWith('https://')) {
             return url;
         }
 
-        // Si contiene el dominio de railway pero le falta el protocolo
         if (url.includes('railway.app')) {
             return `https://${url.replace(/^\/+/, '')}`;
         }
 
-        // Para desarrollo local (localhost) u otras rutas relativas
         const baseUrl = process.env.NEXT_PUBLIC_API_URL
             ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '')
             : 'http://localhost:5000';
@@ -434,8 +441,8 @@ export default function RequestDetailPage() {
                                                                 <FiEye />
                                                             </a>
                                                             <a
-                                                                href={finalFileUrl}
-                                                                download={file.filename}
+                                                                href={getAttachmentUrl(file.url, true)} // Aquí activamos el modo descarga
+                                                                download={file.filename} // <-- Atributo clave para forzar la descarga en el navegador del cliente
                                                                 className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition"
                                                                 title="Descargar"
                                                             >

@@ -7,6 +7,14 @@ const fs = require('fs');
 const env = require('../config/env');
 const NotificationHelper = require('../utils/notifications');
 const User = require('../models/User');
+const cloudinary = require('cloudinary').v2;
+
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 // Configurar almacenamiento para archivos
 const storage = multer.diskStorage({
@@ -138,17 +146,28 @@ const createRequest = asyncHandler(async (req, res) => {
             const { title, description, serviceType, budget, deadline, references } = req.body;
 
             // Procesar archivos subidos
+            // Procesar archivos subidos directos a Cloudinary
             const attachments = [];
             if (req.files && req.files.length > 0) {
-                req.files.forEach(file => {
-                    attachments.push({
-                        url: `${env.SERVER_URL}/uploads/requests/${file.filename}`,
-                        filename: file.originalname,
-                        filetype: file.mimetype,
-                        size: file.size,
-                        uploadedAt: new Date()
-                    });
-                });
+                // Usamos Promise.all porque la subida a Cloudinary es asíncrona
+                await Promise.all(req.files.map(async (file) => {
+                    try {
+                        const uploadResult = await cloudinary.uploader.upload(file.path, {
+                            folder: 'designer_platform/attachments',
+                            resource_type: 'auto'
+                        });
+                        attachments.push({
+                            url: uploadResult.secure_url, // URL directa y segura de Cloudinary
+                            filename: file.originalname,
+                            filetype: file.mimetype,
+                            size: file.size,
+                            uploadedAt: new Date()
+                        });
+                    } catch (uploadError) {
+                        console.error('Error al subir archivo a Cloudinary:', uploadError);
+                        throw new Error(`Error al subir el archivo ${file.originalname}`);
+                    }
+                }));
             }
 
             const request = await Request.create({
