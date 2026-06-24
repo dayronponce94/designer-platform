@@ -221,6 +221,28 @@ export default function RequestDetailPage() {
         }
     };
 
+    // Función auxiliar para resolver la URL correcta del archivo adjunto
+    const getAttachmentUrl = (url: string) => {
+        if (!url) return '#';
+
+        // Si ya viene con http:// o https://, se usa tal cual
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            return url;
+        }
+
+        // Si contiene el dominio de railway pero le falta el protocolo
+        if (url.includes('railway.app')) {
+            return `https://${url.replace(/^\/+/, '')}`;
+        }
+
+        // Para desarrollo local (localhost) u otras rutas relativas
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL
+            ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '')
+            : 'http://localhost:5000';
+
+        return `${baseUrl}/${url.replace(/^\/+/, '')}`;
+    };
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center min-h-64">
@@ -379,47 +401,50 @@ export default function RequestDetailPage() {
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
-                                            {request.attachments.map((file, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-                                                >
-                                                    <div className="flex items-center flex-1 min-w-0">
-                                                        <FiPaperclip className="text-gray-400 mr-3 shrink-0" />
-                                                        <div className="min-w-0">
-                                                            <p className="font-medium text-gray-900 truncate">
-                                                                {file.filename}
-                                                            </p>
-                                                            <div className="flex items-center text-sm text-gray-500">
-                                                                <span>{formatFileSize(file.size)}</span>
-                                                                <span className="mx-2">•</span>
-                                                                <span>{file.filetype}</span>
-                                                                <span className="mx-2">•</span>
-                                                                <span>Subido: {formatDateTime(file.uploadedAt)}</span>
+                                            {request.attachments.map((file, index) => {
+                                                const finalFileUrl = getAttachmentUrl(file.url);
+                                                return (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                                                    >
+                                                        <div className="flex items-center flex-1 min-w-0">
+                                                            <FiPaperclip className="text-gray-400 mr-3 shrink-0" />
+                                                            <div className="min-w-0">
+                                                                <p className="font-medium text-gray-900 truncate">
+                                                                    {file.filename}
+                                                                </p>
+                                                                <div className="flex items-center text-sm text-gray-500">
+                                                                    <span>{formatFileSize(file.size)}</span>
+                                                                    <span className="mx-2">•</span>
+                                                                    <span>{file.filetype}</span>
+                                                                    <span className="mx-2">•</span>
+                                                                    <span>Subido: {formatDateTime(file.uploadedAt)}</span>
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <a
+                                                                href={finalFileUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
+                                                                title="Ver archivo"
+                                                            >
+                                                                <FiEye />
+                                                            </a>
+                                                            <a
+                                                                href={finalFileUrl}
+                                                                download={file.filename}
+                                                                className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition"
+                                                                title="Descargar"
+                                                            >
+                                                                <FiDownload />
+                                                            </a>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex items-center space-x-2">
-                                                        <a
-                                                            href={file.url.startsWith('http') ? file.url : `${process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000'}/${file.url}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition"
-                                                            title="Ver archivo"
-                                                        >
-                                                            <FiEye />
-                                                        </a>
-                                                        <a
-                                                            href={file.url.startsWith('http') ? file.url : `${process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '') : 'http://localhost:5000'}/${file.url}`}
-                                                            download
-                                                            className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition"
-                                                            title="Descargar"
-                                                        >
-                                                            <FiDownload />
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>
