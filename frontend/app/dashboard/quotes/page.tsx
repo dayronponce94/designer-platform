@@ -61,6 +61,7 @@ export default function QuotesPage() {
         try {
             setIsLoading(true);
             const token = localStorage.getItem('token');
+
             // Construcción de la URL con filtros
             const queryParams = new URLSearchParams({
                 page: filters.page.toString(),
@@ -69,9 +70,11 @@ export default function QuotesPage() {
                 limit: '3'
             });
 
-            const res = await fetch(`/api/quotes?${queryParams}`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const res = await fetch(`${apiUrl}/quotes?${queryParams}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+
             const data = await res.json();
 
             if (data.success) {
