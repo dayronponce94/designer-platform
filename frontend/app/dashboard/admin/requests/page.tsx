@@ -60,7 +60,8 @@ export default function AdminRequestsPage() {
             queryParams.append('page', filters.page.toString());
             queryParams.append('limit', filters.limit.toString());
 
-            const response = await fetch(`/api/admin/requests?${queryParams.toString()}`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const response = await fetch(`${apiUrl}/admin/requests?${queryParams.toString()}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -76,6 +77,7 @@ export default function AdminRequestsPage() {
             setIsLoading(false);
         }
     };
+
     const handleUpdateStatus = async (requestId: string, status: string) => {
         try {
             await adminAPI.updateRequestStatus(requestId, status);
@@ -96,7 +98,8 @@ export default function AdminRequestsPage() {
         if (!selectedRequest) return;
 
         const token = localStorage.getItem('token');
-        const res = await fetch(`/api/admin/requests/${selectedRequest.id}/quote`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${apiUrl}/admin/requests/${selectedRequest.id}/quote`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
