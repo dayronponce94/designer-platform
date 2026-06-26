@@ -83,7 +83,8 @@ export default function ProjectsPage() {
                 limit: filters.limit.toString()
             });
 
-            const response = await fetch(`/api/projects?${queryParams}`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const response = await fetch(`${apiUrl}/projects?${queryParams}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
