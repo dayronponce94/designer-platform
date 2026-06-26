@@ -75,7 +75,10 @@ export default function QuoteDetailPage() {
             // Condición según rol
             const endpoint = isAdmin ? `/api/admin/quotes/${quoteId}` : `/api/quotes/${quoteId}`;
 
-            const res = await fetch(endpoint, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const cleanEndpoint = endpoint.replace('/api', '');
+
+            const res = await fetch(`${apiUrl}${cleanEndpoint}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
@@ -96,7 +99,9 @@ export default function QuoteDetailPage() {
         setActionLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/quotes/${quoteId}/accept`, {
+
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const res = await fetch(`${apiUrl}/quotes/${quoteId}/accept`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -104,7 +109,9 @@ export default function QuoteDetailPage() {
                 },
                 body: JSON.stringify({ clientNotes }),
             });
+
             const data = await res.json();
+
             if (data.success) {
                 setShowAcceptModal(false);
                 fetchQuote(); // recargar
@@ -122,7 +129,9 @@ export default function QuoteDetailPage() {
         setActionLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`/api/quotes/${quoteId}/reject`, {
+
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const res = await fetch(`${apiUrl}/quotes/${quoteId}/reject`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -130,6 +139,7 @@ export default function QuoteDetailPage() {
                 },
                 body: JSON.stringify({ clientNotes }),
             });
+
             const data = await res.json();
             if (data.success) {
                 setShowRejectModal(false);
