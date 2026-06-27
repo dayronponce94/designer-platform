@@ -64,9 +64,11 @@ export default function DesignerEarningsPage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 italic text-gray-500">
-                <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                Cargando tus ingresos...
+            <div className="flex justify-center items-center min-h-100">
+                <div className="text-center">
+                    <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Cargando Mis Ingresos...</p>
+                </div>
             </div>
         );
     }
