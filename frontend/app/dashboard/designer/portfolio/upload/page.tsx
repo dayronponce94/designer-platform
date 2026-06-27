@@ -189,19 +189,64 @@ export default function UploadPortfolioPage() {
                 throw new Error('Debes subir al menos una imagen');
             }
 
-            // 1. Subir imágenes primero
-            setUploadProgress(30);
-            const uploadedImages = await uploadImages(images.map(img => img.file));
+            setUploadProgress(15);
 
-            // Preparar datos de imágenes para el portfolio item
+            // 🛠️ Detectar dinámicamente el entorno (Local o Nube)
+            // Si hay variable NEXT_PUBLIC_API_URL la usa, si no, usa el fallback local
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const token = localStorage.getItem('token');
+
+            const uploadedImages: any[] = [];
+
+            // 1. Subir las imágenes una a una para evitar el error de protocolo HTTP2 en la nube
+            for (let i = 0; i < images.length; i++) {
+                // Actualizar progreso visualmente según el archivo que va subiendo
+                const progressStep = 15 + Math.round(((i + 1) / images.length) * 45);
+                setUploadProgress(progressStep);
+
+                const singleFormData = new FormData();
+                // Tu backend espera la clave 'images' según tus endpoints de Axios
+                singleFormData.append('images', images[i].file);
+
+                const uploadRes = await fetch(`${apiUrl}/portfolio/upload-images`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                        // NOTA: Dejar que el navegador ponga automáticamente el Content-Type con el boundary correcto
+                    },
+                    body: singleFormData
+                });
+
+                if (!uploadRes.ok) {
+                    throw new Error(`Error al subir la imagen número ${i + 1}`);
+                }
+
+                const result = await uploadRes.json();
+
+                // Mapear de forma segura la estructura de respuesta de tu backend
+                // Tu API devuelve las imágenes procesadas de Cloudinary dentro de estos posibles nodos:
+                const targetImages = result.data?.message?.images ||
+                    result.data?.images ||
+                    result.message?.images ||
+                    result.images;
+
+                if (targetImages && targetImages.length > 0) {
+                    // Tomamos el primer elemento ya que mandamos solo una imagen en este ciclo
+                    uploadedImages.push(targetImages[0]);
+                } else {
+                    throw new Error('El servidor no retornó los datos de la imagen correctamente');
+                }
+            }
+
+            setUploadProgress(70);
+
+            // Preparar datos de imágenes mapeando su estado 'isThumbnail' original
             const portfolioImages = uploadedImages.map((img: any, index: number) => ({
                 ...img,
                 isThumbnail: images[index]?.isThumbnail || false
             }));
 
-            setUploadProgress(60);
-
-            // 2. Crear el item del portfolio
+            // 2. Crear el item del portfolio usando tu hook existente
             const portfolioData = {
                 ...formData,
                 images: portfolioImages,
