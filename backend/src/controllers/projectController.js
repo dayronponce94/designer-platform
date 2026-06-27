@@ -6,6 +6,15 @@ const path = require('path');
 const fs = require('fs');
 const NotificationHelper = require('../utils/notifications');
 const User = require('../models/User');
+const env = require('../config/env');
+const cloudinary = require('cloudinary').v2;
+
+
+cloudinary.config({
+    cloud_name: env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: env.CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY,
+    api_secret: env.CLOUDINARY_API_SECRET || process.env.CLOUDINARY_API_SECRET
+});
 
 
 // Configurar almacenamiento para archivos
@@ -511,7 +520,7 @@ const uploadDeliverable = asyncHandler(async (req, res) => {
         return res.status(403).json(ApiResponse.forbidden('No eres el diseñador asignado a este proyecto').toJSON());
     }
 
-    // Configurar multer para un solo archivo
+    // Configurar multer para un archivo temporal en disco
     const uploadSingle = multer({
         storage: multer.diskStorage({
             destination: (req, file, cb) => {
@@ -545,10 +554,34 @@ const uploadDeliverable = asyncHandler(async (req, res) => {
         }
 
         const { version, notes } = req.body;
-        const env = require('../config/env');
+        let finalUrl = '';
+
+        try {
+            // SUBIDA DINÁMICA A CLOUDINARY PARA SOPORTAR RAR/ZIP
+            const result = await cloudinary.uploader.upload(req.file.path, {
+                folder: 'deliverables',
+                resource_type: 'raw', // Forzar tipo binario para que acepte .rar, .zip, etc.
+                public_id: req.file.filename
+            });
+
+            // Asignamos la URL segura de Cloudinary que funciona en local y producción
+            finalUrl = result.secure_url;
+
+            // Limpieza: Eliminamos el archivo temporal del disco local para mantener limpio el servidor
+            if (fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
+
+        } catch (cloudinaryError) {
+            // Si falla la nube, limpiamos el archivo temporal y arrojamos el error
+            if (fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
+            return res.status(500).json(ApiResponse.error(`Error al subir a Cloudinary: ${cloudinaryError.message}`, 500).toJSON());
+        }
 
         const deliverable = {
-            url: `${env.SERVER_URL}/uploads/deliverables/${req.file.filename}`,
+            url: finalUrl, // 🔗 Cambiado a la URL global de Cloudinary
             filename: req.file.originalname,
             filetype: req.file.mimetype,
             size: req.file.size,
@@ -565,12 +598,10 @@ const uploadDeliverable = asyncHandler(async (req, res) => {
 
         await project.save();
 
-        // --- NUEVO: NOTIFICACIONES DE ENTREGA ---
+        // --- NOTIFICACIONES DE ENTREGA ---
         try {
             const projectTitle = project.title || 'Tu proyecto';
             const titleNotification = 'Nuevo Entregable Subido';
-
-            // CORRECCIÓN AQUÍ: Apuntamos a deliverable.version que sí existe
             const messageNotification = `Se ha subido la versión v${deliverable.version} del entregable para el proyecto "${projectTitle}".`;
 
             // 1. Notificar al Cliente
