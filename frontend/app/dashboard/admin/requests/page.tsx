@@ -225,7 +225,7 @@ export default function AdminRequestsPage() {
             <div className="bg-white rounded-xl shadow overflow-hidden">
                 {isLoading ? (
                     <div className="text-center py-12">
-                        <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                         <p className="text-gray-600">Cargando solicitudes...</p>
                     </div>
                 ) : requests.length === 0 ? (
