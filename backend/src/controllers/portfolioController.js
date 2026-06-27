@@ -205,6 +205,7 @@ exports.deletePortfolioItem = asyncHandler(async (req, res, next) => {
 // @desc    Subir imágenes para el portafolio
 // @route   POST /api/portfolio/upload-images
 // @access  Privado (solo diseñador)
+// C:\Users\dayri\Documents\DesignerProject\backend\src\controllers\portfolioController.js
 exports.uploadPortfolioImages = asyncHandler(async (req, res, next) => {
     if (!req.files || req.files.length === 0) {
         return res.status(400).json({
@@ -213,10 +214,10 @@ exports.uploadPortfolioImages = asyncHandler(async (req, res, next) => {
         });
     }
 
-    // Procesar las imágenes subidas
+    // PROCESAR LAS IMÁGENES DESDE CLOUDINARY
     const images = req.files.map(file => ({
-        url: `${process.env.SERVER_URL}/uploads/portfolio/${file.filename}`,
-        filename: file.originalname,
+        url: file.path, // 'file.path' contiene la URL pública de Cloudinary (https://res.cloudinary.com/...)
+        filename: file.originalname || file.filename,
         isThumbnail: false,
         uploadedAt: new Date()
     }));
