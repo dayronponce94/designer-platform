@@ -74,6 +74,7 @@ export default function DesignerPortfolioPage() {
     };
 
 
+    {/*  
     if (loading && items.length === 0) {
         return (
             <div className="flex justify-center items-center min-h-100">
@@ -83,7 +84,7 @@ export default function DesignerPortfolioPage() {
                 </div>
             </div>
         );
-    }
+    }*/}
 
     return (
         <div className="space-y-6">
@@ -169,211 +170,219 @@ export default function DesignerPortfolioPage() {
             )}
 
             {/* Contenido del portafolio */}
-            {items.length === 0 ? (
-                <div className="bg-white rounded-xl shadow p-8 text-center">
-                    <FiImage className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-xl font-medium text-gray-900 mb-2">
-                        {filters.search || filters.category !== 'all' ? 'No hay resultados' : 'Tu portafolio está vacío'}
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                        {filters.search || filters.category !== 'all'
-                            ? 'Intenta con otros términos de búsqueda o selecciona otra categoría'
-                            : 'Agrega tus mejores trabajos para atraer más clientes y mostrar tu experiencia.'
-                        }
-                    </p>
-                    {(!filters.search && filters.category === 'all') && (
-                        <button
-                            onClick={() => router.push('/dashboard/designer/portfolio/upload')}
-                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        >
-                            <FiPlus className="inline mr-2" />
-                            Agregar primer trabajo
-                        </button>
-                    )}
+            {loading ? (
+                <div className="flex justify-center items-center py-20">
+                    <div className="text-center">
+                        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                        <p className="text-gray-500">Cargando portafolio...</p>
+                    </div>
                 </div>
-            ) : viewMode === 'grid' ? (
-                // Vista Grid
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {items.map(item => {
-                        const thumbnail = item.images.find(img => img.isThumbnail) || item.images[0];
-
-                        return (
-                            <div key={item._id} className="bg-white rounded-xl shadow overflow-hidden hover:shadow-lg transition-shadow group">
-                                {/* Imagen */}
-                                <div className="relative aspect-video bg-gray-100 overflow-hidden">
-                                    {thumbnail ? (
-                                        <img
-                                            src={thumbnail.url}
-                                            alt={item.title}
-                                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center">
-                                            <FiImage className="w-12 h-12 text-gray-300" />
-                                        </div>
-                                    )}
-
-                                    {/* Badges */}
-                                    <div className="absolute top-3 left-3 flex space-x-2">
-                                        <span className="px-2 py-1 bg-white bg-opacity-90 text-xs font-medium rounded">
-                                            {getCategoryLabel(item.category)}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Contenido */}
-                                <div className="p-4">
-                                    <h3 className="font-bold text-gray-900 mb-2 line-clamp-1">
-                                        {item.title}
-                                    </h3>
-                                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                                        {item.description}
-                                    </p>
-
-                                    {/* Botones de acción - Siempre visibles */}
-                                    <div className="flex items-center space-x-2">
-                                        <button
-                                            onClick={() => router.push(`/dashboard/designer/portfolio/${item._id}`)}
-                                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                            title="Detalles"
-                                        >
-                                            <FiEye className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => router.push(`/dashboard/designer/portfolio/edit/${item._id}`)}
-                                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
-                                            title="Editar"
-                                        >
-                                            <FiEdit className="mr-1" />
-                                        </button>
-                                        <button
-                                            onClick={() => setDeleteConfirm(item._id)}
-                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                                            title="Eliminar"
-                                        >
-                                            <FiTrash2 className="mr-1" />
-                                        </button>
-                                    </div>
-
-                                    <div className="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-3">
-                                        <div className="flex items-center">
-                                            <FiCalendar className="mr-1" />
-                                            <span>{formatDate(item.createdAt)}</span>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <FiImage className="mr-1" />
-                                            <span>{item.images.length} {item.images.length === 1 ? 'imagen' : 'imágenes'}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Tags */}
-                                    {item.tags.length > 0 && (
-                                        <div className="flex flex-wrap gap-1 mt-3">
-                                            {item.tags.slice(0, 3).map(tag => (
-                                                <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                                                    {tag}
-                                                </span>
-                                            ))}
-                                            {item.tags.length > 3 && (
-                                                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                                                    +{item.tags.length - 3}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            ) : (
-                // Vista Lista
-                <div className="bg-white rounded-xl shadow overflow-hidden">
-                    <div className="divide-y divide-gray-100">
+            ) :
+                items.length === 0 ? (
+                    <div className="bg-white rounded-xl shadow p-8 text-center">
+                        <FiImage className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-medium text-gray-900 mb-2">
+                            {filters.search || filters.category !== 'all' ? 'No hay resultados' : 'Tu portafolio está vacío'}
+                        </h3>
+                        <p className="text-gray-600 mb-6">
+                            {filters.search || filters.category !== 'all'
+                                ? 'Intenta con otros términos de búsqueda o selecciona otra categoría'
+                                : 'Agrega tus mejores trabajos para atraer más clientes y mostrar tu experiencia.'
+                            }
+                        </p>
+                        {(!filters.search && filters.category === 'all') && (
+                            <button
+                                onClick={() => router.push('/dashboard/designer/portfolio/upload')}
+                                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            >
+                                <FiPlus className="inline mr-2" />
+                                Agregar primer trabajo
+                            </button>
+                        )}
+                    </div>
+                ) : viewMode === 'grid' ? (
+                    // Vista Grid
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {items.map(item => {
                             const thumbnail = item.images.find(img => img.isThumbnail) || item.images[0];
 
                             return (
-                                <div key={item._id} className="p-6 hover:bg-gray-50 transition-colors">
-                                    <div className="flex items-start space-x-4">
-                                        {/* Miniatura */}
-                                        <div className="w-32 h-24 bg-gray-100 rounded-lg overflow-hidden shrink-0">
-                                            {thumbnail ? (
-                                                <img
-                                                    src={thumbnail.url}
-                                                    alt={item.title}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    <FiImage className="w-8 h-8 text-gray-300" />
-                                                </div>
-                                            )}
+                                <div key={item._id} className="bg-white rounded-xl shadow overflow-hidden hover:shadow-lg transition-shadow group">
+                                    {/* Imagen */}
+                                    <div className="relative aspect-video bg-gray-100 overflow-hidden">
+                                        {thumbnail ? (
+                                            <img
+                                                src={thumbnail.url}
+                                                alt={item.title}
+                                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <FiImage className="w-12 h-12 text-gray-300" />
+                                            </div>
+                                        )}
+
+                                        {/* Badges */}
+                                        <div className="absolute top-3 left-3 flex space-x-2">
+                                            <span className="px-2 py-1 bg-white bg-opacity-90 text-xs font-medium rounded">
+                                                {getCategoryLabel(item.category)}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Contenido */}
+                                    <div className="p-4">
+                                        <h3 className="font-bold text-gray-900 mb-2 line-clamp-1">
+                                            {item.title}
+                                        </h3>
+                                        <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                                            {item.description}
+                                        </p>
+
+                                        {/* Botones de acción - Siempre visibles */}
+                                        <div className="flex items-center space-x-2">
+                                            <button
+                                                onClick={() => router.push(`/dashboard/designer/portfolio/${item._id}`)}
+                                                className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                title="Detalles"
+                                            >
+                                                <FiEye className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => router.push(`/dashboard/designer/portfolio/edit/${item._id}`)}
+                                                className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                                                title="Editar"
+                                            >
+                                                <FiEdit className="mr-1" />
+                                            </button>
+                                            <button
+                                                onClick={() => setDeleteConfirm(item._id)}
+                                                className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                title="Eliminar"
+                                            >
+                                                <FiTrash2 className="mr-1" />
+                                            </button>
                                         </div>
 
-                                        {/* Información */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-start justify-between mb-2">
-                                                <div>
-                                                    <h3 className="font-bold text-gray-900 mb-1">
-                                                        {item.title}
-                                                    </h3>
-                                                    <div className="flex items-center space-x-2 text-sm text-gray-500">
-                                                        <span className="px-2 py-1 bg-gray-100 rounded">
-                                                            {getCategoryLabel(item.category)}
-                                                        </span>
-                                                        <span>{formatDate(item.createdAt)}</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center space-x-2">
-                                                    <button
-                                                        onClick={() => router.push(`/dashboard/designer/portfolio/${item._id}`)}
-                                                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                                        title="Detalles"
-                                                    >
-                                                        <FiEye className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => router.push(`/dashboard/designer/portfolio/edit/${item._id}`)}
-                                                        className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
-                                                        title="Editar"
-                                                    >
-                                                        <FiEdit className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setDeleteConfirm(item._id)}
-                                                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                                                        title="Eliminar"
-                                                    >
-                                                        <FiTrash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
+                                        <div className="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-3">
+                                            <div className="flex items-center">
+                                                <FiCalendar className="mr-1" />
+                                                <span>{formatDate(item.createdAt)}</span>
                                             </div>
+                                            <div className="flex items-center">
+                                                <FiImage className="mr-1" />
+                                                <span>{item.images.length} {item.images.length === 1 ? 'imagen' : 'imágenes'}</span>
+                                            </div>
+                                        </div>
 
-                                            <p className="text-gray-600 mb-3 line-clamp-2">
-                                                {item.description}
-                                            </p>
-
-                                            <div className="flex items-center justify-between">
-                                                {item.tags.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {item.tags.slice(0, 3).map(tag => (
-                                                            <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                                                                {tag}
-                                                            </span>
-                                                        ))}
-                                                    </div>
+                                        {/* Tags */}
+                                        {item.tags.length > 0 && (
+                                            <div className="flex flex-wrap gap-1 mt-3">
+                                                {item.tags.slice(0, 3).map(tag => (
+                                                    <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                                {item.tags.length > 3 && (
+                                                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                                        +{item.tags.length - 3}
+                                                    </span>
                                                 )}
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
-                </div>
-            )}
+                ) : (
+                    // Vista Lista
+                    <div className="bg-white rounded-xl shadow overflow-hidden">
+                        <div className="divide-y divide-gray-100">
+                            {items.map(item => {
+                                const thumbnail = item.images.find(img => img.isThumbnail) || item.images[0];
+
+                                return (
+                                    <div key={item._id} className="p-6 hover:bg-gray-50 transition-colors">
+                                        <div className="flex items-start space-x-4">
+                                            {/* Miniatura */}
+                                            <div className="w-32 h-24 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                                                {thumbnail ? (
+                                                    <img
+                                                        src={thumbnail.url}
+                                                        alt={item.title}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <FiImage className="w-8 h-8 text-gray-300" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Información */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-start justify-between mb-2">
+                                                    <div>
+                                                        <h3 className="font-bold text-gray-900 mb-1">
+                                                            {item.title}
+                                                        </h3>
+                                                        <div className="flex items-center space-x-2 text-sm text-gray-500">
+                                                            <span className="px-2 py-1 bg-gray-100 rounded">
+                                                                {getCategoryLabel(item.category)}
+                                                            </span>
+                                                            <span>{formatDate(item.createdAt)}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center space-x-2">
+                                                        <button
+                                                            onClick={() => router.push(`/dashboard/designer/portfolio/${item._id}`)}
+                                                            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                            title="Detalles"
+                                                        >
+                                                            <FiEye className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => router.push(`/dashboard/designer/portfolio/edit/${item._id}`)}
+                                                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                                                            title="Editar"
+                                                        >
+                                                            <FiEdit className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setDeleteConfirm(item._id)}
+                                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                            title="Eliminar"
+                                                        >
+                                                            <FiTrash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-gray-600 mb-3 line-clamp-2">
+                                                    {item.description}
+                                                </p>
+
+                                                <div className="flex items-center justify-between">
+                                                    {item.tags.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {item.tags.slice(0, 3).map(tag => (
+                                                                <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                                                                    {tag}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
             {/* Modal de confirmación de eliminación */}
             <ConfirmModal
