@@ -108,7 +108,10 @@ export default function ProjectDetailPage() {
         try {
             setIsLoading(true);
             const token = localStorage.getItem('token');
-            const response = await fetch(`/api/projects/${projectId}`, {
+
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+            const response = await fetch(`${apiUrl}/projects/${projectId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
