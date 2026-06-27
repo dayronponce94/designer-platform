@@ -406,14 +406,14 @@ export default function AdminDashboardPage() {
                     </Link>
 
                     <Link
-                        href="/dashboard/admin/projects?hasDesigner=false"
+                        href="/dashboard/admin/client-quotes"
                         className="p-4 bg-green-50 border border-green-100 rounded-lg hover:bg-green-100 transition-colors"
                     >
                         <div className="flex items-center">
                             <FiBriefcase className="text-green-600 mr-3" />
                             <div>
-                                <h3 className="font-medium text-gray-900">Asignar Diseñadores</h3>
-                                <p className="text-sm text-gray-500">Proyectos sin asignar</p>
+                                <h3 className="font-medium text-gray-900">Cotizar Solicitudes</h3>
+                                <p className="text-sm text-gray-500">Solicitudes sin cotizar</p>
                             </div>
                         </div>
                     </Link>
