@@ -136,16 +136,43 @@ export function usePortfolio(): UsePortfolioReturn {
 
     const uploadImages = useCallback(async (files: File[]) => {
         try {
-            const formData = new FormData();
-            files.forEach(file => {
-                formData.append('images', file);
-            });
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+            const token = localStorage.getItem('token');
+            const allUploadedImages: any[] = [];
 
-            const response = await portfolioAPI.uploadPortfolioImages(formData);
+            // Iteramos de manera secuencial para evitar desbordes en el protocolo HTTP2 de la nube
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append('images', file); // Asegúrate de mantener la clave 'images' que espera tu backend
 
-            return response.data.message.images;
+                const response = await fetch(`${apiUrl}/portfolio/upload-images`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'Error en el servidor al subir una de las imágenes');
+                }
+
+                const result = await response.json();
+
+                // Mapeamos el resultado tal cual lo entregaba tu API masiva original
+                if (result.data?.message?.images) {
+                    allUploadedImages.push(...result.data.message.images);
+                } else if (result.data?.images) {
+                    allUploadedImages.push(...result.data.images);
+                } else if (result.message?.images) {
+                    allUploadedImages.push(...result.message.images);
+                }
+            }
+
+            return allUploadedImages;
         } catch (err: any) {
-            throw new Error(err.response?.data?.message || 'Error al subir las imágenes');
+            throw new Error(err.message || 'Error al subir las imágenes');
         }
     }, []);
 
