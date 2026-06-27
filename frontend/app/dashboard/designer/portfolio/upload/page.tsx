@@ -191,28 +191,24 @@ export default function UploadPortfolioPage() {
 
             setUploadProgress(15);
 
-            // 🛠️ Detectar dinámicamente el entorno (Local o Nube)
-            // Si hay variable NEXT_PUBLIC_API_URL la usa, si no, usa el fallback local
+            // Detectar dinámicamente el entorno (Local o Nube)
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
             const token = localStorage.getItem('token');
 
-            const uploadedImages: any[] = [];
+            const uploadedImages = [];
 
             // 1. Subir las imágenes una a una para evitar el error de protocolo HTTP2 en la nube
             for (let i = 0; i < images.length; i++) {
-                // Actualizar progreso visualmente según el archivo que va subiendo
                 const progressStep = 15 + Math.round(((i + 1) / images.length) * 45);
                 setUploadProgress(progressStep);
 
                 const singleFormData = new FormData();
-                // Tu backend espera la clave 'images' según tus endpoints de Axios
                 singleFormData.append('images', images[i].file);
 
                 const uploadRes = await fetch(`${apiUrl}/portfolio/upload-images`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
-                        // NOTA: Dejar que el navegador ponga automáticamente el Content-Type con el boundary correcto
                     },
                     body: singleFormData
                 });
@@ -223,18 +219,19 @@ export default function UploadPortfolioPage() {
 
                 const result = await uploadRes.json();
 
-                // Mapear de forma segura la estructura de respuesta de tu backend
-                // Tu API devuelve las imágenes procesadas de Cloudinary dentro de estos posibles nodos:
-                const targetImages = result.data?.message?.images ||
+                // 🛠️ EXTRACTOR ULTRA-SEGURO: Busca la propiedad 'images' en cualquier rincón del JSON
+                const currentImagesArray = result.message?.images ||
                     result.data?.images ||
-                    result.message?.images ||
+                    result.data?.message?.images ||
                     result.images;
 
-                if (targetImages && targetImages.length > 0) {
-                    // Tomamos el primer elemento ya que mandamos solo una imagen en este ciclo
-                    uploadedImages.push(targetImages[0]);
+                if (currentImagesArray && currentImagesArray.length > 0) {
+                    // Extraemos la primera imagen devuelta por este ciclo
+                    uploadedImages.push(currentImagesArray[0]);
                 } else {
-                    throw new Error('El servidor no retornó los datos de la imagen correctamente');
+                    // Si falla el mapeo, imprimimos en consola para que veas la estructura real exacta
+                    console.log("Estructura recibida del backend:", result);
+                    throw new Error('El servidor no retornó la estructura de imágenes esperada');
                 }
             }
 
