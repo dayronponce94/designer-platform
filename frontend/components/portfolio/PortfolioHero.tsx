@@ -42,7 +42,7 @@ export default function PortfolioHero() {
                             </div>
                             <div className="flex items-center justify-center lg:justify-start">
                                 <FiMail className="mr-3 text-blue-300" />
-                                <span>verallero@gmail.com</span>
+                                <span>llerandi.design@gmail.com</span>
                             </div>
                             <div className="flex items-center justify-center lg:justify-start">
                                 <FiMapPin className="mr-3 text-blue-300" />

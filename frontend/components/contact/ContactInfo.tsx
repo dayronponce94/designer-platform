@@ -2,7 +2,7 @@ import { FiMail, FiPhone, FiMapPin, FiGlobe, FiClock, FiUsers } from 'react-icon
 
 export default function ContactInfo() {
     const contactInfo = {
-        email: 'verallero@gmail.com',
+        email: 'llerandi.design@gmail.com',
         phone: '+351 932 193 252',
         location: 'Porto, Portugal',
         languages: ['Español', 'Portugués', 'Inglés'],
